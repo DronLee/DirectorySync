@@ -5,7 +5,7 @@ namespace DirectorySync.Models
     /// <summary>
     /// Элемент синхронизации.
     /// </summary>
-    internal interface IItem
+    public interface IItem
     {
         /// <summary>
         /// Наименование элемента.

@@ -3,7 +3,7 @@
     /// <summary>
     /// Директория.
     /// </summary>
-    internal interface IDirectory : IItem
+    public interface IDirectory : IItem
     {
         /// <summary>
         /// Коллекция элементов в директории.

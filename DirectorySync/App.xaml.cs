@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using System.Windows;
 using DirectorySync.Views;
+using DirectorySync.ViewModels;
 
 namespace DirectorySync
 {
@@ -15,6 +16,7 @@ namespace DirectorySync
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MainWindow>();
+            containerBuilder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>();
 
             var container = containerBuilder.Build();
             container.Resolve<MainWindow>().Show();
