@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace DirectorySync
+namespace DirectorySync.Views
 {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
