@@ -2,6 +2,7 @@
 using System.Windows;
 using DirectorySync.Views;
 using DirectorySync.ViewModels;
+using DirectorySync.Models;
 
 namespace DirectorySync
 {
@@ -17,6 +18,7 @@ namespace DirectorySync
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterType<MainWindow>();
             containerBuilder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>();
+            containerBuilder.RegisterType<ItemFactory>().As<IItemFactory>().SingleInstance();
 
             var container = containerBuilder.Build();
             container.Resolve<MainWindow>().Show();
