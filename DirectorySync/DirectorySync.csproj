@@ -66,6 +66,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Models\Directory.cs" />
+    <Compile Include="Models\File.cs" />
+    <Compile Include="Models\IItemFactory.cs" />
+    <Compile Include="Models\ISynchronizedDirectories.cs" />
+    <Compile Include="Models\ItemFactory.cs" />
+    <Compile Include="Models\SynchronizedDirectories.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
