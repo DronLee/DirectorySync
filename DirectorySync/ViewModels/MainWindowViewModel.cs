@@ -1,12 +1,29 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DirectorySync.Models;
 
 namespace DirectorySync.ViewModels
 {
     public class MainWindowViewModel : IMainWindowViewModel
     {
-        public IDirectory[] LeftDirectories => throw new NotImplementedException();
+        private readonly List<ISynchronizedDirectories> _synchronizedDirectoriesList;
+        private readonly IItemFactory _itemFactory; 
 
-        public IDirectory[] RightDirectories => throw new NotImplementedException();
+        public MainWindowViewModel(ISynchronizedDirectories[] synchronizedDirectoriesList, IItemFactory itemFactory)
+        {
+            _synchronizedDirectoriesList = synchronizedDirectoriesList.ToList();
+            _itemFactory = itemFactory;
+        }
+
+        public IDirectory[] LeftDirectories { get; }
+
+        public IDirectory[] RightDirectories { get; }
+
+        public async Task Load()
+        {
+            foreach(var synchronizedDirectories in _synchronizedDirectoriesList)
+                await synchronizedDirectories.Load();
+        }
     }
 }

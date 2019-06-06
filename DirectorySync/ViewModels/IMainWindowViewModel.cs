@@ -1,4 +1,5 @@
 ﻿using DirectorySync.Models;
+using System.Threading.Tasks;
 
 namespace DirectorySync.ViewModels
 {
@@ -7,5 +8,7 @@ namespace DirectorySync.ViewModels
         IDirectory[] LeftDirectories { get; }
 
         IDirectory[] RightDirectories { get; }
+
+        Task Load();
     }
 }
