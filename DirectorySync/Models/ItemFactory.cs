@@ -4,7 +4,7 @@
     {
         public IDirectory CreateDirectory(string directoryPath)
         {
-            return new Directory(directoryPath);
+            return new Directory(directoryPath, this);
         }
 
         public IItem CreateFile(string filePath)
