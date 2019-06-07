@@ -70,8 +70,10 @@
     <Compile Include="Models\File.cs" />
     <Compile Include="Models\IItemFactory.cs" />
     <Compile Include="Models\ISynchronizedDirectories.cs" />
+    <Compile Include="Models\ISynchronizedDirectoriesManager.cs" />
     <Compile Include="Models\ItemFactory.cs" />
     <Compile Include="Models\SynchronizedDirectories.cs" />
+    <Compile Include="Models\SynchronizedDirectoriesManager.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
