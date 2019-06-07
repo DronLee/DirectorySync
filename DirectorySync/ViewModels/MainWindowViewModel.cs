@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DirectorySync.Models;
@@ -7,23 +8,11 @@ namespace DirectorySync.ViewModels
 {
     public class MainWindowViewModel : IMainWindowViewModel
     {
-        private readonly List<ISynchronizedDirectories> _synchronizedDirectoriesList;
-        private readonly IItemFactory _itemFactory; 
+        private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
 
-        public MainWindowViewModel(ISynchronizedDirectories[] synchronizedDirectoriesList, IItemFactory itemFactory)
+        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager)
         {
-            _synchronizedDirectoriesList = synchronizedDirectoriesList.ToList();
-            _itemFactory = itemFactory;
-        }
-
-        public IDirectory[] LeftDirectories { get; }
-
-        public IDirectory[] RightDirectories { get; }
-
-        public async Task Load()
-        {
-            foreach(var synchronizedDirectories in _synchronizedDirectoriesList)
-                await synchronizedDirectories.Load();
+            _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
         }
     }
 }
