@@ -7,7 +7,7 @@ namespace DirectorySync.Models
     internal class Directory : IDirectory
     {
         private readonly IItemFactory _itemFactory;
-        private readonly List<IItem> items;
+        private readonly List<IItem> _items;
 
         internal Directory(string fullPath, IItemFactory itemFactory)
         {
@@ -17,9 +17,11 @@ namespace DirectorySync.Models
             LastUpdate = info.LastWriteTime;
 
             _itemFactory = itemFactory;
+
+            _items = new List<IItem>();
         }
 
-        public IItem[] Items => items.ToArray();
+        public IItem[] Items => _items.ToArray();
 
         public string Name { get; }
 
@@ -32,13 +34,13 @@ namespace DirectorySync.Models
             await Task.Run(() =>
             {
                 foreach (var directoryPath in System.IO.Directory.GetDirectories(FullPath))
-                    items.Add(_itemFactory.CreateDirectory(directoryPath));
+                    _items.Add(_itemFactory.CreateDirectory(directoryPath));
             });
 
             await Task.Run(() =>
             {
                 foreach (var filePath in System.IO.Directory.GetFiles(FullPath))
-                    items.Add(_itemFactory.CreateFile(filePath));
+                    _items.Add(_itemFactory.CreateFile(filePath));
             });
         }
     }
