@@ -3,6 +3,7 @@ using System.Windows;
 using DirectorySync.Views;
 using DirectorySync.ViewModels;
 using DirectorySync.Models;
+using DirectorySync.Properties;
 
 namespace DirectorySync
 {
@@ -16,9 +17,13 @@ namespace DirectorySync
             base.OnStartup(e);
 
             var containerBuilder = new ContainerBuilder();
-            containerBuilder.RegisterType<MainWindow>();
-            containerBuilder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>();
+            containerBuilder.RegisterType<MainWindow>().SingleInstance();
+            containerBuilder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>().SingleInstance();
             containerBuilder.RegisterType<ItemFactory>().As<IItemFactory>().SingleInstance();
+
+            containerBuilder.RegisterType<SynchronizedDirectoriesManager>().As<ISynchronizedDirectoriesManager>().SingleInstance()
+                .WithParameter("leftDirectories", Settings.Default.LeftDirectories)
+                .WithParameter("rightDirectories", Settings.Default.RightDirectories);
 
             var container = containerBuilder.Build();
             container.Resolve<MainWindow>().Show();
