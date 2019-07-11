@@ -27,8 +27,8 @@ namespace DirectorySync.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>C:\Программирование</string>
-  <string>C:\Users\avolkov\Documents</string>
+  <string>C:\Программирование\ASP\AppState</string>
+  <string>C:\Программирование\ASP\CacheState</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection LeftDirectories {
             get {
@@ -38,10 +38,11 @@ namespace DirectorySync.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
-            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
-            "tring>D:\\Программирование</string>\r\n  <string>D:\\Documents</string>\r\n</ArrayOfSt" +
-            "ring>")]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <string>c:\Users\avolkov\Desktop\TestSync\AppState</string>
+  <string>c:\Users\avolkov\Desktop\TestSync\CacheState</string>
+</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection RightDirectories {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["RightDirectories"]));
