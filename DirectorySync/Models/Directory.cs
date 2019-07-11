@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DirectorySync.Models
@@ -8,6 +9,8 @@ namespace DirectorySync.Models
     {
         private readonly IItemFactory _itemFactory;
         private readonly List<IItem> _items;
+
+        public event Changed ItemCollectionChangedEvent;
 
         internal Directory(string fullPath, IItemFactory itemFactory)
         {
@@ -42,6 +45,11 @@ namespace DirectorySync.Models
                 foreach (var filePath in System.IO.Directory.GetFiles(FullPath))
                     _items.Add(_itemFactory.CreateFile(filePath));
             });
+
+            foreach (IDirectory directory in _items.Where(i => i is IDirectory))
+                await directory.Load();
+
+            ItemCollectionChangedEvent?.Invoke();
         }
     }
 }

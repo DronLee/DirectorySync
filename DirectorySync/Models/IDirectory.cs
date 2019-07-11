@@ -16,5 +16,10 @@ namespace DirectorySync.Models
         /// Загрузка элементов директории.
         /// </summary>
         Task Load();
+
+        /// <summary>
+        /// Был изменён состав входящих элементов.
+        /// </summary>
+        event Changed ItemCollectionChangedEvent;
     }
 }
