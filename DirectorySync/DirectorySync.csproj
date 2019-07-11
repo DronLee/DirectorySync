@@ -72,6 +72,7 @@
     <Compile Include="Models\ISynchronizedDirectories.cs" />
     <Compile Include="Models\ISynchronizedDirectoriesManager.cs" />
     <Compile Include="Models\ItemFactory.cs" />
+    <Compile Include="Models\ItemStatus.cs" />
     <Compile Include="Models\SynchronizedDirectories.cs" />
     <Compile Include="Models\SynchronizedDirectoriesManager.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
