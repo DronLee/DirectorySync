@@ -8,6 +8,8 @@ namespace DirectorySync.Models
 
         IDirectory[] RightDirectories { get; }
 
+        ISynchronizedDirectories[] SynchronizedDirectories { get; }
+
         Task Load();
     }
 }

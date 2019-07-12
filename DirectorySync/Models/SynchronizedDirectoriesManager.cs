@@ -24,6 +24,8 @@ namespace DirectorySync.Models
 
         public IDirectory[] RightDirectories => _synchronizedDirectoriesList.Select(d => d.RightDirectory).ToArray();
 
+        public ISynchronizedDirectories[] SynchronizedDirectories => _synchronizedDirectoriesList.ToArray();
+
         public async Task Load()
         {
             foreach (var synchronizedDirectories in _synchronizedDirectoriesList)
