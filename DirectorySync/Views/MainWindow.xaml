@@ -17,20 +17,43 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition />
         </Grid.RowDefinitions>
-        
-        <DataGrid Grid.Column="0" ItemsSource="{Binding LeftDirectories}">
-            
-        </DataGrid>
 
-        <DataGrid Grid.Column="2" ItemsSource="{Binding RightDirectories}">
+        <DataGrid AutoGenerateColumns="False"  ItemsSource="{Binding SynchronizedItemsArray}">
+            <DataGrid.Columns>
 
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TreeView ItemsSource="{Binding LeftItem}">
+                                <TreeView.ItemTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding Items}">
+                                        <Label Content="{Binding LeftItem.Name}" />
+                                    </HierarchicalDataTemplate>
+                                </TreeView.ItemTemplate>
+                            </TreeView>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TreeView ItemsSource="{Binding RightItem}">
+                                <TreeView.ItemTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding Items}">
+                                        <Label Content="{Binding Name}" />
+                                    </HierarchicalDataTemplate>
+                                </TreeView.ItemTemplate>
+                            </TreeView>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
         </DataGrid>
-        
     </Grid>
 </Window>
