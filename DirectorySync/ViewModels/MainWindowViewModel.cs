@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using DirectorySync.Models;
 
@@ -14,9 +12,11 @@ namespace DirectorySync.ViewModels
 
         private ICommand _loadDirectoriesCommand;
 
-        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager)
+        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IItemViewModelFactory itemViewModelFactory)
         {
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
+            SynchronizedItemsArray = new ObservableCollection<ISynchronizedItemsViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
+                itemViewModelFactory.CreateSynchronizedDirectoriesViewModel(d)));
         }
 
         public ICommand LoadDirectoriesCommand
@@ -29,15 +29,14 @@ namespace DirectorySync.ViewModels
             }
         }
 
-        public ISynchronizedDataRow[] SynchronizedDataRows => throw new NotImplementedException();
-
-        ICommand IMainWindowViewModel.LoadDirectoriesCommand { get => throw new NotImplementedException(); }
+        public ObservableCollection<ISynchronizedItemsViewModel> SynchronizedItemsArray { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         private async void LoadDirectories()
         {
             await _synchronizedDirectoriesManager.Load();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SynchronizedItemsArray)));
         }
     }
 }

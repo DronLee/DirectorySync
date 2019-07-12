@@ -79,19 +79,20 @@
     <Compile Include="Models\ISynchronizedDirectories.cs" />
     <Compile Include="Models\ISynchronizedDirectoriesManager.cs" />
     <Compile Include="Models\ItemFactory.cs" />
+    <Compile Include="Models\ItemStatusEnum.cs" />
     <Compile Include="Models\ItemStatus.cs" />
     <Compile Include="Models\SynchronizedDirectories.cs" />
     <Compile Include="Models\SynchronizedDirectoriesManager.cs" />
     <Compile Include="ViewModels\Command.cs" />
+    <Compile Include="ViewModels\Delegates.cs" />
     <Compile Include="ViewModels\IItemViewModelFactory.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
-    <Compile Include="ViewModels\ISynchronizedDataRow.cs" />
-    <Compile Include="ViewModels\ISynchronizedDirectoryViewModel.cs" />
-    <Compile Include="ViewModels\ISynchronizedItemViewModel.cs" />
+    <Compile Include="ViewModels\IItemViewModel.cs" />
+    <Compile Include="ViewModels\ISynchronizedItemsViewModel.cs" />
     <Compile Include="ViewModels\ItemViewModelFactory.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
-    <Compile Include="ViewModels\SynchronizedDirectoryViewModel.cs" />
-    <Compile Include="ViewModels\SynchronizedFileViewModel.cs" />
+    <Compile Include="ViewModels\ItemViewModel.cs" />
+    <Compile Include="ViewModels\SynchronizedItemsViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
