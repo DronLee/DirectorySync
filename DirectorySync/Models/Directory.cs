@@ -10,7 +10,7 @@ namespace DirectorySync.Models
         private readonly IItemFactory _itemFactory;
         private readonly List<IItem> _items;
 
-        public event Changed ItemCollectionChangedEvent;
+        public event LoadedDirectory LoadedDirectoryEvent;
 
         internal Directory(string fullPath, IItemFactory itemFactory)
         {
@@ -49,7 +49,7 @@ namespace DirectorySync.Models
             foreach (IDirectory directory in _items.Where(i => i is IDirectory))
                 await directory.Load();
 
-            ItemCollectionChangedEvent?.Invoke();
+            LoadedDirectoryEvent?.Invoke(this);
         }
     }
 }

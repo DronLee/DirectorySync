@@ -18,8 +18,8 @@ namespace DirectorySync.Models
         Task Load();
 
         /// <summary>
-        /// Был изменён состав входящих элементов.
+        /// Директоиря была загружена.
         /// </summary>
-        event Changed ItemCollectionChangedEvent;
+        event LoadedDirectory LoadedDirectoryEvent;
     }
 }

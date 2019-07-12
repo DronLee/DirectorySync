@@ -1,4 +1,4 @@
 ﻿namespace DirectorySync.Models
 {
-    public delegate void Changed();
+    public delegate void LoadedDirectory(IDirectory directory);
 }
