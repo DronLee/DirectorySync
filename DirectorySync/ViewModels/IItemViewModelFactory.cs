@@ -4,8 +4,12 @@ namespace DirectorySync.ViewModels
 {
     public interface IItemViewModelFactory
     {
-        ISynchronizedDirectoryViewModel CreateDirectoryViewModel(IDirectory directory);
+        event CreatedItems CreatedItemsEvent;
 
-        ISynchronizedItemViewModel CreateItemViewModel(IItem file);
+        IItemViewModel CreateItemViewModel(IItem item);
+
+        IItemViewModel CreateMissingItemViewModel(string itemName);
+
+        ISynchronizedItemsViewModel CreateSynchronizedDirectoriesViewModel(ISynchronizedDirectories synchronizedDirectories);
     }
 }
