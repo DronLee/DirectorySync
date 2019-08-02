@@ -1,5 +1,4 @@
 ﻿using DirectorySync.Models;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 
@@ -13,8 +12,6 @@ namespace DirectorySync.ViewModels
 
         ICommand AcceptCommand { get; }
 
-        ObservableCollection<IItemViewModel> Items { get; }
-
-        void AddItems(IItemViewModel[] items);
+        LoadedDirectory LoadedDirectoryEvent { get; set; }
     }
 }
