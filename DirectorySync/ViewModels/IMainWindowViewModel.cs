@@ -1,14 +1,13 @@
-﻿using DirectorySync.Models;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows.Input;
 
 namespace DirectorySync.ViewModels
 {
-    public interface IMainWindowViewModel
+    public interface IMainWindowViewModel : INotifyPropertyChanged
     {
-        IDirectory[] LeftDirectories { get; }
+        ObservableCollection<ISynchronizedItemsViewModel> SynchronizedItemsArray { get; }
 
-        IDirectory[] RightDirectories { get; }
-
-        Task Load();
+        ICommand LoadDirectoriesCommand { get; }
     }
 }

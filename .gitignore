@@ -6,5 +6,6 @@
 /.vs/DirectorySync/v16
 /DirectorySync/bin/Debug
 /packages/Autofac.4.9.2
+/packages/System.Windows.Interactivity.WPF.2.0.20525
 /.vs
 /DirectorySync/obj/Release

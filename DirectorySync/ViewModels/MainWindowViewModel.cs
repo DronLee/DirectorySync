@@ -1,29 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Windows.Input;
 using DirectorySync.Models;
 
 namespace DirectorySync.ViewModels
 {
     public class MainWindowViewModel : IMainWindowViewModel
     {
-        private readonly List<ISynchronizedDirectories> _synchronizedDirectoriesList;
-        private readonly IItemFactory _itemFactory; 
+        private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
 
-        public MainWindowViewModel(ISynchronizedDirectories[] synchronizedDirectoriesList, IItemFactory itemFactory)
+        private ICommand _loadDirectoriesCommand;
+
+        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IItemViewModelFactory itemViewModelFactory)
         {
-            _synchronizedDirectoriesList = synchronizedDirectoriesList.ToList();
-            _itemFactory = itemFactory;
+            _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
+            SynchronizedItemsArray = new ObservableCollection<ISynchronizedItemsViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
+                itemViewModelFactory.CreateSynchronizedDirectoriesViewModel(d)));
         }
 
-        public IDirectory[] LeftDirectories { get; }
-
-        public IDirectory[] RightDirectories { get; }
-
-        public async Task Load()
+        public ICommand LoadDirectoriesCommand
         {
-            foreach(var synchronizedDirectories in _synchronizedDirectoriesList)
-                await synchronizedDirectories.Load();
+            get
+            {
+                if (_loadDirectoriesCommand == null)
+                    _loadDirectoriesCommand = new Command(x => LoadDirectories());
+                return _loadDirectoriesCommand;
+            }
+        }
+
+        public ObservableCollection<ISynchronizedItemsViewModel> SynchronizedItemsArray { get; private set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private async void LoadDirectories()
+        {
+            await _synchronizedDirectoriesManager.Load();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SynchronizedItemsArray)));
         }
     }
 }
