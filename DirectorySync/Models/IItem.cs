@@ -3,7 +3,7 @@
 namespace DirectorySync.Models
 {
     /// <summary>
-    /// Элемент синхронизации.
+    /// Отслеживаемый элемент.
     /// </summary>
     public interface IItem
     {
@@ -18,7 +18,7 @@ namespace DirectorySync.Models
         string FullPath { get; }
 
         /// <summary>
-        /// Дата последнего обновления элемента.
+        /// Время последнего обновления элемента.
         /// </summary>
         DateTime LastUpdate { get; }
     }

@@ -18,8 +18,13 @@ namespace DirectorySync.Models
         Task Load();
 
         /// <summary>
-        /// Директоиря была загружена.
+        /// Событие возникает при завершении загрузки директории.
         /// </summary>
         event LoadedDirectory LoadedDirectoryEvent;
+
+        /// <summary>
+        /// True - директория загружена.
+        /// </summary>
+        bool IsLoaded { get; }
     }
 }
