@@ -88,11 +88,11 @@
     <Compile Include="ViewModels\IItemViewModelFactory.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
     <Compile Include="ViewModels\IItemViewModel.cs" />
-    <Compile Include="ViewModels\ISynchronizedItemsViewModel.cs" />
+    <Compile Include="ViewModels\IRowViewModel.cs" />
     <Compile Include="ViewModels\ItemViewModelFactory.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ItemViewModel.cs" />
-    <Compile Include="ViewModels\SynchronizedItemsViewModel.cs" />
+    <Compile Include="ViewModels\RowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

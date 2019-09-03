@@ -4,10 +4,19 @@ using System.Windows.Input;
 
 namespace DirectorySync.ViewModels
 {
+    /// <summary>
+    /// Модель представления основного окна приложения.
+    /// </summary>
     public interface IMainWindowViewModel : INotifyPropertyChanged
     {
-        ObservableCollection<ISynchronizedItemsViewModel> SynchronizedItemsArray { get; }
+        /// <summary>
+        /// Строки, отображающие отслеживание директорий.
+        /// </summary>
+        ObservableCollection<IRowViewModel> Rows { get; }
 
+        /// <summary>
+        /// Команда загрузки директорий.
+        /// </summary>
         ICommand LoadDirectoriesCommand { get; }
     }
 }
