@@ -4,7 +4,9 @@ using DirectorySync.Views;
 using DirectorySync.ViewModels;
 using DirectorySync.Models;
 using DirectorySync.Properties;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("XUnitTestProject")]
 namespace DirectorySync
 {
     /// <summary>
