@@ -85,11 +85,11 @@
     <Compile Include="Models\SynchronizedDirectoriesManager.cs" />
     <Compile Include="ViewModels\Command.cs" />
     <Compile Include="ViewModels\Delegates.cs" />
-    <Compile Include="ViewModels\IItemViewModelFactory.cs" />
+    <Compile Include="ViewModels\IRowViewModelFactory.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
     <Compile Include="ViewModels\IItemViewModel.cs" />
     <Compile Include="ViewModels\IRowViewModel.cs" />
-    <Compile Include="ViewModels\ItemViewModelFactory.cs" />
+    <Compile Include="ViewModels\RowViewModelFactory.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ItemViewModel.cs" />
     <Compile Include="ViewModels\RowViewModel.cs" />
