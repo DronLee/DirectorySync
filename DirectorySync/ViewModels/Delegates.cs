@@ -1,4 +1,4 @@
 ﻿namespace DirectorySync.ViewModels
 {
-    public delegate void CreatedItems(IItemViewModel[] items);
+    public delegate void RowViewModelIsLoaded(IRowViewModel rowViewModel);
 }
