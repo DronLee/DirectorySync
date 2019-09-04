@@ -3,7 +3,7 @@
 namespace DirectorySync.Models
 {
     /// <summary>
-    /// Отслеживаемый элемент.
+    /// Интерфейс отслеживаемого элемента.
     /// </summary>
     public interface IItem
     {

@@ -5,7 +5,7 @@ using System.Windows.Input;
 namespace DirectorySync.ViewModels
 {
     /// <summary>
-    /// Модель представления основного окна приложения.
+    /// Интерфейс модели представления основного окна приложения.
     /// </summary>
     public interface IMainWindowViewModel : INotifyPropertyChanged
     {

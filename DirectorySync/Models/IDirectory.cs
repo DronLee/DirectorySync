@@ -3,7 +3,7 @@
 namespace DirectorySync.Models
 {
     /// <summary>
-    /// Директория.
+    /// Интерфейс директории.
     /// </summary>
     public interface IDirectory : IItem
     {
