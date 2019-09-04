@@ -52,7 +52,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
-        public event SynchronizedItemsViewModelIsLoaded SynchronizedItemsViewModelIsLoadedEvent;
+        public event RowViewModelIsLoaded RowViewModelIsLoadedEvent;
 
         /// <summary>
         /// Обновление дочерних строк.
@@ -70,8 +70,8 @@ namespace DirectorySync.ViewModels
         /// <param name="directory">Загруженная директория.</param>
         private void LoadedDirectory(Models.IDirectory directory)
         {
-            if (SynchronizedItemsViewModelIsLoadedEvent != null && LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
-                SynchronizedItemsViewModelIsLoadedEvent.Invoke(this);
+            if (RowViewModelIsLoadedEvent != null && LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
+                RowViewModelIsLoadedEvent.Invoke(this);
         }
     }
 }

@@ -31,9 +31,9 @@ namespace XUnitTestProject
                 IRowViewModel loadedSynchronizedItemsViewModel = null;
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new ItemViewModelFactory();
-                var synchronizedItemsViewModel = factory.CreateSynchronizedDirectoriesViewModel(synchronizedDirectories);
-                synchronizedItemsViewModel.SynchronizedItemsViewModelIsLoadedEvent += new SynchronizedItemsViewModelIsLoaded(
+                var factory = new RowViewModelFactory();
+                var synchronizedItemsViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+                synchronizedItemsViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
                     delegate (IRowViewModel delegateSynchronizedItemsViewModel) { loadedSynchronizedItemsViewModel = delegateSynchronizedItemsViewModel; });
 
                 // Пока не выполнялась загрузка, события завершения загрузки происходить не должно.
@@ -72,9 +72,9 @@ namespace XUnitTestProject
                 IRowViewModel loadedSynchronizedItemsViewModel = null;
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new ItemViewModelFactory();
-                var synchronizedItemsViewModel = factory.CreateSynchronizedDirectoriesViewModel(synchronizedDirectories);
-                synchronizedItemsViewModel.SynchronizedItemsViewModelIsLoadedEvent += new SynchronizedItemsViewModelIsLoaded(
+                var factory = new RowViewModelFactory();
+                var synchronizedItemsViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+                synchronizedItemsViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
                     delegate (IRowViewModel delegateSynchronizedItemsViewModel) { loadedSynchronizedItemsViewModel = delegateSynchronizedItemsViewModel; });
                 await synchronizedDirectories.Load();
 

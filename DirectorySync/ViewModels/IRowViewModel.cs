@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace DirectorySync.ViewModels
 {
     /// <summary>
-    /// Строка представления отслеживаемых элементов.
+    /// Интерфейс строки представления отслеживаемых элементов.
     /// </summary>
     public interface IRowViewModel : INotifyPropertyChanged
     {
@@ -31,7 +31,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
-        event SynchronizedItemsViewModelIsLoaded SynchronizedItemsViewModelIsLoadedEvent;
+        event RowViewModelIsLoaded RowViewModelIsLoadedEvent;
 
         /// <summary>
         /// Обновление дочерних строк.

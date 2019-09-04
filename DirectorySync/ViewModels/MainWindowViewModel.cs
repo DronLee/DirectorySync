@@ -20,11 +20,11 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="synchronizedDirectoriesManager">Менеджер синхронизируемых директорий.</param>
         /// <param name="itemViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
-        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IItemViewModelFactory itemViewModelFactory)
+        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory itemViewModelFactory)
         {
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
-                itemViewModelFactory.CreateSynchronizedDirectoriesViewModel(d)));
+                itemViewModelFactory.CreateRowViewModel(d)));
         }
 
         /// <summary>

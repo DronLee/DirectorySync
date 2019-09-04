@@ -27,7 +27,7 @@ namespace DirectorySync
                 .WithParameter("leftDirectories", Settings.Default.LeftDirectories)
                 .WithParameter("rightDirectories", Settings.Default.RightDirectories);
 
-            containerBuilder.RegisterType<ItemViewModelFactory>().As<IItemViewModelFactory>().SingleInstance();
+            containerBuilder.RegisterType<RowViewModelFactory>().As<IRowViewModelFactory>().SingleInstance();
 
             var container = containerBuilder.Build();
             container.Resolve<MainWindow>().Show();
