@@ -61,7 +61,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Статус элемента.
         /// </summary>
-        public ItemStatus Status { get; set; }
+        public ItemStatus Status { get; private set; }
 
         /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
@@ -76,6 +76,16 @@ namespace DirectorySync.ViewModels
         private void LoadedDirectory(IDirectory directory)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
+        }
+
+        /// <summary>
+        /// Обновление статуса.
+        /// </summary>
+        /// <param name="statusEnum">Новое значение статуса.</param>
+        public void UpdateStatus(ItemStatusEnum statusEnum)
+        {
+            if (Status == null || Status.StatusEnum != statusEnum)
+                Status = new ItemStatus(statusEnum);
         }
     }
 }

@@ -102,22 +102,25 @@ namespace DirectorySync.ViewModels
             var result = new RowViewModel(leftItemViewModel, rightItemViewModel);
 
             if (leftItem is IDirectory && rightItem is IDirectory)
+            {
                 foreach (var childItem in CreateRowViewModels(((IDirectory)leftItem).Items, ((IDirectory)rightItem).Items))
                     result.ChildRows.Add(childItem);
+                
+            }
             else if (leftItem.LastUpdate > rightItem.LastUpdate)
             {
-                leftItemViewModel.Status = new ItemStatus(ItemStatusEnum.Newer);
-                rightItemViewModel.Status = new ItemStatus(ItemStatusEnum.Older);
+                leftItemViewModel.UpdateStatus(ItemStatusEnum.Newer);
+                rightItemViewModel.UpdateStatus(ItemStatusEnum.Older);
             }
             else if (leftItem.LastUpdate < rightItem.LastUpdate)
             {
-                leftItemViewModel.Status = new ItemStatus(ItemStatusEnum.Older);
-                rightItemViewModel.Status = new ItemStatus(ItemStatusEnum.Newer);
+                leftItemViewModel.UpdateStatus(ItemStatusEnum.Older);
+                rightItemViewModel.UpdateStatus(ItemStatusEnum.Newer);
             }
             else
             {
-                leftItemViewModel.Status = new ItemStatus(ItemStatusEnum.Equally);
-                rightItemViewModel.Status = new ItemStatus(ItemStatusEnum.Equally);
+                leftItemViewModel.UpdateStatus(ItemStatusEnum.Equally);
+                rightItemViewModel.UpdateStatus(ItemStatusEnum.Equally);
             }
 
             return result;

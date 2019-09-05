@@ -22,11 +22,17 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Статус элемента.
         /// </summary>
-        ItemStatus Status { get; set; }
+        ItemStatus Status { get; }
 
         /// <summary>
         /// Выполняемая команда синхронизации. 
         /// </summary>
         ICommand AcceptCommand { get; }
+
+        /// <summary>
+        /// Обновление статуса.
+        /// </summary>
+        /// <param name="statusEnum">Новое значение статуса.</param>
+        void UpdateStatus(ItemStatusEnum statusEnum);
     }
 }
