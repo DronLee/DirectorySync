@@ -38,5 +38,10 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="rows">Новые дочерние строки.</param>
         void RefreshChildRows(IRowViewModel[] rows);
+
+        /// <summary>
+        /// Проставить статусы отслеживаемых элементов на основании статусов дочерних элементов.
+        /// </summary>
+        void RefreshStatusesFromChilds();
     }
 }

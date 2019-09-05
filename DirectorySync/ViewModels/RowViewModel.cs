@@ -1,5 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿using DirectorySync.Models;
+using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 namespace DirectorySync.ViewModels
 {
@@ -65,10 +68,40 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
+        /// Проставить статусы отслеживаемых элементов на основании статусов дочерних элементов.
+        /// </summary>
+        public void RefreshStatusesFromChilds()
+        {
+            if (ChildRows.Count > 0)
+            {
+                var updated = false;
+                var statusNames = typeof(ItemStatusEnum).GetEnumNames().Where(n => n != ItemStatusEnum.Unknown.ToString()).ToArray();
+                for(byte statusIndex = 0; statusIndex < statusNames.Length && !updated; statusIndex++)
+                    if (ChildRows.All(r => r.LeftItem.Status.StatusEnum.ToString() == statusNames[statusIndex]))
+                    {
+                        LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), statusNames[statusIndex]));
+                        updated = true;
+                    }
+                if (!updated)
+                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+
+                updated = false;
+                for (byte statusIndex = 0; statusIndex < statusNames.Length && !updated; statusIndex++)
+                    if (ChildRows.All(r => r.RightItem.Status.StatusEnum.ToString() == statusNames[statusIndex]))
+                    {
+                        RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), statusNames[statusIndex]));
+                        updated = true;
+                    }
+                if (!updated)
+                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+            }
+        }
+
+        /// <summary>
         /// Реакция на событие загрузки одной из отслеживаемых директорий.
         /// </summary>
         /// <param name="directory">Загруженная директория.</param>
-        private void LoadedDirectory(Models.IDirectory directory)
+        private void LoadedDirectory(IDirectory directory)
         {
             if (RowViewModelIsLoadedEvent != null && LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
                 RowViewModelIsLoadedEvent.Invoke(this);
