@@ -53,10 +53,15 @@ namespace DirectorySync.ViewModels
 
                         if (leftItem is IDirectory && rightItem is IDirectory || !(leftItem is IDirectory) && !(rightItem is IDirectory))
                             result.Add(FullRow(leftItem, rightItem));
+                        else if (leftItem is IDirectory)
+                        {
+                            result.Add(RightMissing(leftItem));
+                            result.Add(LeftMissing(rightItem));
+                        }
                         else
                         {
-                            result.Add(new RowViewModel(new ItemViewModel(leftItem, ItemStatusEnum.ThereIs), new ItemViewModel(leftItem.Name)));
-                            result.Add(new RowViewModel(new ItemViewModel(rightItem.Name), new ItemViewModel(rightItem, ItemStatusEnum.ThereIs)));
+                            result.Add(LeftMissing(rightItem));
+                            result.Add(RightMissing(leftItem));
                         }
                         break;
                 }
@@ -101,11 +106,12 @@ namespace DirectorySync.ViewModels
             var rightItemViewModel = new ItemViewModel(rightItem);
             var result = new RowViewModel(leftItemViewModel, rightItemViewModel);
 
-            if (leftItem is IDirectory && rightItem is IDirectory)
+            if (leftItem is IDirectory && rightItem is IDirectory &&
+                (((IDirectory)leftItem).Items.Length > 0 || ((IDirectory)rightItem).Items.Length > 0))
             {
                 foreach (var childItem in CreateRowViewModels(((IDirectory)leftItem).Items, ((IDirectory)rightItem).Items))
                     result.ChildRows.Add(childItem);
-                
+                result.RefreshStatusesFromChilds();
             }
             else if (leftItem.LastUpdate > rightItem.LastUpdate)
             {
