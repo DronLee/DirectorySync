@@ -2,6 +2,7 @@
 using DirectorySync.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -10,7 +11,7 @@ namespace XUnitTestProject
     public class ItemViewModelFactoryTests
     {
         [Fact]
-        public void CreateSynchronizedDirectoriesViewModel()
+        public void CreateRowViewModel()
         {
             const string file1Name = "File1";
             const string file2Name = "File2";
@@ -28,21 +29,25 @@ namespace XUnitTestProject
                     { file1Name, DateTime.Now },
                     { file2Name, DateTime.Now }
                 });
-                IRowViewModel loadedSynchronizedItemsViewModel = null;
+                IRowViewModel loadedRowViewModel = null;
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
                 var factory = new RowViewModelFactory();
-                var synchronizedItemsViewModel = factory.CreateRowViewModel(synchronizedDirectories);
-                synchronizedItemsViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
-                    delegate (IRowViewModel delegateSynchronizedItemsViewModel) { loadedSynchronizedItemsViewModel = delegateSynchronizedItemsViewModel; });
+                var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+                rowViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
+                    delegate (IRowViewModel delegateRowViewModel) { loadedRowViewModel = delegateRowViewModel; });
 
                 // Пока не выполнялась загрузка, события завершения загрузки происходить не должно.
-                Assert.Null(loadedSynchronizedItemsViewModel);
+                Assert.Null(loadedRowViewModel);
 
-                Assert.Empty(synchronizedItemsViewModel.ChildRows);
+                Assert.Empty(rowViewModel.ChildRows);
             }
         }
 
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке файлов.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task LoadFiles()
         {
@@ -69,43 +74,180 @@ namespace XUnitTestProject
                     { file4Name, new DateTime(2019, 5, 1) },
                     { file5Name, DateTime.Now }
                 });
-                IRowViewModel loadedSynchronizedItemsViewModel = null;
+                IRowViewModel loadedRowViewModel = null;
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
                 var factory = new RowViewModelFactory();
-                var synchronizedItemsViewModel = factory.CreateRowViewModel(synchronizedDirectories);
-                synchronizedItemsViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
-                    delegate (IRowViewModel delegateSynchronizedItemsViewModel) { loadedSynchronizedItemsViewModel = delegateSynchronizedItemsViewModel; });
+                var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+                rowViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
+                    delegate (IRowViewModel delegateRowViewModel) { loadedRowViewModel = delegateRowViewModel; });
                 await synchronizedDirectories.Load();
 
-                Assert.Equal(synchronizedItemsViewModel, loadedSynchronizedItemsViewModel);
-                Assert.Equal(5, synchronizedItemsViewModel.ChildRows.Count);
-                Assert.False(synchronizedItemsViewModel.Collapsed);
+                Assert.Equal(rowViewModel, loadedRowViewModel);
+                Assert.Equal(5, rowViewModel.ChildRows.Count);
+                Assert.False(rowViewModel.Collapsed);
 
-                Assert.Equal(file1Name, synchronizedItemsViewModel.ChildRows[0].LeftItem.Name);
-                Assert.Equal(file1Name, synchronizedItemsViewModel.ChildRows[0].RightItem.Name);
-                Assert.Equal(ItemStatusEnum.ThereIs, synchronizedItemsViewModel.ChildRows[0].LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Missing, synchronizedItemsViewModel.ChildRows[0].RightItem.Status.StatusEnum);
+                Assert.Equal(file1Name, rowViewModel.ChildRows[0].LeftItem.Name);
+                Assert.Equal(file1Name, rowViewModel.ChildRows[0].RightItem.Name);
+                Assert.Equal(ItemStatusEnum.ThereIs, rowViewModel.ChildRows[0].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Missing, rowViewModel.ChildRows[0].RightItem.Status.StatusEnum);
 
-                Assert.Equal(file2Name, synchronizedItemsViewModel.ChildRows[1].LeftItem.Name);
-                Assert.Equal(file2Name, synchronizedItemsViewModel.ChildRows[1].RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Equally, synchronizedItemsViewModel.ChildRows[1].LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Equally, synchronizedItemsViewModel.ChildRows[1].RightItem.Status.StatusEnum);
+                Assert.Equal(file2Name, rowViewModel.ChildRows[1].LeftItem.Name);
+                Assert.Equal(file2Name, rowViewModel.ChildRows[1].RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Equally, rowViewModel.ChildRows[1].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, rowViewModel.ChildRows[1].RightItem.Status.StatusEnum);
 
-                Assert.Equal(file3Name, synchronizedItemsViewModel.ChildRows[2].LeftItem.Name);
-                Assert.Equal(file3Name, synchronizedItemsViewModel.ChildRows[2].RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Newer, synchronizedItemsViewModel.ChildRows[2].LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Older, synchronizedItemsViewModel.ChildRows[2].RightItem.Status.StatusEnum);
+                Assert.Equal(file3Name, rowViewModel.ChildRows[2].LeftItem.Name);
+                Assert.Equal(file3Name, rowViewModel.ChildRows[2].RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Newer, rowViewModel.ChildRows[2].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Older, rowViewModel.ChildRows[2].RightItem.Status.StatusEnum);
 
-                Assert.Equal(file4Name, synchronizedItemsViewModel.ChildRows[3].LeftItem.Name);
-                Assert.Equal(file4Name, synchronizedItemsViewModel.ChildRows[3].RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Older, synchronizedItemsViewModel.ChildRows[3].LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Newer, synchronizedItemsViewModel.ChildRows[3].RightItem.Status.StatusEnum);
+                Assert.Equal(file4Name, rowViewModel.ChildRows[3].LeftItem.Name);
+                Assert.Equal(file4Name, rowViewModel.ChildRows[3].RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Older, rowViewModel.ChildRows[3].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Newer, rowViewModel.ChildRows[3].RightItem.Status.StatusEnum);
 
-                Assert.Equal(file5Name, synchronizedItemsViewModel.ChildRows[4].LeftItem.Name);
-                Assert.Equal(file5Name, synchronizedItemsViewModel.ChildRows[4].RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Missing, synchronizedItemsViewModel.ChildRows[4].LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.ThereIs, synchronizedItemsViewModel.ChildRows[4].RightItem.Status.StatusEnum);
+                Assert.Equal(file5Name, rowViewModel.ChildRows[4].LeftItem.Name);
+                Assert.Equal(file5Name, rowViewModel.ChildRows[4].RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Missing, rowViewModel.ChildRows[4].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.ThereIs, rowViewModel.ChildRows[4].RightItem.Status.StatusEnum);
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке,
+        /// один из которых файл, второй директория, и имеют одинаковые наименования. 
+        /// </summary>
+        [Fact]
+        public async Task LoadDirectoryAndFile()
+        {
+            const string directoryAndFileName = "Item";
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                leftDirectory.CreateFiles(new Dictionary<string, DateTime>
+                {
+                    { directoryAndFileName, DateTime.Now }
+                });
+                rightDirectory.CreateDirectory(directoryAndFileName);
+
+                var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var factory = new RowViewModelFactory();
+                var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+
+                await synchronizedDirectories.Load();
+
+
+                Assert.Equal(2, rowViewModel.ChildRows.Count);
+                Assert.False(rowViewModel.Collapsed);
+
+                // Сначала директория, потом файл.
+                var childRow1 = rowViewModel.ChildRows[0];
+                Assert.Equal(directoryAndFileName, childRow1.LeftItem.Name);
+                Assert.Equal(directoryAndFileName, childRow1.RightItem.Name);
+                Assert.NotNull(childRow1.RightItem.Directory);
+                Assert.Equal(ItemStatusEnum.Missing, childRow1.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.ThereIs, childRow1.RightItem.Status.StatusEnum);
+                var childRow2 = rowViewModel.ChildRows[1];
+                Assert.Equal(directoryAndFileName, childRow2.LeftItem.Name);
+                Assert.Equal(directoryAndFileName, childRow2.RightItem.Name);
+                Assert.Null(childRow2.LeftItem.Directory);
+                Assert.Null(childRow2.RightItem.Directory);
+                Assert.Equal(ItemStatusEnum.ThereIs, childRow2.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Missing, childRow2.RightItem.Status.StatusEnum);
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке пустых директорий.
+        /// Проверяется, что у директорий проставились статусы в соответствии с их отношением друг к другу.
+        /// </summary>
+        [Theory]
+        [InlineData("2019-01-01", "2018-01-01", "Newer", "Older")]
+        [InlineData("2018-01-01", "2019-01-01", "Older", "Newer")]
+        [InlineData("2019-01-01", "2019-01-01", "Equally", "Equally")]
+        public async Task LoadEmptyDirectories(string strLeftDirectoryLastUpdate, string strRightDirectoryLastUpdate,
+            string expectedLeftStratus, string expectedRightStratus)
+        {
+            const string directoryName = "Directory";
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                leftDirectory.CreateDirectory(directoryName, DateTime.Parse(strLeftDirectoryLastUpdate));
+                rightDirectory.CreateDirectory(directoryName, DateTime.Parse(strRightDirectoryLastUpdate));
+
+                var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var factory = new RowViewModelFactory();
+                var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+
+                await synchronizedDirectories.Load();
+
+                Assert.Single(rowViewModel.ChildRows);
+                Assert.False(rowViewModel.Collapsed);
+
+                var childRow = rowViewModel.ChildRows[0];
+                Assert.Equal(directoryName, childRow.LeftItem.Name);
+                Assert.Equal(directoryName, childRow.RightItem.Name);
+                Assert.NotNull(childRow.LeftItem.Directory);
+                Assert.NotNull(childRow.RightItem.Directory);
+                Assert.Equal(expectedLeftStratus, childRow.LeftItem.Status.StatusEnum.ToString());
+                Assert.Equal(expectedRightStratus, childRow.RightItem.Status.StatusEnum.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке директорий.
+        /// В частности проверяется, что статусы дочерних элементов влияют на статусы родительских.
+        /// </summary>
+        [Fact]
+        public async Task LoadDirectories_RefreshStatusesFromChilds()
+        {
+            const string directoryName = "Directory";
+            const string fileName = "File";
+
+            var newerDate = new DateTime(2019, 1, 1);
+            var olderDate = new DateTime(2018, 1, 1);
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                var childLeftDirectoryPath = leftDirectory.CreateDirectory(directoryName, newerDate);
+                var childRightDirectoryPath = rightDirectory.CreateDirectory(directoryName, olderDate);
+
+                // Хотя левая директория новее, но содержимое её будет старше.
+                // Получается после загрузки левая директория должна будте получить статус Older.  
+                Infrastructure.TestDirectory.CreateFiles(childLeftDirectoryPath, new Dictionary<string, DateTime> {
+                    { fileName, olderDate } });
+                Infrastructure.TestDirectory.CreateFiles(childRightDirectoryPath, new Dictionary<string, DateTime> {
+                    { fileName, newerDate } });
+
+                var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var factory = new RowViewModelFactory();
+                var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+
+                await synchronizedDirectories.Load();
+
+                Assert.Single(rowViewModel.ChildRows);
+                Assert.False(rowViewModel.Collapsed);
+
+                var childRow = rowViewModel.ChildRows[0];
+                Assert.Equal(directoryName, childRow.LeftItem.Name);
+                Assert.Equal(directoryName, childRow.RightItem.Name);
+                Assert.NotNull(childRow.LeftItem.Directory);
+                Assert.NotNull(childRow.RightItem.Directory);
+                Assert.Single(childRow.ChildRows);
+
+                // Это файлы.
+                Assert.Null(childRow.ChildRows[0].LeftItem.Directory);
+                Assert.Null(childRow.ChildRows[0].RightItem.Directory);
+
+                // Файл правой новее, соответственно и статус правой Newer.
+                Assert.Equal(ItemStatusEnum.Older, childRow.ChildRows[0].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Newer, childRow.ChildRows[0].RightItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Older, childRow.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Newer, childRow.RightItem.Status.StatusEnum);
             }
         }
 
@@ -130,7 +272,7 @@ namespace XUnitTestProject
 
         private class TestDirectory : IDirectory
         {
-            private readonly List<IItem> _files;
+            private readonly List<IItem> _items;
 
             public TestDirectory(string path)
             {
@@ -138,10 +280,10 @@ namespace XUnitTestProject
                 var directoryInfo = new System.IO.DirectoryInfo(FullPath);
                 Name = directoryInfo.Name;
                 LastUpdate = directoryInfo.LastWriteTime;
-                _files = new List<IItem>();
+                _items = new List<IItem>();
             }
 
-            public IItem[] Items => _files.ToArray();
+            public IItem[] Items => _items.ToArray();
 
             public bool IsLoaded { get; private set; }
 
@@ -157,9 +299,19 @@ namespace XUnitTestProject
             {
                 await Task.Run(() =>
                 {
-                    foreach (var file in System.IO.Directory.GetFiles(FullPath))
-                        _files.Add(new TestFile(file));
+                    foreach (var directoryPath in System.IO.Directory.GetDirectories(FullPath))
+                        _items.Add(new TestDirectory(directoryPath));
                 });
+
+                await Task.Run(() =>
+                {
+                    foreach (var file in System.IO.Directory.GetFiles(FullPath))
+                        _items.Add(new TestFile(file));
+                });
+
+                foreach (IDirectory directory in _items.Where(i => i is IDirectory))
+                    await directory.Load();
+
                 IsLoaded = true;
                 LoadedDirectoryEvent?.Invoke(this);
             }
