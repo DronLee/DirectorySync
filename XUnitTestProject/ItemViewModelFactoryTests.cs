@@ -251,6 +251,56 @@ namespace XUnitTestProject
             }
         }
 
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке директорий.
+        /// Одна директория пустая, вторая - нет.
+        /// </summary>
+        [Fact]
+        public async Task LoadDirectories_OneEmptyDirectory()
+        {
+            const string directoryName = "Directory";
+            const string fileName = "File";
+
+            var newerDate = new DateTime(2019, 1, 1);
+            var olderDate = new DateTime(2018, 1, 1);
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                var childLeftDirectoryPath = leftDirectory.CreateDirectory(directoryName, newerDate);
+                Infrastructure.TestDirectory.CreateFiles(childLeftDirectoryPath, new Dictionary<string, DateTime> {
+                    { fileName, DateTime.Now } });
+
+                rightDirectory.CreateDirectory(directoryName, olderDate);
+
+                var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var factory = new RowViewModelFactory();
+                var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
+
+                await synchronizedDirectories.Load();
+
+                Assert.Single(rowViewModel.ChildRows);
+                Assert.False(rowViewModel.Collapsed);
+
+                var childRow = rowViewModel.ChildRows[0];
+                Assert.Equal(directoryName, childRow.LeftItem.Name);
+                Assert.Equal(directoryName, childRow.RightItem.Name);
+                Assert.NotNull(childRow.LeftItem.Directory);
+                Assert.NotNull(childRow.RightItem.Directory);
+                Assert.Single(childRow.ChildRows);
+
+                // Это файлы.
+                Assert.Null(childRow.ChildRows[0].LeftItem.Directory);
+                Assert.Null(childRow.ChildRows[0].RightItem.Directory);
+
+                // В првавой директории файла нет, соответственно и статус правой Missing.
+                Assert.Equal(ItemStatusEnum.ThereIs, childRow.ChildRows[0].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Missing, childRow.ChildRows[0].RightItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.ThereIs, childRow.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Missing, childRow.RightItem.Status.StatusEnum);
+            }
+        }
+
         private class TestSynchronizedDirectories : ISynchronizedDirectories
         {
             public TestSynchronizedDirectories(string leftDirectoryPath, string rightDirectoryPath)
