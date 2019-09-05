@@ -72,6 +72,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="AutofacRegisterModule.cs" />
     <Compile Include="Models\Delegates.cs" />
     <Compile Include="Models\Directory.cs" />
     <Compile Include="Models\File.cs" />
