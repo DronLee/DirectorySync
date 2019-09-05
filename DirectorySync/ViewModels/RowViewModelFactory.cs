@@ -35,9 +35,13 @@ namespace DirectorySync.ViewModels
             for (int leftItemIndex = 0; leftItemIndex < leftDirectoryItems.Length;)
             {
                 var leftItem = leftDirectoryItems[leftItemIndex];
-                var rightItem = rightDirectoryItems[rightItemIndex];
 
-                switch (leftItem.Name.CompareTo(rightItem.Name))
+                // Может быть такое, что количество элементов слева больше,
+                // тогда будут создваться записи с отсутсвующими справа элементами. 
+                var rightItem = rightItemIndex < rightDirectoryItems.Length ?
+                    rightDirectoryItems[rightItemIndex] : null;
+
+                switch (rightItem == null ? -1 : leftItem.Name.CompareTo(rightItem.Name))
                 {
                     case 1:
                         rightItemIndex++;
