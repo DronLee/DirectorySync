@@ -12,7 +12,7 @@ namespace DirectorySync.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.2.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -27,8 +27,9 @@ namespace DirectorySync.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>C:\Программирование\ASP\AppState</string>
-  <string>C:\Программирование\ASP\CacheState</string>
+  <string>c:\MyProgramms\Test\DirectorySync\Left\bin</string>
+  <string>c:\MyProgramms\Test\DirectorySync\Left\deploy</string>
+  <string>c:\MyProgramms\Test\DirectorySync\Left\obj</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection LeftDirectories {
             get {
@@ -40,8 +41,9 @@ namespace DirectorySync.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>c:\Users\avolkov\Desktop\TestSync\AppState</string>
-  <string>c:\Users\avolkov\Desktop\TestSync\CacheState</string>
+  <string>c:\MyProgramms\Test\DirectorySync\Right\bin</string>
+  <string>c:\MyProgramms\Test\DirectorySync\Right\deploy</string>
+  <string>c:\MyProgramms\Test\DirectorySync\Right\obj</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection RightDirectories {
             get {
