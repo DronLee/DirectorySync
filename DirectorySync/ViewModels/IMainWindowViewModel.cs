@@ -18,5 +18,10 @@ namespace DirectorySync.ViewModels
         /// Команда загрузки директорий.
         /// </summary>
         ICommand LoadDirectoriesCommand { get; }
+
+        /// <summary>
+        /// Комнада выбора строки.
+        /// </summary>
+        ICommand SelectedItemCommand { get; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Input;
 using DirectorySync.Models;
 
@@ -14,6 +15,7 @@ namespace DirectorySync.ViewModels
         private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
 
         private ICommand _loadDirectoriesCommand;
+        private ICommand _selectedItemCommand;
 
         /// <summary>
         /// Конструктор.
@@ -37,6 +39,23 @@ namespace DirectorySync.ViewModels
                 if (_loadDirectoriesCommand == null)
                     _loadDirectoriesCommand = new Command(x => LoadDirectories());
                 return _loadDirectoriesCommand;
+            }
+        }
+
+        /// <summary>
+        /// Комнада выбора строки.
+        /// </summary>
+        public ICommand SelectedItemCommand
+        {
+            get
+            {
+                if (_selectedItemCommand == null)
+                    _selectedItemCommand = new Command<TreeView>((TreeView treeView) =>
+                    {
+                        if (treeView.SelectedItem != null)
+                            ((IRowViewModel)treeView.SelectedItem).IsSelected = true;
+                    });
+                return _selectedItemCommand;
             }
         }
 
