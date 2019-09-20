@@ -11,6 +11,8 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class RowViewModel : IRowViewModel
     {
+        private bool _isSelected;
+
         /// <summary>
         /// Конструктор.
         /// </summary>
@@ -41,6 +43,19 @@ namespace DirectorySync.ViewModels
         /// True - дочерние строки скрыты.
         /// </summary>
         public bool Collapsed { get; set; }
+
+        /// <summary>
+        /// True - строка выбрана в данный момент.
+        /// </summary>
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set
+            {
+                _isSelected = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+            }
+        }
 
         /// <summary>
         /// Дочерние строки.

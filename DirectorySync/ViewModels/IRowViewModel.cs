@@ -24,6 +24,11 @@ namespace DirectorySync.ViewModels
         bool Collapsed { get; set; }
 
         /// <summary>
+        /// True - строка выбрана в данный момент.
+        /// </summary>
+        bool IsSelected { get; set; }
+
+        /// <summary>
         /// Дочерние строки.
         /// </summary>
         ObservableCollection<IRowViewModel> ChildRows { get; }
