@@ -85,7 +85,7 @@ namespace XUnitTestProject
 
                 Assert.Equal(rowViewModel, loadedRowViewModel);
                 Assert.Equal(5, rowViewModel.ChildRows.Count);
-                Assert.False(rowViewModel.Collapsed);
+                Assert.False(rowViewModel.IsExpanded);
 
                 Assert.Equal(file1Name, rowViewModel.ChildRows[0].LeftItem.Name);
                 Assert.Equal(file1Name, rowViewModel.ChildRows[0].RightItem.Name);
@@ -140,7 +140,7 @@ namespace XUnitTestProject
 
 
                 Assert.Equal(2, rowViewModel.ChildRows.Count);
-                Assert.False(rowViewModel.Collapsed);
+                Assert.False(rowViewModel.IsExpanded);
 
                 // Сначала директория, потом файл.
                 var childRow1 = rowViewModel.ChildRows[0];
@@ -185,7 +185,7 @@ namespace XUnitTestProject
                 await synchronizedDirectories.Load();
 
                 Assert.Single(rowViewModel.ChildRows);
-                Assert.False(rowViewModel.Collapsed);
+                Assert.False(rowViewModel.IsExpanded);
 
                 var childRow = rowViewModel.ChildRows[0];
                 Assert.Equal(directoryName, childRow.LeftItem.Name);
@@ -230,7 +230,7 @@ namespace XUnitTestProject
                 await synchronizedDirectories.Load();
 
                 Assert.Single(rowViewModel.ChildRows);
-                Assert.False(rowViewModel.Collapsed);
+                Assert.False(rowViewModel.IsExpanded);
 
                 var childRow = rowViewModel.ChildRows[0];
                 Assert.Equal(directoryName, childRow.LeftItem.Name);
@@ -280,7 +280,7 @@ namespace XUnitTestProject
                 await synchronizedDirectories.Load();
 
                 Assert.Single(rowViewModel.ChildRows);
-                Assert.False(rowViewModel.Collapsed);
+                Assert.False(rowViewModel.IsExpanded);
 
                 var childRow = rowViewModel.ChildRows[0];
                 Assert.Equal(directoryName, childRow.LeftItem.Name);

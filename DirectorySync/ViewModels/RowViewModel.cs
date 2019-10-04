@@ -11,6 +11,7 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class RowViewModel : IRowViewModel
     {
+        private bool _isExpanded;
         private bool _isSelected;
 
         /// <summary>
@@ -40,9 +41,17 @@ namespace DirectorySync.ViewModels
         public IItemViewModel RightItem { get; private set; }
 
         /// <summary>
-        /// True - дочерние строки скрыты.
+        /// True - дочерние элементы строки показаны.
         /// </summary>
-        public bool Collapsed { get; set; }
+        public bool IsExpanded
+        {
+            get { return _isExpanded; }
+            set
+            {
+                _isExpanded = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpanded)));
+            }
+        }
 
         /// <summary>
         /// True - строка выбрана в данный момент.

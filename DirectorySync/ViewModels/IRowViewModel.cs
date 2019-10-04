@@ -19,14 +19,14 @@ namespace DirectorySync.ViewModels
         IItemViewModel RightItem { get; }
 
         /// <summary>
-        /// True - дочерние строки скрыты.
-        /// </summary>
-        bool Collapsed { get; set; }
-
-        /// <summary>
         /// True - строка выбрана в данный момент.
         /// </summary>
         bool IsSelected { get; set; }
+
+        /// <summary>
+        /// True - дочерние элементы строки показаны.
+        /// </summary>
+        bool IsExpanded { get; set; }
 
         /// <summary>
         /// Дочерние строки.
