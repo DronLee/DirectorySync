@@ -4,8 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-        xmlns:local="clr-namespace:DirectorySync"
-        xmlns:vm="clr-namespace:DirectorySync.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
@@ -34,6 +32,7 @@
             <TreeView.ItemContainerStyle>
                 <Style>
                     <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 </Style>
             </TreeView.ItemContainerStyle>
             <TreeView.ItemTemplate>
@@ -53,6 +52,7 @@
             <TreeView.ItemContainerStyle>
                 <Style>
                     <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                 </Style>
             </TreeView.ItemContainerStyle>
             <TreeView.ItemTemplate>
