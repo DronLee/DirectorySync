@@ -10,6 +10,9 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class ItemViewModel : IItemViewModel
     {
+        private const string fileIconPath = "/DirectorySync;component/Icons/File.png";
+        private const string folderIconPath = "/DirectorySync;component/Icons/Folder.jpg";
+
         private readonly IItem _item;
 
         /// <summary>
@@ -67,6 +70,8 @@ namespace DirectorySync.ViewModels
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
         /// </summary>
         public IDirectory Directory { get; }
+
+        public string IconPath => Directory == null ? fileIconPath : folderIconPath;
 
         /// <summary>
         /// Событие изменения одного из свойств модели.

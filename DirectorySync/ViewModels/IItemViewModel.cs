@@ -23,6 +23,11 @@ namespace DirectorySync.ViewModels
         /// Статус элемента.
         /// </summary>
         ItemStatus Status { get; }
+        
+        /// <summary>
+        /// Путь к иконке отслеживаемого элемента.
+        /// </summary>
+        string IconPath { get; }
 
         /// <summary>
         /// Выполняемая команда синхронизации. 

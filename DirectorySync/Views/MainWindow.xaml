@@ -5,8 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Синхронизация директорий" Height="450" Width="800" Icon="/DirectorySync;component/Icons/AppIcon.jpg">
 
+    <Window.Resources>
+        <Style x:Key="ItemIcon" TargetType="Image">
+            <Setter Property="Image.Width" Value="19" />
+        </Style>
+    </Window.Resources>
+    
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadDirectoriesCommand}"/>
@@ -38,7 +44,10 @@
                 </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
-                        <Label Content="{Binding LeftItem.Name}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Image Style="{StaticResource ItemIcon}" Source="{Binding LeftItem.IconPath}"></Image>
+                            <Label Content="{Binding LeftItem.Name}" />
+                        </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
@@ -60,7 +69,10 @@
                 </TreeView.ItemContainerStyle>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
-                        <Label Content="{Binding RightItem.Name}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Image Style="{StaticResource ItemIcon}" Source="{Binding RightItem.IconPath}"></Image>
+                            <Label Content="{Binding RightItem.Name}" />
+                        </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
