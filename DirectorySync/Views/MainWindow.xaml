@@ -28,7 +28,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <ScrollViewer x:Name="LeftTreeViewScroll" Grid.Column="0" ScrollChanged="LeftTreeViewScroll_ScrollChanged">
+        <ScrollViewer x:Name="LeftTreeViewScroll" Grid.Column="0" ScrollChanged="LeftTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
             <TreeView Name="LeftTree" ItemsSource="{Binding Rows}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectedItemChanged">
@@ -53,7 +53,7 @@
             </TreeView>
         </ScrollViewer>
 
-        <ScrollViewer x:Name="RightTreeViewScroll" Grid.Column="1" ScrollChanged="RightTreeViewScroll_ScrollChanged">
+        <ScrollViewer x:Name="RightTreeViewScroll" Grid.Column="1" ScrollChanged="RightTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
             <TreeView Name="RightTree" ItemsSource="{Binding Rows}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectedItemChanged">

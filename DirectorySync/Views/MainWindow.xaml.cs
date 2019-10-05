@@ -1,5 +1,6 @@
 ﻿using DirectorySync.ViewModels;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace DirectorySync.Views
 {
@@ -14,16 +15,26 @@ namespace DirectorySync.Views
             DataContext = viewModel;
         }
 
-        private void LeftTreeViewScroll_ScrollChanged(object sender, System.Windows.Controls.ScrollChangedEventArgs e)
+        private void LeftTreeViewScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            RightTreeViewScroll.ScrollToVerticalOffset(e.VerticalOffset);
-            RightTreeViewScroll.ScrollToHorizontalOffset(e.HorizontalOffset);
+            TreeViewScrollChanged(RightTreeViewScroll, e);
         }
 
-        private void RightTreeViewScroll_ScrollChanged(object sender, System.Windows.Controls.ScrollChangedEventArgs e)
+        private void RightTreeViewScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            LeftTreeViewScroll.ScrollToVerticalOffset(e.VerticalOffset);
-            LeftTreeViewScroll.ScrollToHorizontalOffset(e.HorizontalOffset);
+            TreeViewScrollChanged(LeftTreeViewScroll, e);
+        }
+
+        private void TreeViewScrollChanged(ScrollViewer scrollViewer, ScrollChangedEventArgs e)
+        {
+            if (e.VerticalChange != 0)
+                scrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
+        }
+
+        private void TreeViewScroll_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            // Не важно левый или правый двигать скролл, всё равно они синхронизированы.
+            LeftTreeViewScroll.ScrollToVerticalOffset(LeftTreeViewScroll.VerticalOffset - e.Delta);
         }
     }
 }

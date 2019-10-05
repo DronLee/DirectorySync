@@ -16,6 +16,7 @@ namespace DirectorySync.ViewModels
 
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
+        private ICommand _treeViewMouseScrollCommand;
 
         /// <summary>
         /// Конструктор.
