@@ -22,45 +22,49 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TreeView Name="LeftTree" Grid.Column="0" ItemsSource="{Binding Rows}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="SelectedItemChanged">
-                    <i:InvokeCommandAction Command="{Binding SelectedItemCommand}" CommandParameter="{Binding ElementName=LeftTree}"/>
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
+        <ScrollViewer x:Name="LeftTreeViewScroll" Grid.Column="0" ScrollChanged="LeftTreeViewScroll_ScrollChanged">
+            <TreeView Name="LeftTree" ItemsSource="{Binding Rows}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectedItemChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectedItemCommand}" CommandParameter="{Binding ElementName=LeftTree}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
 
-            <TreeView.ItemContainerStyle>
-                <Style>
-                    <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                </Style>
-            </TreeView.ItemContainerStyle>
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
-                    <Label Content="{Binding LeftItem.Name}" />
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+                <TreeView.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
+                        <Label Content="{Binding LeftItem.Name}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </ScrollViewer>
 
-        <TreeView Name="RightTree" Grid.Column="1" ItemsSource="{Binding Rows}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="SelectedItemChanged">
-                    <i:InvokeCommandAction Command="{Binding SelectedItemCommand}" CommandParameter="{Binding ElementName=RightTree}"/>
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
+        <ScrollViewer x:Name="RightTreeViewScroll" Grid.Column="1" ScrollChanged="RightTreeViewScroll_ScrollChanged">
+            <TreeView Name="RightTree" ItemsSource="{Binding Rows}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectedItemChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectedItemCommand}" CommandParameter="{Binding ElementName=RightTree}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
 
-            <TreeView.ItemContainerStyle>
-                <Style>
-                    <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                </Style>
-            </TreeView.ItemContainerStyle>
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
-                    <Label Content="{Binding RightItem.Name}" />
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+                <TreeView.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
+                        <Label Content="{Binding RightItem.Name}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </ScrollViewer>
 
     </Grid>
 </Window>
