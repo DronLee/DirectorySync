@@ -34,6 +34,16 @@ namespace DirectorySync.ViewModels
         ObservableCollection<IRowViewModel> ChildRows { get; }
 
         /// <summary>
+        /// Видимость кнопки команды.
+        /// </summary>
+        bool CommandButtonIsVisible { get; }
+
+        /// <summary>
+        /// Видимость заставки процесса.
+        /// </summary>
+        bool ProcessIconIsVisible { get; }
+
+        /// <summary>
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
         event RowViewModelIsLoaded RowViewModelIsLoadedEvent;

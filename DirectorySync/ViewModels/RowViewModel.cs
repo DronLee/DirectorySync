@@ -28,6 +28,8 @@ namespace DirectorySync.ViewModels
                 LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
             if (RightItem.Directory != null)
                 RightItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
+            LeftItem.StartedSyncEvent += () => StartedSync();
+            LeftItem.FinishedSyncEvent += () => FinishedSync();
         }
 
         /// <summary>
@@ -65,6 +67,16 @@ namespace DirectorySync.ViewModels
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
             }
         }
+
+        /// <summary>
+        /// Видимость кнопки команды.
+        /// </summary>
+        public bool CommandButtonIsVisible => LeftItem.AcceptCommand != null;
+
+        /// <summary>
+        /// Видимость заставки процесса.
+        /// </summary>
+        public bool ProcessIconIsVisible { get; private set; }
 
         /// <summary>
         /// Дочерние строки.
@@ -129,6 +141,21 @@ namespace DirectorySync.ViewModels
         {
             if (RowViewModelIsLoadedEvent != null && LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
                 RowViewModelIsLoadedEvent.Invoke(this);
+        }
+
+        private void StartedSync()
+        {
+            LeftItem.AcceptCommand = null;
+            RightItem.AcceptCommand = null;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
+            ProcessIconIsVisible = false;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
+        }
+
+        private void FinishedSync()
+        {
+            ProcessIconIsVisible = true;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
         }
     }
 }
