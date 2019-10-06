@@ -2,6 +2,7 @@
 using DirectorySync.ViewModels;
 using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Windows.Input;
 using Xunit;
 
@@ -47,6 +48,90 @@ namespace XUnitTestProject
 
             Assert.Equal(leftExpectedStatus, rowViewModel.LeftItem.Status.StatusEnum.ToString());
             Assert.Equal(rightExpectedStatus, rowViewModel.RightItem.Status.StatusEnum.ToString());
+        }
+
+        /// <summary>
+        /// Тест на простановку свойств видимости при инициализации.
+        /// </summary>
+        [Fact]
+        public void VisibilityAcceptButton_Init()
+        {
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
+            var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+
+            Assert.True(rowViewModel.CommandButtonIsVisible);
+            Assert.False(rowViewModel.ProcessIconIsVisible);
+        }
+
+        /// <summary>
+        /// Тест на простановку свойств видимости сразу после запуска принятия левого элемента.
+        /// </summary>
+        [Fact]
+        public void VisibilityAcceptButton_StartedLeftItemAccept()
+        {
+            // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { Thread.Sleep(70); });
+            var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            rowViewModel.LeftItem.AcceptCommand.Execute(null);
+            Thread.Sleep(25); //  Чтобы успели обновиться свойства.
+
+            Assert.False(rowViewModel.CommandButtonIsVisible);
+            Assert.Null(rowViewModel.LeftItem.AcceptCommand);  // Сразу после запуска команда должна удалиться.
+            Assert.True(rowViewModel.ProcessIconIsVisible);
+        }
+
+        /// <summary>
+        /// Тест на простановку свойств видимости сразу после запуска принятия правого элемента.
+        /// </summary>
+        [Fact]
+        public void VisibilityAcceptButton_StartedRightItemAccept()
+        {
+            var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
+            // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
+            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { Thread.Sleep(70); });
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            rowViewModel.RightItem.AcceptCommand.Execute(null);
+            Thread.Sleep(25); //  Чтобы успели обновиться свойства.
+
+            Assert.False(rowViewModel.CommandButtonIsVisible);
+            Assert.Null(rowViewModel.RightItem.AcceptCommand);  // Сразу после запуска команда должна удалиться.
+            Assert.True(rowViewModel.ProcessIconIsVisible);
+        }
+
+        /// <summary>
+        /// Тест на простановку свойств видимости после завершения принятия левого элемента.
+        /// </summary>
+        [Fact]
+        public void VisibilityAcceptButton_FinishedLeftItemAccept()
+        {
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
+            var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            rowViewModel.LeftItem.AcceptCommand.Execute(null);
+            Thread.Sleep(25); //  Чтобы успели обновиться свойства.
+
+            Assert.False(rowViewModel.CommandButtonIsVisible);
+            Assert.False(rowViewModel.ProcessIconIsVisible);
+            Assert.Null(rowViewModel.LeftItem.AcceptCommand); // После выполнения команда должна отсутствовать.
+        }
+
+        /// <summary>
+        /// Тест на простановку свойств видимости после завершения принятия правого элемента.
+        /// </summary>
+        [Fact]
+        public void VisibilityAcceptButton_FinishedRightItemAccept()
+        {
+            var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
+            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            rowViewModel.RightItem.AcceptCommand.Execute(null);
+            Thread.Sleep(25); //  Чтобы успели обновиться свойства.
+
+            Assert.False(rowViewModel.CommandButtonIsVisible);
+            Assert.False(rowViewModel.ProcessIconIsVisible);
+            Assert.Null(rowViewModel.LeftItem.AcceptCommand); // После выполнения команда должна отсутствовать.
         }
 
         private class TestItemViewModel : IItemViewModel
