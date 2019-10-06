@@ -129,6 +129,16 @@ namespace XUnitTestProject
             public string FullPath { get; }
 
             public DateTime LastUpdate { get; }
+
+            public Task CopyTo(string destinationPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task Delete()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

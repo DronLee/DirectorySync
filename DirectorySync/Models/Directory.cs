@@ -83,5 +83,27 @@ namespace DirectorySync.Models
             IsLoaded = true;
             LoadedDirectoryEvent?.Invoke(this);
         }
+
+        public async Task CopyTo(string destinationPath)
+        {
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    System.IO.Directory.CreateDirectory(destinationPath);
+                }
+                catch { }
+                foreach (var item in _items)
+                    await item.CopyTo(System.IO.Path.Combine(destinationPath, item.Name));
+            });
+        }
+
+        public async Task Delete()
+        {
+            await Task.Run(() =>
+            {
+                System.IO.Directory.Delete(FullPath, true);
+            });
+        }
     }
 }

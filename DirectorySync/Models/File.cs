@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace DirectorySync.Models
 {
@@ -33,5 +34,28 @@ namespace DirectorySync.Models
         /// Время последнего обновления файла.
         /// </summary>
         public DateTime LastUpdate { get; }
+
+        /// <summary>
+        /// Копировать элемент в указанный путь с заменой.
+        /// </summary>
+        /// <param name="destinationPath">Путь куда копировать.</param>
+        public async Task CopyTo(string destinationPath)
+        {
+            await Task.Run(() =>
+            {
+                System.IO.File.Copy(FullPath, destinationPath, true);
+            });
+        }
+
+        /// <summary>
+        /// Удалить элемент.
+        /// </summary>
+        public async Task Delete()
+        {
+            await Task.Run(() =>
+            {
+                System.IO.File.Delete(FullPath);
+            });
+        }
     }
 }

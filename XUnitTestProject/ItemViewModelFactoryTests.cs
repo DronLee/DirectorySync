@@ -353,6 +353,16 @@ namespace XUnitTestProject
 
             public event LoadedDirectory LoadedDirectoryEvent;
 
+            public Task CopyTo(string destinationPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task Delete()
+            {
+                throw new NotImplementedException();
+            }
+
             public async Task Load()
             {
                 await Task.Run(() =>
@@ -390,6 +400,16 @@ namespace XUnitTestProject
             public string FullPath { get; }
 
             public DateTime LastUpdate { get; }
+
+            public Task CopyTo(string destinationPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task Delete()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

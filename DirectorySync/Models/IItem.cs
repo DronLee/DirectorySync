@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace DirectorySync.Models
 {
@@ -21,5 +22,16 @@ namespace DirectorySync.Models
         /// Время последнего обновления элемента.
         /// </summary>
         DateTime LastUpdate { get; }
+
+        /// <summary>
+        /// Копировать элемент в указанный путь с заменой.
+        /// </summary>
+        /// <param name="destinationPath">Путь куда копировать.</param>
+        Task CopyTo(string destinationPath);
+
+        /// <summary>
+        /// Удалить элемент.
+        /// </summary>
+        Task Delete();
     }
 }
