@@ -137,5 +137,19 @@
   <ItemGroup>
     <Resource Include="Icons\File.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Status\ThereIs.png" />
+    <Resource Include="Icons\Status\Unknown.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Status\Older.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Status\Newer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Status\Equally.png" />
+    <Resource Include="Icons\Status\Missing.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

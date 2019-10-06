@@ -47,6 +47,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Image Style="{StaticResource ItemIcon}" Source="{Binding LeftItem.IconPath}"></Image>
                             <Label Content="{Binding LeftItem.Name}" />
+                            <Image Style="{StaticResource ItemIcon}" Source="{Binding LeftItem.Status.IconPath}"></Image>
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
@@ -70,6 +71,7 @@
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
                         <StackPanel Orientation="Horizontal">
+                            <Image Style="{StaticResource ItemIcon}" Source="{Binding RightItem.Status.IconPath}"></Image>
                             <Image Style="{StaticResource ItemIcon}" Source="{Binding RightItem.IconPath}"></Image>
                             <Label Content="{Binding RightItem.Name}" />
                         </StackPanel>
