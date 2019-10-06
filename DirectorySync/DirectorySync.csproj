@@ -151,5 +151,12 @@
   <ItemGroup>
     <Resource Include="Icons\Folder.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\LeftItemCommand.png" />
+    <Resource Include="Icons\RightItemCommand.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\SyncProcess.gif" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
