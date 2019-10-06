@@ -28,8 +28,11 @@ namespace DirectorySync.ViewModels
                 LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
             if (RightItem.Directory != null)
                 RightItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
+
             LeftItem.StartedSyncEvent += () => StartedSync();
             LeftItem.FinishedSyncEvent += () => FinishedSync();
+            RightItem.StartedSyncEvent += () => StartedSync();
+            RightItem.FinishedSyncEvent += () => FinishedSync();
         }
 
         /// <summary>
@@ -148,13 +151,13 @@ namespace DirectorySync.ViewModels
             LeftItem.AcceptCommand = null;
             RightItem.AcceptCommand = null;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
-            ProcessIconIsVisible = false;
+            ProcessIconIsVisible = true;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
         }
 
         private void FinishedSync()
         {
-            ProcessIconIsVisible = true;
+            ProcessIconIsVisible = false;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
         }
     }
