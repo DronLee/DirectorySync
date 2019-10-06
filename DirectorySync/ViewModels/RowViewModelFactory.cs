@@ -85,7 +85,8 @@ namespace DirectorySync.ViewModels
         /// <returns>Строка представления отслеживаемых элементов.</returns>
         private RowViewModel LeftMissing(IItem rightItem)
         {
-            return new RowViewModel(new ItemViewModel(rightItem.Name), new ItemViewModel(rightItem, ItemStatusEnum.ThereIs));
+            var rightItemViewModel = new ItemViewModel(rightItem, ItemStatusEnum.ThereIs);
+            return new RowViewModel(new ItemViewModel(rightItem.Name, rightItemViewModel.IsDirectory), rightItemViewModel);
         }
 
         /// <summary>
@@ -95,7 +96,8 @@ namespace DirectorySync.ViewModels
         /// <returns>Строка представления отслеживаемых элементов.</returns>
         private RowViewModel RightMissing(IItem leftItem)
         {
-            return new RowViewModel(new ItemViewModel(leftItem, ItemStatusEnum.ThereIs), new ItemViewModel(leftItem.Name));
+            var leftItemViewModel = new ItemViewModel(leftItem, ItemStatusEnum.ThereIs);
+            return new RowViewModel(leftItemViewModel, new ItemViewModel(leftItem.Name, leftItemViewModel.IsDirectory));
         }
 
         /// <summary>

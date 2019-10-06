@@ -147,13 +147,21 @@ namespace XUnitTestProject
                 Assert.Equal(directoryAndFileName, childRow1.LeftItem.Name);
                 Assert.Equal(directoryAndFileName, childRow1.RightItem.Name);
                 Assert.NotNull(childRow1.RightItem.Directory);
+                Assert.True(childRow1.RightItem.IsDirectory);
+
+                // Даже если элемент отсутствует, а присутствующий является директорией, то и этот должен быть директорией.
+                Assert.Null(childRow1.LeftItem.Directory);
+                Assert.True(childRow1.LeftItem.IsDirectory);
+
                 Assert.Equal(ItemStatusEnum.Missing, childRow1.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.ThereIs, childRow1.RightItem.Status.StatusEnum);
                 var childRow2 = rowViewModel.ChildRows[1];
                 Assert.Equal(directoryAndFileName, childRow2.LeftItem.Name);
                 Assert.Equal(directoryAndFileName, childRow2.RightItem.Name);
                 Assert.Null(childRow2.LeftItem.Directory);
+                Assert.False(childRow2.LeftItem.IsDirectory);
                 Assert.Null(childRow2.RightItem.Directory);
+                Assert.False(childRow2.RightItem.IsDirectory);
                 Assert.Equal(ItemStatusEnum.ThereIs, childRow2.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.Missing, childRow2.RightItem.Status.StatusEnum);
             }

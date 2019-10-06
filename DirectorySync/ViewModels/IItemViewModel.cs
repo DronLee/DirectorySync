@@ -15,6 +15,11 @@ namespace DirectorySync.ViewModels
         string Name { get; }
 
         /// <summary>
+        /// True - элемент является директорией.
+        /// </summary>
+        bool IsDirectory { get; }
+
+        /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
         /// </summary>
         IDirectory Directory { get; }

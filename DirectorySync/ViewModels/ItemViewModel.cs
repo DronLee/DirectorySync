@@ -27,6 +27,7 @@ namespace DirectorySync.ViewModels
             {
                 Directory = (IDirectory)item;
                 Directory.LoadedDirectoryEvent += LoadedDirectory;
+                IsDirectory = true;
             }
         }
 
@@ -44,17 +45,24 @@ namespace DirectorySync.ViewModels
         /// Конструктор создания отсутствующего элемента.
         /// </summary>
         /// <param name="name">Наименование отображаемого элемента.</param>
-        public ItemViewModel(string name)
+        /// <param name="isDirectory">True - присутствующий элемент является директорией.</param>
+        public ItemViewModel(string name, bool isDirectory)
         {
             _item = null;
             Name = name;
             Status = new ItemStatus(ItemStatusEnum.Missing);
+            IsDirectory = isDirectory;
         }
 
         /// <summary>
         /// Наименование.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// True - элемент является директорией.
+        /// </summary>
+        public bool IsDirectory { get; }
 
         /// <summary>
         /// Выполняемая команда синхронизации. 
@@ -71,17 +79,15 @@ namespace DirectorySync.ViewModels
         /// </summary>
         public IDirectory Directory { get; }
 
-        public string IconPath => Directory == null ? fileIconPath : folderIconPath;
+        /// <summary>
+        /// Путь к иконке отслеживаемого элемента.
+        /// </summary>
+        public string IconPath => IsDirectory ? folderIconPath : fileIconPath;
 
         /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private void LoadedDirectory(IDirectory directory)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
-        }
 
         /// <summary>
         /// Обновление статуса.
@@ -91,6 +97,11 @@ namespace DirectorySync.ViewModels
         {
             if (Status == null || Status.StatusEnum != statusEnum)
                 Status = new ItemStatus(statusEnum);
+        }
+
+        private void LoadedDirectory(IDirectory directory)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
         }
     }
 }

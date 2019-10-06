@@ -65,6 +65,10 @@ namespace XUnitTestProject
 
             public ICommand AcceptCommand => throw new NotImplementedException();
 
+            public string IconPath => throw new NotImplementedException();
+
+            public bool IsDirectory { get; }
+
             public event PropertyChangedEventHandler PropertyChanged;
 
             public void UpdateStatus(ItemStatusEnum statusEnum)
