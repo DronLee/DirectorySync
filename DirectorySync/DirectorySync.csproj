@@ -132,9 +132,6 @@
     <Resource Include="Icons\AppIcon.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Icons\Folder.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Icons\File.png" />
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +147,9 @@
   <ItemGroup>
     <Resource Include="Icons\Status\Equally.png" />
     <Resource Include="Icons\Status\Missing.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Folder.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

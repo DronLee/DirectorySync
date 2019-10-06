@@ -11,7 +11,7 @@ namespace DirectorySync.ViewModels
     public class ItemViewModel : IItemViewModel
     {
         private const string fileIconPath = "/DirectorySync;component/Icons/File.png";
-        private const string folderIconPath = "/DirectorySync;component/Icons/Folder.jpg";
+        private const string folderIconPath = "/DirectorySync;component/Icons/Folder.png";
 
         private readonly IItem _item;
 
