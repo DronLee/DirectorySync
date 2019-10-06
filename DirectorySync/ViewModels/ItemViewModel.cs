@@ -10,8 +10,8 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class ItemViewModel : IItemViewModel
     {
-        private const string fileIconPath = "/DirectorySync;component/Icons/File.png";
-        private const string folderIconPath = "/DirectorySync;component/Icons/Folder.png";
+        private const string _fileIconPath = "/DirectorySync;component/Icons/File.png";
+        private const string _folderIconPath = "/DirectorySync;component/Icons/Folder.png";
 
         private readonly IItem _item;
 
@@ -19,7 +19,7 @@ namespace DirectorySync.ViewModels
         /// Конструктор.
         /// </summary>
         /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
-        public ItemViewModel(IItem item)
+        public ItemViewModel(IItem item, Action acceptAction = null)
         {
             _item = item;
             Name = item.Name;
@@ -29,6 +29,8 @@ namespace DirectorySync.ViewModels
                 Directory.LoadedDirectoryEvent += LoadedDirectory;
                 IsDirectory = true;
             }
+            if (acceptAction != null)
+                AcceptCommand = GetAcceptCommand(acceptAction);
         }
 
         /// <summary>
@@ -36,7 +38,8 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
         /// <param name="itemStatusEnum">Статус, с которым будет создана модель.</param>
-        public ItemViewModel(IItem item, ItemStatusEnum itemStatusEnum) : this(item)
+        public ItemViewModel(IItem item, ItemStatusEnum itemStatusEnum, Action acceptAction)
+            : this(item, acceptAction)
         {
             Status = new ItemStatus(itemStatusEnum);
         }
@@ -46,12 +49,13 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="name">Наименование отображаемого элемента.</param>
         /// <param name="isDirectory">True - присутствующий элемент является директорией.</param>
-        public ItemViewModel(string name, bool isDirectory)
+        public ItemViewModel(string name, bool isDirectory, Action acceptAction)
         {
             _item = null;
             Name = name;
             Status = new ItemStatus(ItemStatusEnum.Missing);
             IsDirectory = isDirectory;
+            AcceptCommand = GetAcceptCommand(acceptAction);
         }
 
         /// <summary>
@@ -67,7 +71,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Выполняемая команда синхронизации. 
         /// </summary>
-        public ICommand AcceptCommand => throw new NotImplementedException();
+        public ICommand AcceptCommand { get; set; }
 
         /// <summary>
         /// Статус элемента.
@@ -82,12 +86,20 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Путь к иконке отслеживаемого элемента.
         /// </summary>
-        public string IconPath => IsDirectory ? folderIconPath : fileIconPath;
+        public string IconPath => IsDirectory ? _folderIconPath : _fileIconPath;
 
         /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+        /// <summary>
+        /// Событие запуска синхронизации.
+        /// </summary>
+        public event Action StartedSyncEvent;
+        /// <summary>
+        /// Событие завершения синхронизации.
+        /// </summary>
+        public event Action FinishedSyncEvent;
 
         /// <summary>
         /// Обновление статуса.
@@ -97,6 +109,16 @@ namespace DirectorySync.ViewModels
         {
             if (Status == null || Status.StatusEnum != statusEnum)
                 Status = new ItemStatus(statusEnum);
+        }
+
+        private ICommand GetAcceptCommand(Action action)
+        {
+            return new Command(call =>
+            {
+                StartedSyncEvent?.Invoke();
+                action.Invoke();
+                FinishedSyncEvent?.Invoke();
+            });
         }
 
         private void LoadedDirectory(IDirectory directory)

@@ -63,13 +63,15 @@ namespace XUnitTestProject
 
             public ItemStatus Status { get; private set; }
 
-            public ICommand AcceptCommand => throw new NotImplementedException();
+            public ICommand AcceptCommand { get; set; }
 
             public string IconPath => throw new NotImplementedException();
 
             public bool IsDirectory { get; }
 
             public event PropertyChangedEventHandler PropertyChanged;
+            public event Action StartedSyncEvent;
+            public event Action FinishedSyncEvent;
 
             public void UpdateStatus(ItemStatusEnum statusEnum)
             {

@@ -1,4 +1,5 @@
 ﻿using DirectorySync.Models;
+using System;
 using System.ComponentModel;
 using System.Windows.Input;
 
@@ -37,7 +38,17 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Выполняемая команда синхронизации. 
         /// </summary>
-        ICommand AcceptCommand { get; }
+        ICommand AcceptCommand { get; set; }
+
+        /// <summary>
+        /// Событие запуска синхронизации.
+        /// </summary>
+        event Action StartedSyncEvent;
+
+        /// <summary>
+        /// Событие завершения синхронизации.
+        /// </summary>
+        event Action FinishedSyncEvent;
 
         /// <summary>
         /// Обновление статуса.
