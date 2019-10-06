@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using DirectorySync.Models;
 
@@ -115,9 +116,12 @@ namespace DirectorySync.ViewModels
         {
             return new Command(call =>
             {
-                StartedSyncEvent?.Invoke();
-                action.Invoke();
-                FinishedSyncEvent?.Invoke();
+                Task.Run(() =>
+                {
+                    StartedSyncEvent?.Invoke();
+                    action.Invoke();
+                    FinishedSyncEvent?.Invoke();
+                });
             });
         }
 
