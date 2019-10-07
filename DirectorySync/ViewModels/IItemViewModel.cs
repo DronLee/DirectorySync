@@ -55,5 +55,11 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="statusEnum">Новое значение статуса.</param>
         void UpdateStatus(ItemStatusEnum statusEnum);
+
+        /// <summary>
+        /// Задание метода, который будет выполняться как команда синхронизации.
+        /// </summary>
+        /// <param name="action">Метод для синхронизации.</param>
+        void SetAtionCommand(Action action);
     }
 }

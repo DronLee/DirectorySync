@@ -158,6 +158,11 @@ namespace XUnitTestProject
             public event Action StartedSyncEvent;
             public event Action FinishedSyncEvent;
 
+            public void SetAtionCommand(Action action)
+            {
+                throw new NotImplementedException();
+            }
+
             public void UpdateStatus(ItemStatusEnum statusEnum)
             {
                 Status = new ItemStatus(statusEnum);
