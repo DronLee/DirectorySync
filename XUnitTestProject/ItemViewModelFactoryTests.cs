@@ -92,35 +92,40 @@ namespace XUnitTestProject
                 Assert.Equal(file1Name, row.RightItem.Name);
                 Assert.Equal(ItemStatusEnum.ThereIs, row.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.Missing, row.RightItem.Status.StatusEnum);
-                Assert.True(row.CommandButtonIsVisible);
+                Assert.NotNull(row.LeftItem.AcceptCommand);
+                Assert.NotNull(row.RightItem.AcceptCommand);
 
                 row = rowViewModel.ChildRows[1];
                 Assert.Equal(file2Name, row.LeftItem.Name);
                 Assert.Equal(file2Name, row.RightItem.Name);
                 Assert.Equal(ItemStatusEnum.Equally, row.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.Equally, row.RightItem.Status.StatusEnum);
-                Assert.False(row.CommandButtonIsVisible);
+                Assert.Null(row.LeftItem.AcceptCommand);
+                Assert.Null(row.RightItem.AcceptCommand);
 
                 row = rowViewModel.ChildRows[2];
                 Assert.Equal(file3Name, row.LeftItem.Name);
                 Assert.Equal(file3Name, row.RightItem.Name);
                 Assert.Equal(ItemStatusEnum.Newer, row.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.Older, row.RightItem.Status.StatusEnum);
-                Assert.True(row.CommandButtonIsVisible);
+                Assert.NotNull(row.LeftItem.AcceptCommand);
+                Assert.NotNull(row.RightItem.AcceptCommand);
 
                 row = rowViewModel.ChildRows[3];
                 Assert.Equal(file4Name, row.LeftItem.Name);
                 Assert.Equal(file4Name, row.RightItem.Name);
                 Assert.Equal(ItemStatusEnum.Older, row.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.Newer, row.RightItem.Status.StatusEnum);
-                Assert.True(row.CommandButtonIsVisible);
+                Assert.NotNull(row.LeftItem.AcceptCommand);
+                Assert.NotNull(row.RightItem.AcceptCommand);
 
                 row = rowViewModel.ChildRows[4];
                 Assert.Equal(file5Name, row.LeftItem.Name);
                 Assert.Equal(file5Name, row.RightItem.Name);
                 Assert.Equal(ItemStatusEnum.Missing, row.LeftItem.Status.StatusEnum);
                 Assert.Equal(ItemStatusEnum.ThereIs, row.RightItem.Status.StatusEnum);
-                Assert.True(row.CommandButtonIsVisible);
+                Assert.NotNull(row.LeftItem.AcceptCommand);
+                Assert.NotNull(row.RightItem.AcceptCommand);
             }
         }
 
