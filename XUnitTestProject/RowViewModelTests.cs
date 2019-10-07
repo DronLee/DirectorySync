@@ -51,6 +51,46 @@ namespace XUnitTestProject
         }
 
         /// <summary>
+        /// Тест на выполнение команды принятия левого элемента.
+        /// </summary>
+        [Fact]
+        public void LeftItemAcceptCommand()
+        {
+            var useAcceptCommand = false;
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { useAcceptCommand = true; });
+            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            rowViewModel.LeftItem.AcceptCommand.Execute(null);
+            Thread.Sleep(10); //  Чтобы успела выполниться команда.
+
+            Assert.True(useAcceptCommand);
+
+            // Сразу после запуска выполнения команды должна удалиться.
+            Assert.Null(rowViewModel.LeftItem.AcceptCommand);
+            Assert.Null(rowViewModel.RightItem.AcceptCommand);
+        }
+
+        /// <summary>
+        /// Тест на выполнение команды принятия правого элемента.
+        /// </summary>
+        [Fact]
+        public void RightItemAcceptCommand()
+        {
+            var useAcceptCommand = false;
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
+            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { useAcceptCommand = true; });
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            rowViewModel.RightItem.AcceptCommand.Execute(null);
+            Thread.Sleep(10); //  Чтобы успела выполниться команда.
+
+            Assert.True(useAcceptCommand);
+
+            // Сразу после запуска выполнения команды должна удалиться.
+            Assert.Null(rowViewModel.LeftItem.AcceptCommand);
+            Assert.Null(rowViewModel.RightItem.AcceptCommand);
+        }
+
+        /// <summary>
         /// Тест на простановку свойств видимости при инициализации.
         /// </summary>
         [Fact]
@@ -78,7 +118,6 @@ namespace XUnitTestProject
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 
             Assert.False(rowViewModel.CommandButtonIsVisible);
-            Assert.Null(rowViewModel.LeftItem.AcceptCommand);  // Сразу после запуска команда должна удалиться.
             Assert.True(rowViewModel.ProcessIconIsVisible);
         }
 
@@ -96,7 +135,6 @@ namespace XUnitTestProject
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 
             Assert.False(rowViewModel.CommandButtonIsVisible);
-            Assert.Null(rowViewModel.RightItem.AcceptCommand);  // Сразу после запуска команда должна удалиться.
             Assert.True(rowViewModel.ProcessIconIsVisible);
         }
 
@@ -114,7 +152,6 @@ namespace XUnitTestProject
 
             Assert.False(rowViewModel.CommandButtonIsVisible);
             Assert.False(rowViewModel.ProcessIconIsVisible);
-            Assert.Null(rowViewModel.LeftItem.AcceptCommand); // После выполнения команда должна отсутствовать.
         }
 
         /// <summary>
@@ -131,7 +168,6 @@ namespace XUnitTestProject
 
             Assert.False(rowViewModel.CommandButtonIsVisible);
             Assert.False(rowViewModel.ProcessIconIsVisible);
-            Assert.Null(rowViewModel.LeftItem.AcceptCommand); // После выполнения команда должна отсутствовать.
         }
 
         private class TestItemViewModel : IItemViewModel
