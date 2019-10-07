@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using XUnitTestProject.Infrastructure;
+using IODirectory = System.IO.Directory;
 
 namespace XUnitTestProject
 {
@@ -30,6 +31,34 @@ namespace XUnitTestProject
                 Assert.Equal(lastWriteTime, directory.LastUpdate);
                 Assert.False(directory.IsLoaded);
                 Assert.Empty(directory.Items); // Загрузка не выполнялась, содержимого быть не должно.
+            }
+        }
+
+        [Fact]
+        public async Task CopyTo()
+        {
+            using (var testDirectory = new TestDirectory())
+            {
+                var sourceDirectory =  testDirectory.CreateDirectory("SorceDir");
+                var destinationDirectory = System.IO.Path.Combine(testDirectory.FullPath, "DestDir");
+                var directory = new Directory(sourceDirectory, new TestItemFactory());
+                await directory.CopyTo(destinationDirectory);
+
+                Assert.True(IODirectory.Exists(sourceDirectory));
+                Assert.True(IODirectory.Exists(destinationDirectory));
+            }
+        }
+
+        [Fact]
+        public async Task Delete()
+        {
+            using (var testDirectory = new TestDirectory())
+            {
+                var sourceDirectory = testDirectory.CreateDirectory("SorceDir");
+                var directory = new Directory(sourceDirectory, new TestItemFactory());
+                await directory.Delete();
+
+                Assert.False(IODirectory.Exists(sourceDirectory));
             }
         }
 
