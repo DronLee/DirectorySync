@@ -55,18 +55,54 @@ namespace XUnitTestProject
             Assert.Equal("RightDirectoryButton", settingsViewModel.SettingsRows[1].RightDirectory.ButtonStyle);
         }
 
+        [Theory]
+        [InlineData(true, "1", false, null, false, "Warning", 0, 0, false)]
+        [InlineData(true, null, false, "2", false, "Warning", 0, 0, false)]
+        [InlineData(true, "1", true, "2", false, "Warning", 0, 0, false)]
+        [InlineData(true, "1", false, "2", true, "Warning", 0, 0, false)]
+        [InlineData(true, "1", true, "2", true, "Warning", 0, 0, false)]
+        [InlineData(true, "1", false, "2", false, "Default", 1, 1, true)]
+        [InlineData(false, "1", false, null, false, "Default", 0, 1, true)]
+        [InlineData(false, null, false, "2", false, "Default", 0, 1, true)]
+        [InlineData(false, "1", true, "2", false, "Default", 0, 1, true)]
+        [InlineData(false, "1", false, "2", true, "Default", 0, 1, true)]
+        [InlineData(false, "1", true, "2", true, "Default", 0, 1, true)]
+        [InlineData(false, "1", false, "2", false, "Default", 0, 1, true)]
+        public void OkCommand(bool rowIsUsed, string leftDirectory, bool leftDirectoryIsNotFound, string rightDirectory,
+            bool rightDirectoryIsNotFound, string commentTypeText, byte useCreateSettingsRowCount, byte useSaveCount, bool ok)
+        {
+            var settingsStorage = new TestSettingsStorage();
+
+            var settingsRow = new SettingsRow(leftDirectory, rightDirectory, rowIsUsed);
+            settingsStorage.SettingsRows = new[] { settingsRow };
+            settingsRow.LeftDirectory.NotFound = leftDirectoryIsNotFound;
+            settingsRow.RightDirectory.NotFound = rightDirectoryIsNotFound;
+
+            var settingsViewModel = new SettingsViewModel(settingsStorage);
+
+            settingsViewModel.OkCommand.Execute(null);
+
+            Assert.Equal(Enum.Parse<MessageTypeEnum>(commentTypeText), settingsViewModel.CommentType);
+            Assert.Equal(useCreateSettingsRowCount, settingsStorage.useCreateSettingsRowCount);
+            Assert.Equal(useSaveCount, settingsStorage.useSaveCount);
+            Assert.Equal(ok, settingsViewModel.Ok);
+        }
         private class TestSettingsStorage : ISettingsStorage
         {
+            public byte useCreateSettingsRowCount = 0;
+            public byte useSaveCount = 0;
+
             public ISettingsRow[] SettingsRows { get; set; }
 
             public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed)
             {
-                throw new NotImplementedException();
+                useCreateSettingsRowCount++;
+                return null;
             }
 
             public void Save()
             {
-                throw new NotImplementedException();
+                useSaveCount++;
             }
         }
     }
