@@ -18,8 +18,6 @@ namespace DirectorySync.ViewModels.Settings
 
         private bool _isUsed = true; 
 
-        private ISettingsRow _settingsRow;
-
         private ICommand _folderDialogCommand = null;
         private ICommand _deleteRowCommand = null;
 
@@ -39,7 +37,6 @@ namespace DirectorySync.ViewModels.Settings
         /// <param name="settingsRow"></param>
         public SettingsRowViewModel(ISettingsRow settingsRow)
         {
-            _settingsRow = settingsRow;
             IsEmpty = false;
             LeftDirectory = new SettingsDirectoryViewModel(settingsRow.LeftDirectory.DirectoryPath, settingsRow.LeftDirectory.NotFound,
                 settingsRow.LeftDirectory.NotFound ? _notFoundLeftDirectoryButtonStyleName : _leftDirectoryButtonStyleName);
