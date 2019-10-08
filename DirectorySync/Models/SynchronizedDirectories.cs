@@ -14,6 +14,8 @@ namespace DirectorySync.Models
 
         public IDirectory RightDirectory { get; }
 
+        public bool IsLoaded => LeftDirectory.IsLoaded && RightDirectory.IsLoaded;
+
         public async Task Load()
         {
             await LeftDirectory.Load();

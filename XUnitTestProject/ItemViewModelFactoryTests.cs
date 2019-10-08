@@ -336,6 +336,8 @@ namespace XUnitTestProject
 
             public IDirectory RightDirectory { get; }
 
+            public bool IsLoaded => throw new NotImplementedException();
+
             public async Task Load()
             {
                 await LeftDirectory.Load();
