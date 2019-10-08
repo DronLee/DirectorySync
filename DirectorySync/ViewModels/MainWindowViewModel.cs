@@ -81,9 +81,9 @@ namespace DirectorySync.ViewModels
         {
             bool checkDirectory = true;
 
-            if(_settingsStorage.SettingsRows.Length == 0)
+            if(_settingsStorage.SettingsRows.Count(r => r.IsUsed) == 0)
                 checkDirectory = ShowSettingsWindow("Чтобы начать работу укажите пары синхронизируемых между собой директорий.");
-            else if(_settingsStorage.SettingsRows.Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
+            else if(_settingsStorage.SettingsRows.Where(r=>r.IsUsed).Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
                 checkDirectory = ShowSettingsWindow("Среди указаных директорий есть те, которые не удаётся найти. Отключите их или удалите из списка.");
 
             if(!checkDirectory)
