@@ -45,8 +45,11 @@ namespace DirectorySync.ViewModels.Settings
             get { return _comment; }
             set
             {
-                _comment = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Comment)));
+                if (_comment != value)
+                {
+                    _comment = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Comment)));
+                }
             }
         }
 
@@ -70,13 +73,9 @@ namespace DirectorySync.ViewModels.Settings
                 if (_okCommand == null)
                     _okCommand = new Command<Window>((Window window) =>
                     {
-                        if (SettingsRows.Any(r => !r.IsEmpty && (r.LeftDirectory.DirectoryPath == null || r.RightDirectory.DirectoryPath == null)))
-                        {
-                            CommentType = MessageTypeEnum.Warning;
-                            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommentType)));
-                            Comment = "Не для всех директорий указаны пары. Уберите директории без пары из списка или отключите их.";
-                        }
-                        else
+                        var activeSettingsRows = SettingsRows.Where(r => !r.IsEmpty && r.IsUsed).ToArray();
+                        Comment = GetWarningMessage();
+                        if (Comment == null)
                         {
                             _settingsStorage.SettingsRows = SettingsRows.Where(r => !r.IsEmpty).Select(r =>
                                   _settingsStorage.CreateSettingsRow(r.LeftDirectory.DirectoryPath, r.RightDirectory.DirectoryPath, r.IsUsed)
@@ -84,6 +83,11 @@ namespace DirectorySync.ViewModels.Settings
                             _settingsStorage.Save();
                             Ok = true;
                             window.Close();
+                        }
+                        else
+                        {
+                            CommentType = MessageTypeEnum.Warning;
+                            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommentType)));
                         }
                     });
                 return _okCommand;
@@ -99,6 +103,18 @@ namespace DirectorySync.ViewModels.Settings
         /// Событие изменения одного из свойств.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private string GetWarningMessage()
+        {
+            var activeSettingsRows = SettingsRows.Where(r => !r.IsEmpty && r.IsUsed).ToArray();
+            if (activeSettingsRows.Length == 0)
+                return "Не задано ни одной пары директорий для синхронизации.";
+            if (activeSettingsRows.Any(r => r.LeftDirectory.DirectoryPath == null || r.RightDirectory.DirectoryPath == null))
+                return "Не для всех директорий указаны пары. Уберите директории без пары из списка или отключите их.";
+            else if (activeSettingsRows.Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
+                return "Не все директории удаётся найти. Уберите строки, где есть отсутствующие директории или отключите их.";
+            return null;
+        }
 
         private void DeleteRow(ISettingsRowViewModel row)
         {
