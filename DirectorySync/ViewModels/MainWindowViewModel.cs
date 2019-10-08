@@ -22,6 +22,7 @@ namespace DirectorySync.ViewModels
 
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
+        private ICommand _settingsCommand;
 
         /// <summary>
         /// Конструктор.
@@ -64,6 +65,21 @@ namespace DirectorySync.ViewModels
                             ((IRowViewModel)treeView.SelectedItem).IsSelected = true;
                     });
                 return _selectedItemCommand;
+            }
+        }
+
+        public ICommand SettingsCommand
+        {
+            get
+            {
+                if (_settingsCommand == null)
+                    _settingsCommand = new Command(async action =>
+                    {
+                        _settingsWindow.ShowDialog();
+                        if (((ISettingsViewModel)_settingsWindow.DataContext).Ok)
+                            await _synchronizedDirectoriesManager.Load();
+                    });
+                return _settingsCommand;
             }
         }
 

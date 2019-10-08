@@ -23,5 +23,7 @@ namespace DirectorySync.ViewModels
         /// Комнада выбора строки.
         /// </summary>
         ICommand SelectedItemCommand { get; }
+
+        ICommand SettingsCommand { get; }
     }
 }

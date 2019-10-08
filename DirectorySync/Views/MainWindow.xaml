@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         mc:Ignorable="d"
-        Title="Синхронизация директорий" Height="450" Width="800" Icon="/DirectorySync;component/Icons/AppIcon.jpg">
+        Title="Синхронизация директорий" Height="450" Width="800" Icon="/DirectorySync;component/Icons/AppIcon.jpg" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="booleanToVisiblityConverter" />
@@ -31,10 +31,16 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <ScrollViewer x:Name="LeftTreeViewScroll" Grid.Column="0" ScrollChanged="LeftTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
+        <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,20,0" ToolTip="Настройки директорий" Background="Transparent" BorderThickness="0"
+                Command="{Binding SettingsCommand}">
+            <Image Source="/DirectorySync;component/Icons/Settings.png" Width="30" />
+        </Button>
+
+        <ScrollViewer x:Name="LeftTreeViewScroll" Grid.Row="1" Grid.Column="0" ScrollChanged="LeftTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
             <TreeView Name="LeftTree" ItemsSource="{Binding Rows}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectedItemChanged">
@@ -66,7 +72,7 @@
             </TreeView>
         </ScrollViewer>
 
-        <ScrollViewer x:Name="RightTreeViewScroll" Grid.Column="1" ScrollChanged="RightTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
+        <ScrollViewer x:Name="RightTreeViewScroll" Grid.Row="1" Grid.Column="1" ScrollChanged="RightTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
             <TreeView Name="RightTree" ItemsSource="{Binding Rows}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectedItemChanged">
