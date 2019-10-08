@@ -83,7 +83,7 @@ namespace DirectorySync.ViewModels.Settings
                             ).ToArray();
                             _settingsStorage.Save();
                             Ok = true;
-                            window.Close();
+                            window?.Close();
                         }
                     });
                 return _okCommand;
