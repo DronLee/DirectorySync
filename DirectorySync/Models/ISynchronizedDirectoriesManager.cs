@@ -13,6 +13,6 @@ namespace DirectorySync.Models
 
         Task Load();
 
-        event Action<ISynchronizedDirectories> RemoveSynchronizedDirectory;
+        event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoryEvent;
     }
 }

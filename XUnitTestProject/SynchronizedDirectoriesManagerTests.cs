@@ -53,7 +53,7 @@ namespace XUnitTestProject
                 };
 
                 var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
-                synchronizedDirectoriesManager.RemoveSynchronizedDirectory += (ISynchronizedDirectories synchronizedDirectories) =>
+                synchronizedDirectoriesManager.RemoveSynchronizedDirectoryEvent += (ISynchronizedDirectories synchronizedDirectories) =>
                 {
                     removedSynchronizedDirectories = synchronizedDirectories;
                 };

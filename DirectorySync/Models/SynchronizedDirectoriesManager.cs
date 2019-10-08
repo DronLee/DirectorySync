@@ -26,7 +26,7 @@ namespace DirectorySync.Models
 
         public ISynchronizedDirectories[] SynchronizedDirectories => _synchronizedDirectoriesList.ToArray();
 
-        public event Action<ISynchronizedDirectories> RemoveSynchronizedDirectory;
+        public event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoryEvent;
 
         public async Task Load()
         {
@@ -42,7 +42,7 @@ namespace DirectorySync.Models
                   d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)).ToArray())
             {
                 _synchronizedDirectoriesList.Remove(synchronizedDirectory);
-                RemoveSynchronizedDirectory?.Invoke(synchronizedDirectory);
+                RemoveSynchronizedDirectoryEvent?.Invoke(synchronizedDirectory);
             }
 
             // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
