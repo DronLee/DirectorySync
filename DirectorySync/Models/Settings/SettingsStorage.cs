@@ -49,8 +49,7 @@ namespace DirectorySync.Models.Settings
         /// <returns>Созданная строка настроек.</returns>
         public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed)
         {
-            return new SettingsRow { LeftDirectory = new SettingsDirectory(leftDirectoryPath), RightDirectory = new SettingsDirectory(rightDirectoryPath),
-                IsUsed = isUsed };
+            return new SettingsRow(leftDirectoryPath, rightDirectoryPath, isUsed);
         }
 
         /// <summary>

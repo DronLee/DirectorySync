@@ -59,19 +59,17 @@ namespace XUnitTestProject
                 var storage = new SettingsStorage(settingsFile);
                 storage.SettingsRows = new[]
                 {
-                    new SettingsRow
-                    {
-                        LeftDirectory = new SettingsDirectory("1") { NotFound = true },
-                        RightDirectory = new SettingsDirectory("2") { NotFound = true },
-                        IsUsed = false
-                    },
-                    new SettingsRow
-                    {
-                        LeftDirectory = new SettingsDirectory("3") { NotFound = true },
-                        RightDirectory = new SettingsDirectory("4") { NotFound = true },
-                        IsUsed = true
-                    }
+                    new SettingsRow("1", "2", false),
+                    new SettingsRow("3", "4", true)
                 };
+
+                // Чтобы потом проверить, что при записи NotFound не сохранилось.
+                foreach (var row in storage.SettingsRows)
+                {
+                    row.LeftDirectory.NotFound = true;
+                    row.RightDirectory.NotFound = true;
+                }
+
                 storage.Save();
 
                 Assert.True(File.Exists(settingsFile));
