@@ -34,6 +34,7 @@ namespace DirectorySync.ViewModels
         {
             _settingsStorage = settingsStorage;
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
+            _synchronizedDirectoriesManager.RemoveSynchronizedDirectoryEvent += RemoveSynchronizedDirectory;
             _settingsViewModel = settingsViewModel;
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
                 itemViewModelFactory.CreateRowViewModel(d)));
@@ -115,6 +116,14 @@ namespace DirectorySync.ViewModels
             var settingsWindow = new SettingsWindow(_settingsViewModel);
             settingsWindow.ShowDialog();
             return _settingsViewModel.Ok;
+        }
+
+        private void RemoveSynchronizedDirectory(ISynchronizedDirectories synchronizedDirectories)
+        {
+            var removingRow = Rows.Single(r => r.LeftItem.Directory.FullPath == synchronizedDirectories.LeftDirectory.FullPath &&
+                r.RightItem.Directory.FullPath == synchronizedDirectories.RightDirectory.FullPath);
+            Rows.Remove(removingRow);
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
         }
     }
 }
