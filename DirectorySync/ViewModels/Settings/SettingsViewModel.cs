@@ -7,12 +7,20 @@ using DirectorySync.Models.Settings;
 
 namespace DirectorySync.ViewModels.Settings
 {
+    /// <summary>
+    /// Модель представления настроек.
+    /// </summary>
     public class SettingsViewModel : ISettingsViewModel
     {
         private readonly ISettingsStorage _settingsStorage;
 
+        private string _comment;
         private ICommand _okCommand = null;
 
+        /// <summary>
+        /// Конструктор. 
+        /// </summary>
+        /// <param name="settingsStorage">Хранилище настроек.</param>
         public SettingsViewModel(ISettingsStorage settingsStorage)
         {
             _settingsStorage = settingsStorage;
@@ -29,8 +37,9 @@ namespace DirectorySync.ViewModels.Settings
             CommentType = MessageTypeEnum.Default;
         }
 
-        private string _comment;
-
+        /// <summary>
+        /// Сообщение для пользователя в окне настроек.
+        /// </summary>
         public string Comment
         {
             get { return _comment; }
@@ -40,10 +49,20 @@ namespace DirectorySync.ViewModels.Settings
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Comment)));
             }
         }
+
+        /// <summary>
+        /// True - окно закрыто с принятием настроек.
+        /// </summary>
         public bool Ok { get; set; }
 
+        /// <summary>
+        /// Модели представлений строк настроек.
+        /// </summary>
         public ObservableCollection<ISettingsRowViewModel> SettingsRows { get; set; }
 
+        /// <summary>
+        /// Команда принятия настроек.
+        /// </summary>
         public ICommand OkCommand
         {
             get
@@ -70,8 +89,15 @@ namespace DirectorySync.ViewModels.Settings
                 return _okCommand;
             }
         }
+
+        /// <summary>
+        /// Тип сообщения для пользователя в окне настроек.
+        /// </summary>
         public MessageTypeEnum CommentType { get; private set; }
 
+        /// <summary>
+        /// Событие изменения одного из свойств.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void DeleteRow(ISettingsRowViewModel row)

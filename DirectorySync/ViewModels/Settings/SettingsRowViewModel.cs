@@ -6,6 +6,9 @@ using System.Windows.Input;
 
 namespace DirectorySync.ViewModels.Settings
 {
+    /// <summary>
+    /// Модель представления строки настройки.
+    /// </summary>
     public class SettingsRowViewModel : ISettingsRowViewModel
     {
         private const string _notFoundLeftDirectoryButtonStyleName = "NotFoundLeftDirectoryButton";
@@ -20,6 +23,9 @@ namespace DirectorySync.ViewModels.Settings
         private ICommand _folderDialogCommand = null;
         private ICommand _deleteRowCommand = null;
 
+        /// <summary>
+        /// Конструктор создания модели пустой строки, нужной, чтобы пользователь мог добавить новые директории.
+        /// </summary>
         public SettingsRowViewModel()
         {
             IsEmpty = true;
@@ -27,6 +33,10 @@ namespace DirectorySync.ViewModels.Settings
             RightDirectory = new SettingsDirectoryViewModel();
         }
 
+        /// <summary>
+        /// Конструктор создания модели на основе строки настроек.
+        /// </summary>
+        /// <param name="settingsRow"></param>
         public SettingsRowViewModel(ISettingsRow settingsRow)
         {
             _settingsRow = settingsRow;
@@ -38,9 +48,24 @@ namespace DirectorySync.ViewModels.Settings
             _isUsed = settingsRow.IsUsed;
         }
 
+        /// <summary>
+        /// True - пустая строка, которая нужна, чтобы пользователь мог добавить новые директории.
+        /// </summary>
         public bool IsEmpty { get; set; }
+
+        /// <summary>
+        /// Левая директория.
+        /// </summary>
         public ISettingsDirectoryViewModel LeftDirectory { get; set; }
+
+        /// <summary>
+        /// Правая директория.
+        /// </summary>
         public ISettingsDirectoryViewModel RightDirectory { get; set; }
+
+        /// <summary>
+        /// Директории строки отслеживаются.
+        /// </summary>
         public bool IsUsed
         {
             get { return _isUsed; }
@@ -54,6 +79,9 @@ namespace DirectorySync.ViewModels.Settings
             }
         }
 
+        /// <summary>
+        /// Команда открытия диалога выбора директории.
+        /// </summary>
         public ICommand FolderDialogCommand
         {
             get
@@ -86,6 +114,9 @@ namespace DirectorySync.ViewModels.Settings
             }
         }
 
+        /// <summary>
+        /// Команда удаления строки.
+        /// </summary>
         public ICommand DeleteCommand
         {
             get
@@ -96,8 +127,19 @@ namespace DirectorySync.ViewModels.Settings
             }
         }
 
+        /// <summary>
+        /// Событие изменения одного из свойств модели.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Событие записи директории в пустую строку.
+        /// </summary>
         public event Action SetEmptyDirectoryEvent;
+
+        /// <summary>
+        /// Событие удаления строки.
+        /// </summary>
         public event Action<ISettingsRowViewModel> DeleteRowEvent;
     }
 }
