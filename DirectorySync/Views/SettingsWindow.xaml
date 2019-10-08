@@ -6,7 +6,7 @@
         xmlns:converters="clr-namespace:DirectorySync.ViewModels.Converters"
         mc:Ignorable="d"
         Name="SettingsForm"
-        Title="Отслеживаемые директории" Height="450" Width="800" Icon="/DirectorySync;component/Icons/Settings.jpg" WindowStartupLocation="CenterScreen">
+        Title="Отслеживаемые директории" Height="450" Width="800" Icon="/DirectorySync;component/Icons/Settings.png" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <Style x:Key="LeftDirectoryButton" TargetType="Button">
@@ -101,7 +101,7 @@
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Background="OrangeRed" ToolTip="Удалить строку" Command="{Binding DeleteCommand}">
+                            <Button Background="IndianRed" ToolTip="Удалить строку" Command="{Binding DeleteCommand}">
                                 <Image Width="20" Source="/DirectorySync;component/Icons/ItemDelete.png"/>
                             </Button>
                         </DataTemplate>

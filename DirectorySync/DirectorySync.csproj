@@ -187,8 +187,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DLL\Newtonsoft.Json.dll" />
+    <Resource Include="Icons\Settings.png" />
     <Resource Include="Icons\OkButton.png" />
-    <Resource Include="Icons\Settings.jpg" />
     <Resource Include="Icons\ItemDelete.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
