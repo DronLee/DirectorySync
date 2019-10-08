@@ -23,31 +23,15 @@ namespace DirectorySync.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>c:\MyProgramms\Test\DirectorySync\Left\bin</string>
-  <string>c:\MyProgramms\Test\DirectorySync\Left\deploy</string>
-  <string>c:\MyProgramms\Test\DirectorySync\Left\obj</string>
-</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection LeftDirectories {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Параметр {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["LeftDirectories"]));
+                return ((string)(this["Параметр"]));
             }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>c:\MyProgramms\Test\DirectorySync\Right\bin</string>
-  <string>c:\MyProgramms\Test\DirectorySync\Right\deploy</string>
-  <string>c:\MyProgramms\Test\DirectorySync\Right\obj</string>
-</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection RightDirectories {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["RightDirectories"]));
+            set {
+                this["Параметр"] = value;
             }
         }
     }

@@ -1,0 +1,119 @@
+﻿<Window x:Class="DirectorySync.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:DirectorySync.ViewModels.Converters"
+        mc:Ignorable="d"
+        Name="SettingsForm"
+        Title="Отслеживаемые директории" Height="450" Width="800" Icon="/DirectorySync;component/Icons/Settings.jpg" WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <Style x:Key="LeftDirectoryButton" TargetType="Button">
+            <Setter Property="Background" Value="Azure" />
+            <Setter Property="ToolTip" Value="Отслеживаемая директория"/>
+            <Setter Property="Content" Value="{Binding Path=LeftDirectory.DirectoryPath}"/>
+        </Style>
+        <Style x:Key="RightDirectoryButton" TargetType="Button">
+            <Setter Property="Background" Value="Azure" />
+            <Setter Property="ToolTip" Value="Отслеживаемая директория"/>
+            <Setter Property="Content" Value="{Binding Path=RightDirectory.DirectoryPath}"/>
+        </Style>
+        <Style x:Key="EmptyDirectoryButton" TargetType="Button">
+            <Setter Property="Background" Value="#FFD7DCDA" />
+            <Setter Property="Content" Value="Укажите директорию"/>
+            <Setter Property="ToolTip" Value="Отслеживаемая директория"/>
+        </Style>
+        <Style x:Key="NotFoundLeftDirectoryButton" TargetType="Button">
+            <Setter Property="Background" Value="OrangeRed" />
+            <Setter Property="Content" Value="{Binding Path=LeftDirectory.DirectoryPath}"/>
+            <Setter Property="ToolTip" Value="Указанная директория не найдена"/>
+        </Style>
+        <Style x:Key="NotFoundRightDirectoryButton" TargetType="Button">
+            <Setter Property="Background" Value="OrangeRed" />
+            <Setter Property="Content" Value="{Binding Path=RightDirectory.DirectoryPath}"/>
+            <Setter Property="ToolTip" Value="Указанная директория не найдена"/>
+        </Style>
+
+        <converters:StyleConverter x:Key="StyleConverter" />
+        <converters:MessageTypeToColorConverter x:Key="MessageColorConverter" DefaultColor="Black" WarningColor="DarkRed" />
+        <converters:BoolToTextConverter x:Key="CheckBokToolTipConverter" True="Исключить эти директории"
+                                        False="Включить эти директории" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Margin="30, 30, 10, 10" FontSize="12" FontWeight="DemiBold" FontStyle="Italic" Content="{Binding Comment}"
+               Foreground="{Binding CommentType, Converter={StaticResource MessageColorConverter}}"/>
+        
+        <DataGrid Grid.Row="1" AutoGenerateColumns="False" ItemsSource="{Binding SettingsRows}">
+            <DataGrid.Columns>
+
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      ToolTip="{Binding IsUsed, Converter={StaticResource CheckBokToolTipConverter}}"
+                                      IsChecked="{Binding IsUsed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                
+                <DataGridTemplateColumn Width="350">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding FolderDialogCommand}" CommandParameter="{Binding LeftDirectory}">
+                                <Button.Style>
+                                    <MultiBinding Converter="{StaticResource StyleConverter}">
+                                        <MultiBinding.Bindings>
+                                            <Binding RelativeSource="{RelativeSource Self}"/>
+                                            <Binding Path="LeftDirectory.ButtonStyle"/>
+                                        </MultiBinding.Bindings>
+                                    </MultiBinding>
+                                </Button.Style>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn  Width="350">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding FolderDialogCommand}" CommandParameter="{Binding RightDirectory}">
+                                <Button.Style>
+                                    <MultiBinding Converter="{StaticResource StyleConverter}">
+                                        <MultiBinding.Bindings>
+                                            <Binding RelativeSource="{RelativeSource Self}"/>
+                                            <Binding Path="RightDirectory.ButtonStyle"/>
+                                        </MultiBinding.Bindings>
+                                    </MultiBinding>
+                                </Button.Style>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Background="OrangeRed" ToolTip="Удалить строку" Command="{Binding DeleteCommand}">
+                                <Image Width="20" Source="/DirectorySync;component/Icons/ItemDelete.png"/>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Grid.Row="2" Margin="30, 10, 30, 10" BorderThickness="0" Background="Transparent" ToolTip="Принять изменённые настройки"
+                Command="{Binding OkCommand}" CommandParameter="{Binding ElementName=SettingsForm}">
+            <Image Width="30" Source="/DirectorySync;component/Icons/OkButton.png"/>
+        </Button>
+    </Grid>
+</Window>

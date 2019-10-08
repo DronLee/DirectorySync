@@ -1,9 +1,13 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using DirectorySync.Models;
+using DirectorySync.Models.Settings;
+using DirectorySync.ViewModels.Settings;
+using DirectorySync.Views;
 
 namespace DirectorySync.ViewModels
 {
@@ -12,20 +16,23 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class MainWindowViewModel : IMainWindowViewModel
     {
+        private readonly ISettingsStorage _settingsStorage;
         private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
+        private readonly SettingsWindow _settingsWindow;
 
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
-        private ICommand _treeViewMouseScrollCommand;
 
         /// <summary>
         /// Конструктор.
         /// </summary>
         /// <param name="synchronizedDirectoriesManager">Менеджер синхронизируемых директорий.</param>
         /// <param name="itemViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
-        public MainWindowViewModel(ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory itemViewModelFactory)
+        public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory itemViewModelFactory, SettingsWindow settingsWindow)
         {
+            _settingsStorage = settingsStorage;
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
+            _settingsWindow = settingsWindow;
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
                 itemViewModelFactory.CreateRowViewModel(d)));
         }
@@ -72,8 +79,26 @@ namespace DirectorySync.ViewModels
 
         private async void LoadDirectories()
         {
+            bool checkDirectory = true;
+
+            if(_settingsStorage.SettingsRows.Length == 0)
+                checkDirectory = ShowSettingsWindow("Чтобы начать работу укажите пары синхронизируемых между собой директорий.");
+            else if(_settingsStorage.SettingsRows.Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
+                checkDirectory = ShowSettingsWindow("Среди указаных директорий есть те, которые не удаётся найти. Отключите их или удалите из списка.");
+
+            if(!checkDirectory)
+                Environment.Exit(-1);
+
             await _synchronizedDirectoriesManager.Load();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+        }
+
+        private bool ShowSettingsWindow(string comment)
+        {
+            var settingsViewModel = (ISettingsViewModel)_settingsWindow.DataContext;
+            settingsViewModel.Comment = comment;
+            _settingsWindow.ShowDialog();
+            return settingsViewModel.Ok;
         }
     }
 }

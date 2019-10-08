@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DirectorySync.Models.Settings;
 
 namespace DirectorySync.Models
 {
     public class SynchronizedDirectoriesManager : ISynchronizedDirectoriesManager
     {
-        private readonly List<ISynchronizedDirectories> _synchronizedDirectoriesList;
+        private readonly List<SynchronizedDirectories> _synchronizedDirectoriesList;
 
-        public SynchronizedDirectoriesManager(StringCollection leftDirectories, StringCollection rightDirectories, IItemFactory itemFactory)
+        public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, IItemFactory itemFactory)
         {
-            if (leftDirectories.Count != rightDirectories.Count)
-                throw new Exception("Количество левых и правых директорий должно совпадать.");
-
-            _synchronizedDirectoriesList = new List<ISynchronizedDirectories>();
-            for (int i = 0; i < leftDirectories.Count; i++)
-                _synchronizedDirectoriesList.Add(new SynchronizedDirectories(leftDirectories[i], rightDirectories[i], itemFactory));
+            _synchronizedDirectoriesList = settingsStorage.SettingsRows.Where(r => r.IsUsed).Select(
+                r => new SynchronizedDirectories(r.LeftDirectory.DirectoryPath, r.RightDirectory.DirectoryPath, itemFactory)).ToList();
         }
 
         public IDirectory[] LeftDirectories => _synchronizedDirectoriesList.Select(d => d.LeftDirectory).ToArray();

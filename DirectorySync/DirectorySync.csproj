@@ -41,8 +41,13 @@
     <Reference Include="Microsoft.Expression.Interactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Windows.Interactivity.WPF.2.0.20525\lib\net40\Microsoft.Expression.Interactions.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>DLL\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Windows.Interactivity.WPF.2.0.20525\lib\net40\System.Windows.Interactivity.dll</HintPath>
     </Reference>
@@ -64,6 +69,24 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\Settings\ISettingsRow.cs" />
+    <Compile Include="Models\Settings\SettingsDirectory.cs" />
+    <Compile Include="Models\Settings\SettingsRow.cs" />
+    <Compile Include="Models\Settings\SettingsStorage.cs" />
+    <Compile Include="Models\Settings\ISettingsStorage.cs" />
+    <Compile Include="ViewModels\Converters\BoolToTextConverter.cs" />
+    <Compile Include="ViewModels\Converters\MessageTextColorConverter .cs" />
+    <Compile Include="ViewModels\MessageTypeEnum.cs" />
+    <Compile Include="ViewModels\Settings\ISettingsDirectoryViewModel.cs" />
+    <Compile Include="ViewModels\Settings\ISettingsRowViewModel.cs" />
+    <Compile Include="ViewModels\Settings\ISettingsViewModel.cs" />
+    <Compile Include="ViewModels\Settings\SettingsDirectoryViewModel.cs" />
+    <Compile Include="ViewModels\Settings\SettingsRowViewModel.cs" />
+    <Compile Include="ViewModels\Settings\SettingsViewModel.cs" />
+    <Compile Include="ViewModels\Converters\StyleConverter .cs" />
+    <Compile Include="Views\SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -98,6 +121,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\IDirectory.cs" />
@@ -157,6 +184,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\SyncProcess.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="DLL\Newtonsoft.Json.dll" />
+    <Resource Include="Icons\OkButton.png" />
+    <Resource Include="Icons\Settings.jpg" />
+    <Resource Include="Icons\ItemDelete.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

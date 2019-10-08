@@ -1,8 +1,9 @@
 ﻿using Autofac;
 using DirectorySync.Models;
-using DirectorySync.Properties;
 using DirectorySync.ViewModels;
 using DirectorySync.Views;
+using DirectorySync.Models.Settings;
+using DirectorySync.ViewModels.Settings;
 
 namespace DirectorySync
 {
@@ -10,14 +11,16 @@ namespace DirectorySync
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<MainWindow>().SingleInstance();
+            builder.RegisterType<SettingsStorage>().As<ISettingsStorage>().SingleInstance()
+                .WithParameter("settingsFile", "Settings");
+            builder.RegisterType<SettingsViewModel>().As<ISettingsViewModel>().SingleInstance();
+            builder.RegisterType<SettingsWindow>().SingleInstance();
+
             builder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>().SingleInstance();
+            builder.RegisterType<MainWindow>().SingleInstance();
+
             builder.RegisterType<ItemFactory>().As<IItemFactory>().SingleInstance();
-
-            builder.RegisterType<SynchronizedDirectoriesManager>().As<ISynchronizedDirectoriesManager>().SingleInstance()
-                .WithParameter("leftDirectories", Settings.Default.LeftDirectories)
-                .WithParameter("rightDirectories", Settings.Default.RightDirectories);
-
+            builder.RegisterType<SynchronizedDirectoriesManager>().As<ISynchronizedDirectoriesManager>().SingleInstance();
             builder.RegisterType<RowViewModelFactory>().As<IRowViewModelFactory>().SingleInstance();
         }
     }
