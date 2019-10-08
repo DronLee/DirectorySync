@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace DirectorySync.Models
 {
@@ -11,5 +12,7 @@ namespace DirectorySync.Models
         ISynchronizedDirectories[] SynchronizedDirectories { get; }
 
         Task Load();
+
+        event Action<ISynchronizedDirectories> RemoveSynchronizedDirectory;
     }
 }
