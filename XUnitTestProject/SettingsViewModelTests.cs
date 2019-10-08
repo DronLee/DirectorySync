@@ -1,6 +1,7 @@
 ﻿using DirectorySync.Models.Settings;
 using DirectorySync.ViewModels;
 using DirectorySync.ViewModels.Settings;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -55,20 +56,16 @@ namespace XUnitTestProject
         }
         private class TestSettingsStorage : ISettingsStorage
         {
-            public byte useCreateSettingsRowCount = 0;
-            public byte useSaveCount = 0;
-
             public ISettingsRow[] SettingsRows { get; set; }
 
             public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed)
             {
-                useCreateSettingsRowCount++;
-                return null;
+                throw new NotImplementedException();
             }
 
             public void Save()
             {
-                useSaveCount++;
+                throw new NotImplementedException();
             }
         }
     }
