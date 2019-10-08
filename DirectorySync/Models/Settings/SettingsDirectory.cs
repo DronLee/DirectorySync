@@ -1,4 +1,6 @@
-﻿namespace DirectorySync.Models.Settings
+﻿using Newtonsoft.Json;
+
+namespace DirectorySync.Models.Settings
 {
     public class SettingsDirectory
     {
@@ -8,6 +10,8 @@
         }
 
         public string DirectoryPath { get; set; }
+
+        [JsonIgnore]
         public bool NotFound { get; set; }
     }
 }

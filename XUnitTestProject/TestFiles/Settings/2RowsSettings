@@ -1,23 +1,19 @@
 ﻿[
   {
     "LeftDirectory": {
-      "DirectoryPath": "C:\\Test",
-      "NotFound": false
+      "DirectoryPath": "C:\\Test"
     },
     "RightDirectory": {
-      "DirectoryPath": "D:\\Test",
-      "NotFound": false
+      "DirectoryPath": "D:\\Test"
     },
     "IsUsed": true
   },
   {
     "LeftDirectory": {
-      "DirectoryPath": "C:\\Test2",
-      "NotFound": false
+      "DirectoryPath": "C:\\Test2"
     },
     "RightDirectory": {
-      "DirectoryPath": "D:\\Test2",
-      "NotFound": false
+      "DirectoryPath": "D:\\Test2"
     },
     "IsUsed": true
   }
