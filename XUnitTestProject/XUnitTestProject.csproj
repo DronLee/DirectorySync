@@ -16,4 +16,10 @@
     <ProjectReference Include="..\DirectorySync\DirectorySync.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestFiles\Settings\2RowsSettings">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
