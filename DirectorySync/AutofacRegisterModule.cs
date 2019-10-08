@@ -14,7 +14,6 @@ namespace DirectorySync
             builder.RegisterType<SettingsStorage>().As<ISettingsStorage>().SingleInstance()
                 .WithParameter("settingsFile", "Settings");
             builder.RegisterType<SettingsViewModel>().As<ISettingsViewModel>().SingleInstance();
-            builder.RegisterType<SettingsWindow>().SingleInstance();
 
             builder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>().SingleInstance();
             builder.RegisterType<MainWindow>().SingleInstance();

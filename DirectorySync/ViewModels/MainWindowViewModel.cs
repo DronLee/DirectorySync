@@ -18,7 +18,7 @@ namespace DirectorySync.ViewModels
     {
         private readonly ISettingsStorage _settingsStorage;
         private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
-        private readonly SettingsWindow _settingsWindow;
+        private readonly ISettingsViewModel _settingsViewModel;
 
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
@@ -29,11 +29,12 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="synchronizedDirectoriesManager">Менеджер синхронизируемых директорий.</param>
         /// <param name="itemViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
-        public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory itemViewModelFactory, SettingsWindow settingsWindow)
+        public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory itemViewModelFactory,
+            ISettingsViewModel settingsViewModel)
         {
             _settingsStorage = settingsStorage;
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
-            _settingsWindow = settingsWindow;
+            _settingsViewModel = settingsViewModel;
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
                 itemViewModelFactory.CreateRowViewModel(d)));
         }
@@ -75,8 +76,7 @@ namespace DirectorySync.ViewModels
                 if (_settingsCommand == null)
                     _settingsCommand = new Command(async action =>
                     {
-                        _settingsWindow.ShowDialog();
-                        if (((ISettingsViewModel)_settingsWindow.DataContext).Ok)
+                        if (ShowSettingsWindow(null))
                             await _synchronizedDirectoriesManager.Load();
                     });
                 return _settingsCommand;
@@ -111,10 +111,10 @@ namespace DirectorySync.ViewModels
 
         private bool ShowSettingsWindow(string comment)
         {
-            var settingsViewModel = (ISettingsViewModel)_settingsWindow.DataContext;
-            settingsViewModel.Comment = comment;
-            _settingsWindow.ShowDialog();
-            return settingsViewModel.Ok;
+            _settingsViewModel.Comment = comment;
+            var settingsWindow = new SettingsWindow(_settingsViewModel);
+            settingsWindow.ShowDialog();
+            return _settingsViewModel.Ok;
         }
     }
 }
