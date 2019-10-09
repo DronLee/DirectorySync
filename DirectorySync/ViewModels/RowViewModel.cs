@@ -31,8 +31,10 @@ namespace DirectorySync.ViewModels
 
             LeftItem.StartedSyncEvent += () => StartedSync();
             LeftItem.FinishedSyncEvent += () => FinishedSync();
+            LeftItem.ItemIsDeletedEvent += () => { DeleteRowViewModelEvent?.Invoke(this); };
             RightItem.StartedSyncEvent += () => StartedSync();
             RightItem.FinishedSyncEvent += () => FinishedSync();
+            RightItem.ItemIsDeletedEvent += () => { DeleteRowViewModelEvent?.Invoke(this); };
         }
 
         /// <summary>
@@ -97,6 +99,11 @@ namespace DirectorySync.ViewModels
         public event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
+        /// Событие возникает, когда строка должна быть удалена.
+        /// </summary>
+        public event Action<IRowViewModel> DeleteRowViewModelEvent;
+
+        /// <summary>
         /// Обновление дочерних строк.
         /// </summary>
         /// <param name="rows">Новые дочерние строки.</param>
@@ -157,8 +164,17 @@ namespace DirectorySync.ViewModels
 
         private void FinishedSync()
         {
+            ItIsOk(this);
             ProcessIconIsVisible = false;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
+        }
+
+        private void ItIsOk(IRowViewModel rowViewModel)
+        {
+            rowViewModel.LeftItem.UpdateStatus(ItemStatusEnum.Equally);
+            rowViewModel.RightItem.UpdateStatus(ItemStatusEnum.Equally);
+            foreach (var childRow in rowViewModel.ChildRows)
+                ItIsOk(childRow);
         }
     }
 }

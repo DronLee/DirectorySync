@@ -50,6 +50,11 @@ namespace DirectorySync.ViewModels
         event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
+        /// Событие возникает, когда строка должна быть удалена.
+        /// </summary>
+        event Action<IRowViewModel> DeleteRowViewModelEvent;
+
+        /// <summary>
         /// Обновление дочерних строк.
         /// </summary>
         /// <param name="rows">Новые дочерние строки.</param>
