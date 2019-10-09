@@ -1,8 +1,10 @@
 ﻿using DirectorySync.Models;
 using DirectorySync.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Xunit;
 
@@ -48,6 +50,148 @@ namespace XUnitTestProject
 
             Assert.Equal(leftExpectedStatus, rowViewModel.LeftItem.Status.StatusEnum.ToString());
             Assert.Equal(rightExpectedStatus, rowViewModel.RightItem.Status.StatusEnum.ToString());
+        }
+
+        /// <summary>
+        /// Проверка, что после принятие левого элемента, всем дочерним элементам слева и справа проставляется статус Equally.
+        /// </summary>
+        [Theory]
+        [InlineData("Newer", "Older")]
+        [InlineData("Older", "Newer")]
+        public void CheckStatusAfterLeftAccept(string strLeftStatusEnum, string strRightStatusEnum)
+        {
+            var leftStatusEnum = Enum.Parse<ItemStatusEnum>(strLeftStatusEnum);
+            var rightStatusEnum = Enum.Parse<ItemStatusEnum>(strRightStatusEnum);
+
+            var rowViewModel = new RowViewModel(
+                new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
+                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }));
+
+            for (byte i = 0; i < 5; i++)
+            {
+                rowViewModel.ChildRows.Add(new RowViewModel(
+                    new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
+                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { })));
+            }
+
+            rowViewModel.LeftItem.AcceptCommand.Execute(null);
+            Thread.Sleep(25); //  Чтобы успели обновиться статусы.
+
+            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.LeftItem.Status.StatusEnum);
+            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.RightItem.Status.StatusEnum);
+            foreach (var childRow in rowViewModel.ChildRows)
+            {
+                Assert.Equal(ItemStatusEnum.Equally, childRow.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childRow.RightItem.Status.StatusEnum);
+            }
+        }
+
+        /// <summary>
+        /// Проверка, что после принятие правого элемента, всем дочерним элементам слева и справа проставляется статус Equally.
+        /// </summary>
+        [Theory]
+        [InlineData("Newer", "Older")]
+        [InlineData("Older", "Newer")]
+        public void CheckStatusAfterRightAccept(string strLeftStatusEnum, string strRightStatusEnum)
+        {
+            var leftStatusEnum = Enum.Parse<ItemStatusEnum>(strLeftStatusEnum);
+            var rightStatusEnum = Enum.Parse<ItemStatusEnum>(strRightStatusEnum);
+
+            var rowViewModel = new RowViewModel(
+                new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
+                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }));
+
+            for (byte i = 0; i < 5; i++)
+            {
+                rowViewModel.ChildRows.Add(new RowViewModel(
+                    new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
+                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { })));
+            }
+
+            rowViewModel.RightItem.AcceptCommand.Execute(null);
+            Thread.Sleep(25); //  Чтобы успели обновиться статусы.
+
+            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.LeftItem.Status.StatusEnum);
+            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.RightItem.Status.StatusEnum);
+            foreach (var childRow in rowViewModel.ChildRows)
+            {
+                Assert.Equal(ItemStatusEnum.Equally, childRow.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childRow.RightItem.Status.StatusEnum);
+            }
+        }
+
+        /// <summary>
+        /// Проверка возникновения события на удаление строки, при прнятии левого элемента, который отсутсвует.
+        /// </summary>
+        [Fact]
+        public void DeleteRowEventAfterLeftAccept()
+        {
+            using (var testDirectory = new Infrastructure.TestDirectory())
+            {
+                var rightDirectory = new Directory(testDirectory.CreateDirectory("1"), null);
+
+                var filesDictionary = new Dictionary<string, DateTime>();
+                for (byte i = 0; i < filesDictionary.Count; i++)
+                    filesDictionary.Add(i.ToString(), DateTime.Now);
+
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.FullPath, filesDictionary);
+
+                var rowViewModel = new RowViewModel(
+                    new ItemViewModel("Test", true, async () => { await rightDirectory.Delete(); }),
+                    new ItemViewModel(rightDirectory, ItemStatusEnum.ThereIs, () => { }));
+
+                foreach (var fileName in filesDictionary.Keys)
+                    rowViewModel.ChildRows.Add(new RowViewModel(
+                        new ItemViewModel(fileName, true, () => { }),
+                        new ItemViewModel(new File(System.IO.Path.Combine(rightDirectory.FullPath, fileName)), 
+                            ItemStatusEnum.ThereIs, () => { })));
+
+                IRowViewModel deletedRow = null;
+                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel row) => { deletedRow = row; };
+
+                rowViewModel.LeftItem.AcceptCommand.Execute(null);
+
+                Thread.Sleep(50); // Чтобы успело выполниться событие.
+                Assert.NotNull(deletedRow);
+                Assert.Equal(rowViewModel, deletedRow);
+            }
+        }
+
+        /// <summary>
+        /// Проверка возникновения события на удаление строки, при прнятии правого элемента, который отсутсвует.
+        /// </summary>
+        [Fact]
+        public void DeleteRowEventAfterRightAccept()
+        {
+            using (var testDirectory = new Infrastructure.TestDirectory())
+            {
+                var leftDirectory = new Directory(testDirectory.CreateDirectory("1"), null);
+
+                var filesDictionary = new Dictionary<string, DateTime>();
+                for (byte i = 0; i < filesDictionary.Count; i++)
+                    filesDictionary.Add(i.ToString(), DateTime.Now);
+
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.FullPath, filesDictionary);
+
+                var rowViewModel = new RowViewModel(
+                    new ItemViewModel(leftDirectory, ItemStatusEnum.ThereIs, () => { }),
+                    new ItemViewModel("Test", true, async () => { await leftDirectory.Delete(); }));
+
+                foreach (var fileName in filesDictionary.Keys)
+                    rowViewModel.ChildRows.Add(new RowViewModel(
+                        new ItemViewModel(new File(System.IO.Path.Combine(leftDirectory.FullPath, fileName)),
+                            ItemStatusEnum.ThereIs, () => { }),
+                        new ItemViewModel(fileName, true, () => { })));
+
+                IRowViewModel deletedRow = null;
+                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel row) => { deletedRow = row; };
+
+                rowViewModel.RightItem.AcceptCommand.Execute(null);
+
+                Thread.Sleep(50); // Чтобы успело выполниться событие.
+                Assert.NotNull(deletedRow);
+                Assert.Equal(rowViewModel, deletedRow);
+            }
         }
 
         /// <summary>
@@ -193,6 +337,7 @@ namespace XUnitTestProject
             public event PropertyChangedEventHandler PropertyChanged;
             public event Action StartedSyncEvent;
             public event Action FinishedSyncEvent;
+            public event Action ItemIsDeletedEvent;
 
             public void SetActionCommand(Action action)
             {
@@ -202,6 +347,27 @@ namespace XUnitTestProject
             public void UpdateStatus(ItemStatusEnum statusEnum)
             {
                 Status = new ItemStatus(statusEnum);
+            }
+        }
+
+        private class TestItem : IItem
+        {
+            public string Name { get; private set; }
+
+            public string FullPath => throw new NotImplementedException();
+
+            public DateTime LastUpdate => throw new NotImplementedException();
+
+            public event Action DeletedEvent;
+
+            public Task CopyTo(string destinationPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task Delete()
+            {
+                throw new NotImplementedException();
             }
         }
     }
