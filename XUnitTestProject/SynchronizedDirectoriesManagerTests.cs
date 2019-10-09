@@ -25,11 +25,7 @@ namespace XUnitTestProject
             var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
 
             Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
-            Assert.Single(synchronizedDirectoriesManager.LeftDirectories);
-            Assert.Single(synchronizedDirectoriesManager.RightDirectories);
             var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories[0];
-            Assert.Equal(synchronizedDirectoriesManager.LeftDirectories[0], synchronizedDirectory.LeftDirectory);
-            Assert.Equal(synchronizedDirectoriesManager.RightDirectories[0], synchronizedDirectory.RightDirectory);
             Assert.Equal("3", synchronizedDirectory.LeftDirectory.FullPath);
             Assert.Equal("4", synchronizedDirectory.RightDirectory.FullPath);
         }
@@ -53,7 +49,7 @@ namespace XUnitTestProject
                 };
 
                 var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
-                synchronizedDirectoriesManager.RemoveSynchronizedDirectoryEvent += (ISynchronizedDirectories synchronizedDirectories) =>
+                synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += (ISynchronizedDirectories synchronizedDirectories) =>
                 {
                     removedSynchronizedDirectories = synchronizedDirectories;
                 };

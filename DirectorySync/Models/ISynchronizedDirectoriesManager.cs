@@ -3,16 +3,29 @@ using System.Threading.Tasks;
 
 namespace DirectorySync.Models
 {
+    /// <summary>
+    /// Интерфейс менеджера для работы с синхронизируемыми директориями.
+    /// </summary>
     public interface ISynchronizedDirectoriesManager
     {
-        IDirectory[] LeftDirectories { get; }
-
-        IDirectory[] RightDirectories { get; }
-
+        /// <summary>
+        /// Синхронизируемые директории, представленные по парам.
+        /// </summary>
         ISynchronizedDirectories[] SynchronizedDirectories { get; }
 
+        /// <summary>
+        /// Загрузка директорий.
+        /// </summary>
         Task Load();
 
-        event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoryEvent;
+        /// <summary>
+        /// Событие удаления одной из пары синхронизируемых директорий.
+        /// </summary>
+        event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoriesEvent;
+
+        /// <summary>
+        /// Событие добавления пары синхронизируемых директорий.
+        /// </summary>
+        event Action<ISynchronizedDirectories> AddSynchronizedDirectoriesEvent;
     }
 }
