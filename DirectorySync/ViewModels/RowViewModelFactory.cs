@@ -130,16 +130,16 @@ namespace DirectorySync.ViewModels
             else if (leftItem.LastUpdate > rightItem.LastUpdate)
             {
                 leftItemViewModel.UpdateStatus(ItemStatusEnum.Newer);
-                leftItemViewModel.SetAtionCommand(() => { leftItem.CopyTo(rightItem.FullPath); });
+                leftItemViewModel.SetActionCommand(() => { leftItem.CopyTo(rightItem.FullPath); });
                 rightItemViewModel.UpdateStatus(ItemStatusEnum.Older);
-                rightItemViewModel.SetAtionCommand(() => { rightItem.CopyTo(leftItem.FullPath); });
+                rightItemViewModel.SetActionCommand(() => { rightItem.CopyTo(leftItem.FullPath); });
             }
             else if (leftItem.LastUpdate < rightItem.LastUpdate)
             {
                 leftItemViewModel.UpdateStatus(ItemStatusEnum.Older);
-                leftItemViewModel.SetAtionCommand(() => { leftItem.CopyTo(rightItem.FullPath); });
+                leftItemViewModel.SetActionCommand(() => { leftItem.CopyTo(rightItem.FullPath); });
                 rightItemViewModel.UpdateStatus(ItemStatusEnum.Newer);
-                rightItemViewModel.SetAtionCommand(() => { rightItem.CopyTo(leftItem.FullPath); });
+                rightItemViewModel.SetActionCommand(() => { rightItem.CopyTo(leftItem.FullPath); });
             }
             else
             {

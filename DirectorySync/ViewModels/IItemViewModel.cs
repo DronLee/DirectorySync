@@ -60,6 +60,6 @@ namespace DirectorySync.ViewModels
         /// Задание метода, который будет выполняться как команда синхронизации.
         /// </summary>
         /// <param name="action">Метод для синхронизации.</param>
-        void SetAtionCommand(Action action);
+        void SetActionCommand(Action action);
     }
 }

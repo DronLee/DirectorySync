@@ -194,7 +194,7 @@ namespace XUnitTestProject
             public event Action StartedSyncEvent;
             public event Action FinishedSyncEvent;
 
-            public void SetAtionCommand(Action action)
+            public void SetActionCommand(Action action)
             {
                 throw new NotImplementedException();
             }

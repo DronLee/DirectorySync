@@ -31,7 +31,7 @@ namespace DirectorySync.ViewModels
                 IsDirectory = true;
             }
             if (acceptAction != null)
-                SetAtionCommand(acceptAction);
+                SetActionCommand(acceptAction);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace DirectorySync.ViewModels
             Name = name;
             Status = new ItemStatus(ItemStatusEnum.Missing);
             IsDirectory = isDirectory;
-            SetAtionCommand(acceptAction);
+            SetActionCommand(acceptAction);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace DirectorySync.ViewModels
         /// Задание метода, который будет выполняться как команда синхронизации.
         /// </summary>
         /// <param name="action">Метод для синхронизации.</param>
-        public void SetAtionCommand(Action action)
+        public void SetActionCommand(Action action)
         {
             AcceptCommand = new Command(call =>
             {
