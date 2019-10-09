@@ -23,6 +23,7 @@ namespace DirectorySync.ViewModels
         public ItemViewModel(IItem item, Action acceptAction = null)
         {
             _item = item;
+            _item.DeletedEvent += () => { ItemIsDeletedEvent?.Invoke(); };
             Name = item.Name;
             if (item is IDirectory)
             {
@@ -101,6 +102,10 @@ namespace DirectorySync.ViewModels
         /// Событие завершения синхронизации.
         /// </summary>
         public event Action FinishedSyncEvent;
+        /// <summary>
+        /// Событие возникае, после удаления элемента, на основание которого создана данная модель представления.
+        /// </summary>
+        public event Action ItemIsDeletedEvent;
 
         /// <summary>
         /// Обновление статуса.

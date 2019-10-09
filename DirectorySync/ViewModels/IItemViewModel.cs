@@ -51,6 +51,11 @@ namespace DirectorySync.ViewModels
         event Action FinishedSyncEvent;
 
         /// <summary>
+        /// Событие возникает после удаления элемента, на основание которого создана данная модель представления.
+        /// </summary>
+        event Action ItemIsDeletedEvent;
+
+        /// <summary>
         /// Обновление статуса.
         /// </summary>
         /// <param name="statusEnum">Новое значение статуса.</param>
