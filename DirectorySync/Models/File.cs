@@ -36,6 +36,11 @@ namespace DirectorySync.Models
         public DateTime LastUpdate { get; }
 
         /// <summary>
+        /// Событие возникает, после удаления элемента.
+        /// </summary>
+        public event Action DeletedEvent;
+
+        /// <summary>
         /// Копировать элемент в указанный путь с заменой.
         /// </summary>
         /// <param name="destinationPath">Путь куда копировать.</param>
@@ -55,6 +60,7 @@ namespace DirectorySync.Models
             await Task.Run(() =>
             {
                 System.IO.File.Delete(FullPath);
+                DeletedEvent?.Invoke();
             });
         }
     }

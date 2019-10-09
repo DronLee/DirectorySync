@@ -369,6 +369,7 @@ namespace XUnitTestProject
             public DateTime LastUpdate { get; }
 
             public event Action<IDirectory> LoadedDirectoryEvent;
+            public event Action DeletedEvent;
 
             public Task CopyTo(string destinationPath)
             {
@@ -417,6 +418,8 @@ namespace XUnitTestProject
             public string FullPath { get; }
 
             public DateTime LastUpdate { get; }
+
+            public event Action DeletedEvent;
 
             public Task CopyTo(string destinationPath)
             {

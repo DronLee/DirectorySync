@@ -24,6 +24,11 @@ namespace DirectorySync.Models
         DateTime LastUpdate { get; }
 
         /// <summary>
+        /// Событие возникает, после удаления элемента.
+        /// </summary>
+        event Action DeletedEvent;
+
+        /// <summary>
         /// Копировать элемент в указанный путь с заменой.
         /// </summary>
         /// <param name="destinationPath">Путь куда копировать.</param>

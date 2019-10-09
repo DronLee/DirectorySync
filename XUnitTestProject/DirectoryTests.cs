@@ -52,12 +52,17 @@ namespace XUnitTestProject
         [Fact]
         public async Task Delete()
         {
+            var deletedEvent = false;
+
             using (var testDirectory = new TestDirectory())
             {
                 var sourceDirectory = testDirectory.CreateDirectory("SorceDir");
                 var directory = new Directory(sourceDirectory, new TestItemFactory());
+                directory.DeletedEvent += () => { deletedEvent = true; };
+
                 await directory.Delete();
 
+                Assert.True(deletedEvent);
                 Assert.False(IODirectory.Exists(sourceDirectory));
             }
         }
@@ -158,6 +163,8 @@ namespace XUnitTestProject
             public string FullPath { get; }
 
             public DateTime LastUpdate { get; }
+
+            public event Action DeletedEvent;
 
             public Task CopyTo(string destinationPath)
             {

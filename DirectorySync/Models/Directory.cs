@@ -61,6 +61,11 @@ namespace DirectorySync.Models
         public bool IsLoaded { get; private set; }
 
         /// <summary>
+        /// Событие возникает, после удаления элемента.
+        /// </summary>
+        public event Action DeletedEvent;
+
+        /// <summary>
         /// Загрузка элементов директории.
         /// </summary>
         public async Task Load()
@@ -103,6 +108,7 @@ namespace DirectorySync.Models
             await Task.Run(() =>
             {
                 System.IO.Directory.Delete(FullPath, true);
+                DeletedEvent?.Invoke();
             });
         }
     }
