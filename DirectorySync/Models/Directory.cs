@@ -16,7 +16,7 @@ namespace DirectorySync.Models
         /// <summary>
         /// Событие возникает при завершении загрузки директории.
         /// </summary>
-        public event LoadedDirectory LoadedDirectoryEvent;
+        public event Action<IDirectory> LoadedDirectoryEvent;
 
         /// <summary>
         /// Конструктор.

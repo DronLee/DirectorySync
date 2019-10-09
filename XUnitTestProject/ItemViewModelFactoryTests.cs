@@ -34,8 +34,8 @@ namespace XUnitTestProject
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
                 var factory = new RowViewModelFactory();
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
-                rowViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
-                    delegate (IRowViewModel delegateRowViewModel) { loadedRowViewModel = delegateRowViewModel; });
+                rowViewModel.RowViewModelIsLoadedEvent += (IRowViewModel delegateRowViewModel) => 
+                    { loadedRowViewModel = delegateRowViewModel; };
 
                 // Пока не выполнялась загрузка, события завершения загрузки происходить не должно.
                 Assert.Null(loadedRowViewModel);
@@ -79,8 +79,8 @@ namespace XUnitTestProject
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
                 var factory = new RowViewModelFactory();
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
-                rowViewModel.RowViewModelIsLoadedEvent += new RowViewModelIsLoaded(
-                    delegate (IRowViewModel delegateRowViewModel) { loadedRowViewModel = delegateRowViewModel; });
+                rowViewModel.RowViewModelIsLoadedEvent += (IRowViewModel delegateRowViewModel) =>
+                    { loadedRowViewModel = delegateRowViewModel; };
                 await synchronizedDirectories.Load();
 
                 Assert.Equal(rowViewModel, loadedRowViewModel);
@@ -368,7 +368,7 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate { get; }
 
-            public event LoadedDirectory LoadedDirectoryEvent;
+            public event Action<IDirectory> LoadedDirectoryEvent;
 
             public Task CopyTo(string destinationPath)
             {

@@ -100,7 +100,7 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate => throw new NotImplementedException();
 
-            public event LoadedDirectory LoadedDirectoryEvent;
+            public event Action<IDirectory> LoadedDirectoryEvent;
 
             public Task CopyTo(string destinationPath)
             {

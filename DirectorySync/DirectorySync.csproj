@@ -96,7 +96,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AutofacRegisterModule.cs" />
-    <Compile Include="Models\Delegates.cs" />
     <Compile Include="Models\Directory.cs" />
     <Compile Include="Models\File.cs" />
     <Compile Include="Models\IItemFactory.cs" />
@@ -108,7 +107,6 @@
     <Compile Include="Models\SynchronizedDirectories.cs" />
     <Compile Include="Models\SynchronizedDirectoriesManager.cs" />
     <Compile Include="ViewModels\Command.cs" />
-    <Compile Include="ViewModels\Delegates.cs" />
     <Compile Include="ViewModels\IRowViewModelFactory.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
     <Compile Include="ViewModels\IItemViewModel.cs" />

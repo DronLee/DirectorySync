@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace DirectorySync.ViewModels
@@ -46,7 +47,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
-        event RowViewModelIsLoaded RowViewModelIsLoadedEvent;
+        event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
         /// Обновление дочерних строк.

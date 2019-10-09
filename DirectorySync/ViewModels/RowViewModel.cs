@@ -94,7 +94,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
-        public event RowViewModelIsLoaded RowViewModelIsLoadedEvent;
+        public event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
         /// Обновление дочерних строк.

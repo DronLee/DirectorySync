@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace DirectorySync.Models
 {
@@ -20,7 +21,7 @@ namespace DirectorySync.Models
         /// <summary>
         /// Событие возникает при завершении загрузки директории.
         /// </summary>
-        event LoadedDirectory LoadedDirectoryEvent;
+        event Action<IDirectory> LoadedDirectoryEvent;
 
         /// <summary>
         /// True - директория загружена.
