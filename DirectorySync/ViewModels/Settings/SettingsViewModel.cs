@@ -110,9 +110,9 @@ namespace DirectorySync.ViewModels.Settings
             if (activeSettingsRows.Length == 0)
                 return "Не задано ни одной пары директорий для синхронизации.";
             if (activeSettingsRows.Any(r => r.LeftDirectory.DirectoryPath == null || r.RightDirectory.DirectoryPath == null))
-                return "Не для всех директорий указаны пары. Уберите директории без пары из списка или отключите их.";
+                return "Не для всех директорий указаны пары. Удалите директории без пары из списка или отключите их.";
             else if (activeSettingsRows.Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
-                return "Не все директории удаётся найти. Уберите строки, где есть отсутствующие директории или отключите их.";
+                return "Не все директории удаётся найти. Удалите строки, где есть отсутствующие директории или отключите их.";
             return null;
         }
 
