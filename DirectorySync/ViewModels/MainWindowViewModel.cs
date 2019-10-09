@@ -19,6 +19,7 @@ namespace DirectorySync.ViewModels
         private readonly ISettingsStorage _settingsStorage;
         private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
         private readonly ISettingsViewModel _settingsViewModel;
+        private readonly IRowViewModelFactory _itemViewModelFactory;
 
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
@@ -34,8 +35,10 @@ namespace DirectorySync.ViewModels
         {
             _settingsStorage = settingsStorage;
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
-            _synchronizedDirectoriesManager.RemoveSynchronizedDirectoryEvent += RemoveSynchronizedDirectory;
+            _synchronizedDirectoriesManager.AddSynchronizedDirectoriesEvent += AddSynchronizedDirectories;
+            _synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += RemoveSynchronizedDirectories;
             _settingsViewModel = settingsViewModel;
+            _itemViewModelFactory = itemViewModelFactory;
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
                 itemViewModelFactory.CreateRowViewModel(d)));
         }
@@ -118,11 +121,17 @@ namespace DirectorySync.ViewModels
             return _settingsViewModel.Ok;
         }
 
-        private void RemoveSynchronizedDirectory(ISynchronizedDirectories synchronizedDirectories)
+        private void RemoveSynchronizedDirectories(ISynchronizedDirectories synchronizedDirectories)
         {
             var removingRow = Rows.Single(r => r.LeftItem.Directory.FullPath == synchronizedDirectories.LeftDirectory.FullPath &&
                 r.RightItem.Directory.FullPath == synchronizedDirectories.RightDirectory.FullPath);
             Rows.Remove(removingRow);
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+        }
+
+        private void AddSynchronizedDirectories(ISynchronizedDirectories synchronizedDirectories)
+        {
+            Rows.Add(_itemViewModelFactory.CreateRowViewModel(synchronizedDirectories));
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
         }
     }
