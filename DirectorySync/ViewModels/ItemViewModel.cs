@@ -114,7 +114,10 @@ namespace DirectorySync.ViewModels
         public void UpdateStatus(ItemStatusEnum statusEnum)
         {
             if (Status == null || Status.StatusEnum != statusEnum)
+            {
                 Status = new ItemStatus(statusEnum);
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
+            }
         }
 
         /// <summary>
