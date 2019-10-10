@@ -19,22 +19,23 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="leftItem">Элемент слева.</param>
         /// <param name="rightItem">Элемент справа.</param>
-        public RowViewModel(IItemViewModel leftItem, IItemViewModel rightItem)
+        public RowViewModel(IItemViewModel leftItem, IItemViewModel rightItem, IRowViewModel parent)
         {
             LeftItem = leftItem;
             RightItem = rightItem;
+            Parent = parent;
             ChildRows = new ObservableCollection<IRowViewModel>();
             if (LeftItem.Directory != null)
                 LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
             if (RightItem.Directory != null)
                 RightItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
 
-            LeftItem.StartedSyncEvent += () => StartedSync();
-            LeftItem.FinishedSyncEvent += () => FinishedSync();
-            LeftItem.ItemIsDeletedEvent += () => { DeleteRowViewModelEvent?.Invoke(this); };
-            RightItem.StartedSyncEvent += () => StartedSync();
-            RightItem.FinishedSyncEvent += () => FinishedSync();
-            RightItem.ItemIsDeletedEvent += () => { DeleteRowViewModelEvent?.Invoke(this); };
+            LeftItem.StartedSyncEvent += StartedSync;
+            LeftItem.FinishedSyncEvent += FinishedSync;
+            LeftItem.ItemIsDeletedEvent += Delete;
+            RightItem.StartedSyncEvent += StartedSync;
+            RightItem.FinishedSyncEvent += FinishedSync;
+            RightItem.ItemIsDeletedEvent += Delete;
         }
 
         /// <summary>
@@ -89,6 +90,11 @@ namespace DirectorySync.ViewModels
         public ObservableCollection<IRowViewModel> ChildRows { get; private set; }
 
         /// <summary>
+        /// Строка, куда входит данная строка.
+        /// </summary>
+        public IRowViewModel Parent { get; }
+
+        /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -99,9 +105,9 @@ namespace DirectorySync.ViewModels
         public event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
-        /// Событие возникает, когда строка должна быть удалена.
+        /// Событие возникает, когда строка должна быть удалена. Указывается какая строка удаляется и из какой строки она удаляется.
         /// </summary>
-        public event Action<IRowViewModel> DeleteRowViewModelEvent;
+        public event Action<IRowViewModel, IRowViewModel> DeleteRowViewModelEvent;
 
         /// <summary>
         /// Обновление дочерних строк.
@@ -175,6 +181,11 @@ namespace DirectorySync.ViewModels
             rowViewModel.RightItem.UpdateStatus(ItemStatusEnum.Equally);
             foreach (var childRow in rowViewModel.ChildRows)
                 ItIsOk(childRow);
+        }
+
+        private void Delete()
+        {
+            DeleteRowViewModelEvent?.Invoke(this, Parent);
         }
     }
 }

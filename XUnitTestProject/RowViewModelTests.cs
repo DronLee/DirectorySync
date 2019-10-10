@@ -40,11 +40,11 @@ namespace XUnitTestProject
             var leftItem = new TestItemViewModel("Left", (ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftStartStatus));
             var rightItem = new TestItemViewModel("Right", (ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightStartStatus));
 
-            var rowViewModel = new RowViewModel(leftItem, rightItem);
+            var rowViewModel = new RowViewModel(leftItem, rightItem, null);
             for (byte i = 0; i < leftItemsStatuses.Length; i++)
                 rowViewModel.ChildRows.Add(new RowViewModel(
                     new TestItemViewModel("Left" + i.ToString(), (ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftItemsStatuses[i])),
-                    new TestItemViewModel("Right" + i.ToString(), (ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemsStatuses[i]))));
+                    new TestItemViewModel("Right" + i.ToString(), (ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemsStatuses[i])), null));
 
             rowViewModel.RefreshStatusesFromChilds();
 
@@ -65,13 +65,13 @@ namespace XUnitTestProject
 
             var rowViewModel = new RowViewModel(
                 new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }));
+                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null);
 
             for (byte i = 0; i < 5; i++)
             {
                 rowViewModel.ChildRows.Add(new RowViewModel(
                     new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { })));
+                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null));
             }
 
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
@@ -99,13 +99,13 @@ namespace XUnitTestProject
 
             var rowViewModel = new RowViewModel(
                 new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }));
+                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null);
 
             for (byte i = 0; i < 5; i++)
             {
                 rowViewModel.ChildRows.Add(new RowViewModel(
                     new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { })));
+                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null));
             }
 
             rowViewModel.RightItem.AcceptCommand.Execute(null);
@@ -128,7 +128,13 @@ namespace XUnitTestProject
         {
             using (var testDirectory = new Infrastructure.TestDirectory())
             {
-                var rightDirectory = new Directory(testDirectory.CreateDirectory("1"), null);
+                var leftParentDirectoryPath = testDirectory.CreateDirectory("1");
+                var rightParentDirectoryPath = testDirectory.CreateDirectory("1");
+
+                var rightDirectoryPath = System.IO.Path.Combine(rightParentDirectoryPath, "2");
+                System.IO.Directory.CreateDirectory(rightDirectoryPath);
+
+                var rightDirectory = new Directory(rightDirectoryPath, null);
 
                 var filesDictionary = new Dictionary<string, DateTime>();
                 for (byte i = 0; i < filesDictionary.Count; i++)
@@ -136,24 +142,34 @@ namespace XUnitTestProject
 
                 Infrastructure.TestDirectory.CreateFiles(rightDirectory.FullPath, filesDictionary);
 
+                var parentRow = new RowViewModel(
+                    new ItemViewModel(new Directory(leftParentDirectoryPath, null)),
+                    new ItemViewModel(new Directory(rightParentDirectoryPath, null)), null);
+
                 var rowViewModel = new RowViewModel(
                     new ItemViewModel("Test", true, async () => { await rightDirectory.Delete(); }),
-                    new ItemViewModel(rightDirectory, ItemStatusEnum.ThereIs, () => { }));
+                    new ItemViewModel(rightDirectory, ItemStatusEnum.ThereIs, () => { }), parentRow);
 
                 foreach (var fileName in filesDictionary.Keys)
                     rowViewModel.ChildRows.Add(new RowViewModel(
                         new ItemViewModel(fileName, true, () => { }),
                         new ItemViewModel(new File(System.IO.Path.Combine(rightDirectory.FullPath, fileName)), 
-                            ItemStatusEnum.ThereIs, () => { })));
+                            ItemStatusEnum.ThereIs, () => { }), rowViewModel));
 
-                IRowViewModel deletedRow = null;
-                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel row) => { deletedRow = row; };
+                IRowViewModel deletedRow = null; // Удалённая строка.
+                IRowViewModel parentDeletedRow = null; // Родительская строка удалённой строки.
+                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel deletingRow, IRowViewModel parentDeletingRow) => 
+                {
+                    deletedRow = deletingRow;
+                    parentDeletedRow = parentDeletingRow;
+                };
 
                 rowViewModel.LeftItem.AcceptCommand.Execute(null);
 
                 Thread.Sleep(50); // Чтобы успело выполниться событие.
                 Assert.NotNull(deletedRow);
                 Assert.Equal(rowViewModel, deletedRow);
+                Assert.Equal(parentRow, parentDeletedRow);
             }
         }
 
@@ -165,7 +181,13 @@ namespace XUnitTestProject
         {
             using (var testDirectory = new Infrastructure.TestDirectory())
             {
-                var leftDirectory = new Directory(testDirectory.CreateDirectory("1"), null);
+                var leftParentDirectoryPath = testDirectory.CreateDirectory("1");
+                var rightParentDirectoryPath = testDirectory.CreateDirectory("1");
+
+                var leftDirectoryPath = System.IO.Path.Combine(leftParentDirectoryPath, "2");
+                System.IO.Directory.CreateDirectory(leftDirectoryPath);
+
+                var leftDirectory = new Directory(leftDirectoryPath, null);
 
                 var filesDictionary = new Dictionary<string, DateTime>();
                 for (byte i = 0; i < filesDictionary.Count; i++)
@@ -173,24 +195,34 @@ namespace XUnitTestProject
 
                 Infrastructure.TestDirectory.CreateFiles(leftDirectory.FullPath, filesDictionary);
 
+                var parentRow = new RowViewModel(
+                    new ItemViewModel(new Directory(leftParentDirectoryPath, null)),
+                    new ItemViewModel(new Directory(rightParentDirectoryPath, null)), null);
+
                 var rowViewModel = new RowViewModel(
                     new ItemViewModel(leftDirectory, ItemStatusEnum.ThereIs, () => { }),
-                    new ItemViewModel("Test", true, async () => { await leftDirectory.Delete(); }));
+                    new ItemViewModel("Test", true, async () => { await leftDirectory.Delete(); }), parentRow);
 
                 foreach (var fileName in filesDictionary.Keys)
                     rowViewModel.ChildRows.Add(new RowViewModel(
                         new ItemViewModel(new File(System.IO.Path.Combine(leftDirectory.FullPath, fileName)),
                             ItemStatusEnum.ThereIs, () => { }),
-                        new ItemViewModel(fileName, true, () => { })));
+                        new ItemViewModel(fileName, true, () => { }), parentRow));
 
-                IRowViewModel deletedRow = null;
-                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel row) => { deletedRow = row; };
+                IRowViewModel deletedRow = null; // Удалённая строка.
+                IRowViewModel parentDeletedRow = null; // Родительская строка удалённой строки.
+                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel deletingRow, IRowViewModel parentDeletingRow) =>
+                {
+                    deletedRow = deletingRow;
+                    parentDeletedRow = parentDeletingRow;
+                };
 
                 rowViewModel.RightItem.AcceptCommand.Execute(null);
 
                 Thread.Sleep(50); // Чтобы успело выполниться событие.
                 Assert.NotNull(deletedRow);
                 Assert.Equal(rowViewModel, deletedRow);
+                Assert.Equal(parentRow, parentDeletedRow);
             }
         }
 
@@ -203,7 +235,7 @@ namespace XUnitTestProject
             var useAcceptCommand = false;
             var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { useAcceptCommand = true; });
             var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
             Thread.Sleep(10); //  Чтобы успела выполниться команда.
 
@@ -223,7 +255,7 @@ namespace XUnitTestProject
             var useAcceptCommand = false;
             var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
             var rightItemViewModel = new ItemViewModel("RightItem", false, () => { useAcceptCommand = true; });
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(10); //  Чтобы успела выполниться команда.
 
@@ -242,7 +274,7 @@ namespace XUnitTestProject
         {
             var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
 
             Assert.True(rowViewModel.CommandButtonIsVisible);
             Assert.False(rowViewModel.ProcessIconIsVisible);
@@ -257,7 +289,7 @@ namespace XUnitTestProject
             // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
             var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { Thread.Sleep(70); });
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 
@@ -274,7 +306,7 @@ namespace XUnitTestProject
             var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
             // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
             var rightItemViewModel = new ItemViewModel("RightItem", false, () => { Thread.Sleep(70); });
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 
@@ -290,7 +322,7 @@ namespace XUnitTestProject
         {
             var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 
@@ -306,7 +338,7 @@ namespace XUnitTestProject
         {
             var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
             var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 

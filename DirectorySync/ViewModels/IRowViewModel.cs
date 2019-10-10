@@ -10,6 +10,11 @@ namespace DirectorySync.ViewModels
     public interface IRowViewModel : INotifyPropertyChanged
     {
         /// <summary>
+        /// Строка, куда входит данная строка.
+        /// </summary>
+        IRowViewModel Parent { get; }
+
+        /// <summary>
         /// Элемент слева.
         /// </summary>
         IItemViewModel LeftItem { get; }
@@ -50,9 +55,9 @@ namespace DirectorySync.ViewModels
         event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
-        /// Событие возникает, когда строка должна быть удалена.
+        /// Событие возникает, когда строка должна быть удалена. Указывается какая строка удаляется и из какой строки она удаляется.
         /// </summary>
-        event Action<IRowViewModel> DeleteRowViewModelEvent;
+        event Action<IRowViewModel, IRowViewModel> DeleteRowViewModelEvent;
 
         /// <summary>
         /// Обновление дочерних строк.

@@ -17,7 +17,7 @@ namespace DirectorySync.ViewModels
         public IRowViewModel CreateRowViewModel(ISynchronizedDirectories synchronizedDirectories)
         {
             var result = new RowViewModel(new ItemViewModel(synchronizedDirectories.LeftDirectory),
-                new ItemViewModel(synchronizedDirectories.RightDirectory));
+                new ItemViewModel(synchronizedDirectories.RightDirectory), null);
             result.RowViewModelIsLoadedEvent += RefreshRow;
             return result;
         }
@@ -29,8 +29,11 @@ namespace DirectorySync.ViewModels
         /// <param name="leftDirectoryItems">Коллекция отслеживаемых элментов слева.</param>
         /// <param name="rightDirectoryItems">Коллекция отслеживаемых элментов справа.</param>
         /// <returns>Строки представления отслеживаемых элементов.</returns>
-        private RowViewModel[] CreateRowViewModels(IDirectory leftDirectory, IDirectory rightDirectory)
+        private RowViewModel[] CreateRowViewModels(IRowViewModel parentRow)
         {
+            var leftDirectory = parentRow.LeftItem.Directory;
+            var rightDirectory = parentRow.RightItem.Directory;
+
             var leftDirectoryItems = leftDirectory.Items;
             var rightDirectoryItems = rightDirectory.Items;
 
@@ -49,27 +52,27 @@ namespace DirectorySync.ViewModels
                 {
                     case 1:
                         rightItemIndex++;
-                        result.Add(LeftMissing(rightItem, leftDirectory.FullPath));
+                        result.Add(LeftMissing(rightItem, leftDirectory.FullPath, parentRow));
                         break;
                     case -1:
                         leftItemIndex++;
-                        result.Add(RightMissing(leftItem, rightDirectory.FullPath));
+                        result.Add(RightMissing(leftItem, rightDirectory.FullPath, parentRow));
                         break;
                     default:
                         leftItemIndex++;
                         rightItemIndex++;
 
                         if (leftItem is IDirectory && rightItem is IDirectory || !(leftItem is IDirectory) && !(rightItem is IDirectory))
-                            result.Add(FullRow(leftItem, rightItem));
+                            result.Add(FullRow(leftItem, rightItem, parentRow));
                         else if (leftItem is IDirectory)
                         {
-                            result.Add(RightMissing(leftItem, rightDirectory.FullPath));
-                            result.Add(LeftMissing(rightItem, leftDirectory.FullPath));
+                            result.Add(RightMissing(leftItem, rightDirectory.FullPath, parentRow));
+                            result.Add(LeftMissing(rightItem, leftDirectory.FullPath, parentRow));
                         }
                         else
                         {
-                            result.Add(LeftMissing(rightItem, leftDirectory.FullPath));
-                            result.Add(RightMissing(leftItem, rightDirectory.FullPath));
+                            result.Add(LeftMissing(rightItem, leftDirectory.FullPath, parentRow));
+                            result.Add(RightMissing(leftItem, rightDirectory.FullPath, parentRow));
                         }
                         break;
                 }
@@ -77,7 +80,7 @@ namespace DirectorySync.ViewModels
 
             // Если с правой стороны элементов оказалось больше.
             for (; rightItemIndex < rightDirectoryItems.Length; rightItemIndex++)
-                result.Add(LeftMissing(rightDirectoryItems[rightItemIndex], leftDirectory.FullPath));
+                result.Add(LeftMissing(rightDirectoryItems[rightItemIndex], leftDirectory.FullPath, parentRow));
 
             return result.ToArray();
         }
@@ -86,26 +89,32 @@ namespace DirectorySync.ViewModels
         /// Создание строки представления отслеживаемых элементов, в которой не хватает элемента слева.
         /// </summary>
         /// <param name="rightItem">Отслеживаемый правый элемент.</param>
+        /// <param name="leftItemDirectory">Путь к директории слева. Нужен, чтобы задать команду удаления.</param>
+        /// <param name="parentRow">Строка, куда войдёт создаваемая строка.</param>
         /// <returns>Строка представления отслеживаемых элементов.</returns>
-        private RowViewModel LeftMissing(IItem rightItem, string leftItemDirectory)
+        private RowViewModel LeftMissing(IItem rightItem, string leftItemDirectory, IRowViewModel parentRow)
         {
             var rightItemViewModel = new ItemViewModel(rightItem, ItemStatusEnum.ThereIs,
                 () => rightItem.CopyTo(Path.Combine(leftItemDirectory, rightItem.Name)));
             var leftItemViewModel = new ItemViewModel(rightItem.Name, rightItemViewModel.IsDirectory, () => rightItem.Delete());
-            return new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var result = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
+            return result;
         }
 
         /// <summary>
         /// Создание строки представления отслеживаемых элементов, в которой не хватает элемента справа.
         /// </summary>
         /// <param name="leftItem">Отслеживаемый левый элемент.</param>
+        /// <param name="rightItemDirectory">Путь к директории справа. Нужен, чтобы задать команду удаления.</param>
+        /// <param name="parentRow">Строка, куда войдёт создаваемая строка.</param>
         /// <returns>Строка представления отслеживаемых элементов.</returns>
-        private RowViewModel RightMissing(IItem leftItem, string rightItemDirectory)
+        private RowViewModel RightMissing(IItem leftItem, string rightItemDirectory, IRowViewModel parentRow)
         {
             var leftItemViewModel = new ItemViewModel(leftItem, ItemStatusEnum.ThereIs, 
                 () => leftItem.CopyTo(Path.Combine(rightItemDirectory, leftItem.Name)));
             var rightItemViewModel = new ItemViewModel(leftItem.Name, leftItemViewModel.IsDirectory, () => leftItem.Delete());
-            return new RowViewModel(leftItemViewModel, rightItemViewModel); ;
+            var result = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
+            return result;
         }
 
         /// <summary>
@@ -113,17 +122,18 @@ namespace DirectorySync.ViewModels
         /// </summary>
         /// <param name="leftItem">Отслеживаемый левый элемент.</param>
         /// <param name="rightItem">Отслеживаемый правый элемент.</param>
+        /// <param name="parentRow">Строка, куда войдёт создаваемая строка.</param>
         /// <returns>Строка представления отслеживаемых элементов.</returns>
-        private RowViewModel FullRow(IItem leftItem, IItem rightItem)
+        private RowViewModel FullRow(IItem leftItem, IItem rightItem, IRowViewModel parentRow)
         {
             var leftItemViewModel = new ItemViewModel(leftItem);
             var rightItemViewModel = new ItemViewModel(rightItem);
-            var result = new RowViewModel(leftItemViewModel, rightItemViewModel);
+            var result = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
 
             if (leftItem is IDirectory && rightItem is IDirectory &&
                 (((IDirectory)leftItem).Items.Length > 0 || ((IDirectory)rightItem).Items.Length > 0))
             {
-                foreach (var childItem in CreateRowViewModels((IDirectory)leftItem, (IDirectory)rightItem))
+                foreach (var childItem in CreateRowViewModels(result))
                     result.ChildRows.Add(childItem);
                 result.RefreshStatusesFromChilds();
             }
@@ -150,10 +160,13 @@ namespace DirectorySync.ViewModels
             return result;
         }
 
+        /// <summary>
+        /// Обновление модели представления строки с созданием необходимых дочерних строк.
+        /// </summary>
+        /// <param name="rowViewModel">Обновляемая модель представления строки.</param>
         private void RefreshRow(IRowViewModel rowViewModel)
         {
-            rowViewModel.RefreshChildRows(CreateRowViewModels(
-                rowViewModel.LeftItem.Directory, rowViewModel.RightItem.Directory));
+            rowViewModel.RefreshChildRows(CreateRowViewModels(rowViewModel));
         }
     }
 }
