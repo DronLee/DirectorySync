@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using DirectorySync.Models;
 using DirectorySync.Models.Settings;
 using DirectorySync.ViewModels.Settings;
@@ -19,7 +20,8 @@ namespace DirectorySync.ViewModels
         private readonly ISettingsStorage _settingsStorage;
         private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
         private readonly ISettingsViewModel _settingsViewModel;
-        private readonly IRowViewModelFactory _itemViewModelFactory;
+        private readonly IRowViewModelFactory _rowViewModelFactory;
+        private readonly Dispatcher _dispatcher;
 
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
@@ -29,18 +31,19 @@ namespace DirectorySync.ViewModels
         /// Конструктор.
         /// </summary>
         /// <param name="synchronizedDirectoriesManager">Менеджер синхронизируемых директорий.</param>
-        /// <param name="itemViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
-        public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory itemViewModelFactory,
+        /// <param name="rowViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
+        public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory rowViewModelFactory,
             ISettingsViewModel settingsViewModel)
         {
+            _dispatcher = Dispatcher.CurrentDispatcher;
             _settingsStorage = settingsStorage;
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
             _synchronizedDirectoriesManager.AddSynchronizedDirectoriesEvent += AddSynchronizedDirectories;
             _synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += RemoveSynchronizedDirectories;
             _settingsViewModel = settingsViewModel;
-            _itemViewModelFactory = itemViewModelFactory;
+            _rowViewModelFactory = rowViewModelFactory;
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
-                itemViewModelFactory.CreateRowViewModel(d)));
+                rowViewModelFactory.CreateRowViewModel(d)));
         }
 
         /// <summary>
@@ -110,7 +113,25 @@ namespace DirectorySync.ViewModels
                 Environment.Exit(-1);
 
             await _synchronizedDirectoriesManager.Load();
+            foreach (var row in Rows)
+                SetDeleteAction(row);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+        }
+
+        private void SetDeleteAction(IRowViewModel rowViewModel)
+        {
+            rowViewModel.DeleteRowViewModelEvent += DeleteRow;
+            foreach (var childRow in rowViewModel.ChildRows)
+                SetDeleteAction(childRow);
+        }
+
+        private void DeleteRow(IRowViewModel deletingRow, IRowViewModel parantRow)
+        {
+            _dispatcher.Invoke(() =>
+            {
+                parantRow.ChildRows.Remove(deletingRow);
+                PropertyChanged?.Invoke(parantRow, new PropertyChangedEventArgs(nameof(parantRow.ChildRows)));
+            });
         }
 
         private bool ShowSettingsWindow(string comment)
@@ -131,7 +152,7 @@ namespace DirectorySync.ViewModels
 
         private void AddSynchronizedDirectories(ISynchronizedDirectories synchronizedDirectories)
         {
-            Rows.Add(_itemViewModelFactory.CreateRowViewModel(synchronizedDirectories));
+            Rows.Add(_rowViewModelFactory.CreateRowViewModel(synchronizedDirectories));
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
         }
     }
