@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using XUnitTestProject.Infrastructure;
 using IODirectory = System.IO.Directory;
+using IO = System.IO;
 
 namespace XUnitTestProject
 {
@@ -64,6 +65,27 @@ namespace XUnitTestProject
 
                 Assert.True(deletedEvent);
                 Assert.False(IODirectory.Exists(sourceDirectory));
+            }
+        }
+
+        /// <summary>
+        /// Тестирование на получение ошибки в процессе удаления.
+        /// </summary>
+        [Fact]
+        public async Task DeleteWithError()
+        {
+            using (var testDirectory = new TestDirectory())
+            {
+                var sourceDirectory = testDirectory.CreateDirectory("SorceDir");
+                var directory = new Directory(sourceDirectory, new TestItemFactory());
+
+                string error = null;
+                directory.SyncErrorEvent += (string message) => { error = message; };
+
+                using (var stream = IO.File.Create(IO.Path.Combine(sourceDirectory, "1")))
+                    await directory.Delete();
+
+                Assert.NotNull(error);
             }
         }
 
@@ -165,6 +187,7 @@ namespace XUnitTestProject
             public DateTime LastUpdate { get; }
 
             public event Action DeletedEvent;
+            public event Action<string> SyncErrorEvent;
 
             public Task CopyTo(string destinationPath)
             {

@@ -41,6 +41,11 @@ namespace DirectorySync.Models
         public event Action DeletedEvent;
 
         /// <summary>
+        /// Событие сообщает об ошибке, возникшей в процессе синхронизации.
+        /// </summary>
+        public event Action<string> SyncErrorEvent;
+
+        /// <summary>
         /// Копировать элемент в указанный путь с заменой.
         /// </summary>
         /// <param name="destinationPath">Путь куда копировать.</param>
@@ -48,7 +53,14 @@ namespace DirectorySync.Models
         {
             await Task.Run(() =>
             {
-                System.IO.File.Copy(FullPath, destinationPath, true);
+                try
+                {
+                    System.IO.File.Copy(FullPath, destinationPath, true);
+                }
+                catch
+                {
+                    SyncErrorEvent?.Invoke("Не удаётся скопировать файл по пути: " + destinationPath);
+                }
             });
         }
 
@@ -59,8 +71,18 @@ namespace DirectorySync.Models
         {
             await Task.Run(() =>
             {
-                System.IO.File.Delete(FullPath);
-                DeletedEvent?.Invoke();
+                var error = false;
+                try
+                {
+                    System.IO.File.Delete(FullPath);
+                }
+                catch
+                {
+                    error = true;
+                    SyncErrorEvent?.Invoke("Не удаётся удалить файл.");
+                }
+                if (!error)
+                    DeletedEvent?.Invoke();
             });
         }
     }

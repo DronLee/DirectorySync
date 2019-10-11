@@ -102,6 +102,7 @@ namespace XUnitTestProject
 
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action DeletedEvent;
+            public event Action<string> SyncErrorEvent;
 
             public Task CopyTo(string destinationPath)
             {

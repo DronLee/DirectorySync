@@ -66,6 +66,11 @@ namespace DirectorySync.Models
         public event Action DeletedEvent;
 
         /// <summary>
+        /// Событие сообщает об ошибке, возникшей в процессе синхронизации.
+        /// </summary>
+        public event Action<string> SyncErrorEvent;
+
+        /// <summary>
         /// Загрузка элементов директории.
         /// </summary>
         public async Task Load()
@@ -98,6 +103,7 @@ namespace DirectorySync.Models
                     System.IO.Directory.CreateDirectory(destinationPath);
                 }
                 catch { }
+                
                 foreach (var item in _items)
                     await item.CopyTo(System.IO.Path.Combine(destinationPath, item.Name));
             });
@@ -107,8 +113,17 @@ namespace DirectorySync.Models
         {
             await Task.Run(() =>
             {
-                System.IO.Directory.Delete(FullPath, true);
-                DeletedEvent?.Invoke();
+                var error = false;
+                try
+                {
+                    System.IO.Directory.Delete(FullPath, true);
+                }
+                catch
+                {
+                    SyncErrorEvent?.Invoke("Не удаётся удалить директорию.");
+                }
+                if (!error)
+                    DeletedEvent?.Invoke();
             });
         }
     }

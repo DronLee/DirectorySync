@@ -390,6 +390,7 @@ namespace XUnitTestProject
             public DateTime LastUpdate => throw new NotImplementedException();
 
             public event Action DeletedEvent;
+            public event Action<string> SyncErrorEvent;
 
             public Task CopyTo(string destinationPath)
             {

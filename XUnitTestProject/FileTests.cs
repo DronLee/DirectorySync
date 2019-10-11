@@ -28,6 +28,30 @@ namespace XUnitTestProject
             }
         }
 
+        /// <summary>
+        /// Тест на получение уведомления об ошибки в процессе копирования.
+        /// </summary>
+        [Fact]
+        public void CopyToWithError()
+        {
+            using (var testDirectory = new Infrastructure.TestDirectory())
+            {
+                var sourceFile = Path.Combine(testDirectory.FullPath, Guid.NewGuid().ToString());
+                var destinationFile = Path.Combine(testDirectory.FullPath, Guid.NewGuid().ToString());
+                var fileText = Guid.NewGuid().ToString();
+
+                File.WriteAllText(sourceFile, fileText);
+                var file = new DirectorySync.Models.File(sourceFile);
+
+                string error = null;
+                file.SyncErrorEvent += (string message) => { error = message; };
+                using (var stream = File.Create(destinationFile))
+                    file.CopyTo(destinationFile).Wait();
+
+                Assert.NotNull(error);
+            }
+        }
+
         [Fact]
         public void Delete()
         {
@@ -43,6 +67,25 @@ namespace XUnitTestProject
 
                 Assert.True(deletedEvent);
                 Assert.False(File.Exists(sourceFile));
+            }
+        }
+
+        [Fact]
+        public void DeleteWithError()
+        {
+            using (var testDirectory = new Infrastructure.TestDirectory())
+            {
+                var sourceFile = Path.Combine(testDirectory.FullPath, Guid.NewGuid().ToString());
+                File.WriteAllBytes(sourceFile, new byte[0]);
+                var file = new DirectorySync.Models.File(sourceFile);
+
+                string error = null;
+                file.SyncErrorEvent += (string message) => { error = message; };
+
+                using (var stream = File.Open(sourceFile, FileMode.Open))
+                    file.Delete().Wait();
+
+                Assert.NotNull(error);
             }
         }
     }

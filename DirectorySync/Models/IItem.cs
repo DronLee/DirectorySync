@@ -29,6 +29,11 @@ namespace DirectorySync.Models
         event Action DeletedEvent;
 
         /// <summary>
+        /// Событие сообщает об ошибке, возникшей в процессе синхронизации.
+        /// </summary>
+        event Action<string> SyncErrorEvent;
+
+        /// <summary>
         /// Копировать элемент в указанный путь с заменой.
         /// </summary>
         /// <param name="destinationPath">Путь куда копировать.</param>
