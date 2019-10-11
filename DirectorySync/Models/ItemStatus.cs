@@ -2,6 +2,9 @@
 
 namespace DirectorySync.Models
 {
+    /// <summary>
+    /// Статус отслеживаемого элемента.
+    /// </summary>
     public class ItemStatus
     {
         private readonly static Dictionary<ItemStatusEnum, string> _iconPathesOnStatus = new Dictionary<ItemStatusEnum, string>
@@ -14,13 +17,32 @@ namespace DirectorySync.Models
             { ItemStatusEnum.Unknown, "/DirectorySync;component/Icons/Status/Unknown.png" }
         };
 
-        public readonly ItemStatusEnum StatusEnum;
+        private readonly static Dictionary<ItemStatusEnum, string> _commentsOnStatus = new Dictionary<ItemStatusEnum, string>
+        {
+            { ItemStatusEnum.Equally, "Идентично" },
+            { ItemStatusEnum.Missing, "Отсутствует" },
+            { ItemStatusEnum.Newer, "Более новая дата" },
+            { ItemStatusEnum.Older, "Более старая дата" },
+            { ItemStatusEnum.ThereIs, "Есть" },
+            { ItemStatusEnum.Unknown, "Не однозначно" }
+        };
 
-        public string IconPath => _iconPathesOnStatus[StatusEnum];
+        public readonly ItemStatusEnum StatusEnum;
 
         public ItemStatus(ItemStatusEnum statusEnum)
         {
             StatusEnum = statusEnum;
+            Comment = _commentsOnStatus[statusEnum];
         }
+
+        /// <summary>
+        /// Путь к иконке статуса.
+        /// </summary>
+        public string IconPath => _iconPathesOnStatus[StatusEnum];
+
+        /// <summary>
+        /// Пояснение к статусу.
+        /// </summary>
+        public string Comment { get; set; }
     }
 }
