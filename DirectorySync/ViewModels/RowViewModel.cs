@@ -126,26 +126,38 @@ namespace DirectorySync.ViewModels
         {
             if (ChildRows.Count > 0)
             {
-                var updated = false;
-                var statusNames = typeof(ItemStatusEnum).GetEnumNames().Where(n => n != ItemStatusEnum.Unknown.ToString()).ToArray();
-                for(byte statusIndex = 0; statusIndex < statusNames.Length && !updated; statusIndex++)
-                    if (ChildRows.All(r => r.LeftItem.Status.StatusEnum.ToString() == statusNames[statusIndex]))
-                    {
-                        LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), statusNames[statusIndex]));
-                        updated = true;
-                    }
-                if (!updated)
-                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+                var leftStatuses = ChildRows.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
 
-                updated = false;
-                for (byte statusIndex = 0; statusIndex < statusNames.Length && !updated; statusIndex++)
-                    if (ChildRows.All(r => r.RightItem.Status.StatusEnum.ToString() == statusNames[statusIndex]))
-                    {
-                        RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), statusNames[statusIndex]));
-                        updated = true;
-                    }
-                if (!updated)
+                // Если с одной стороны все элементы имеют один статус, то и сдругой тоже.
+                if (leftStatuses.Length == 1)
+                {
+                    LeftItem.UpdateStatus(leftStatuses.First());
+
+                    // Если нет, команды, но должна быть? исходя из дочерних элементов,
+                    // то можно команду представить как последовательное выпонения команд дочерних элементов. 
+                    if (LeftItem.Status.StatusEnum != ItemStatusEnum.Equally && LeftItem.AcceptCommand == null)
+                        LeftItem.SetActionCommand(() =>
+                        {
+                            foreach (var actionCommand in ChildRows.Select(r => r.LeftItem.CommandAction))
+                                actionCommand.Invoke();
+                        });
+
+                    RightItem.UpdateStatus(ChildRows.First().RightItem.Status.StatusEnum);
+
+                    // Если нет, команды, но должна быть? исходя из дочерних элементов,
+                    // то можно команду представить как последовательное выпонения команд дочерних элементов. 
+                    if (RightItem.Status.StatusEnum != ItemStatusEnum.Equally && RightItem.AcceptCommand == null)
+                        RightItem.SetActionCommand(() =>
+                        {
+                            foreach (var actionCommand in ChildRows.Select(r => r.RightItem.CommandAction))
+                                actionCommand.Invoke();
+                        });
+                }
+                else
+                {
+                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
                     RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+                }
             }
         }
 
@@ -168,8 +180,37 @@ namespace DirectorySync.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
         }
 
-        private void FinishedSync()
+        private void FinishedSync(IItemViewModel itemViewModel)
         {
+            // Если принят был не отсутствующий элемент, то чтобы построить дерево новых элеменртов,
+            // надо сообщить о завершении загрузки элементов строки.
+            if (itemViewModel.Status.StatusEnum == ItemStatusEnum.ThereIs && itemViewModel.IsDirectory)
+            {
+                if (LeftItem != itemViewModel)
+                {
+                    LeftItem = itemViewModel;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
+                }
+                else
+                {
+                    RightItem = itemViewModel;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
+                }
+
+                //RowViewModelIsLoadedEvent?.Invoke(this);
+
+                //var item = LeftItem == itemViewModel ? RightItem : LeftItem;
+
+
+
+                //IItemFactory factory = null;
+                //var directory =  factory.CreateDirectory(System.IO.Path.Combine(Parent.LeftItem.Directory.FullPath, itemViewModel.Name));
+                //directory.Load();
+                //LeftItem.Directory
+            }
+
+            
+
             ItIsOk(this);
             ProcessIconIsVisible = false;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
