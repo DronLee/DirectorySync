@@ -24,6 +24,7 @@ namespace DirectorySync.ViewModels
         {
             _item = item;
             _item.DeletedEvent += () => { ItemIsDeletedEvent?.Invoke(); };
+            _item.SyncErrorEvent += (string error) => { Status.Comment = error; };
             Name = item.Name;
             if (item is IDirectory)
             {
