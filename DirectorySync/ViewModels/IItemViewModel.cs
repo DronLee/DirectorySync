@@ -40,15 +40,17 @@ namespace DirectorySync.ViewModels
         /// </summary>
         ICommand AcceptCommand { get; set; }
 
+        Action CommandAction { get; }
+
         /// <summary>
         /// Событие запуска синхронизации.
         /// </summary>
         event Action StartedSyncEvent;
 
         /// <summary>
-        /// Событие завершения синхронизации.
+        /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
         /// </summary>
-        event Action FinishedSyncEvent;
+        event Action<IItemViewModel> FinishedSyncEvent;
 
         /// <summary>
         /// Событие возникает после удаления элемента, на основание которого создана данная модель представления.

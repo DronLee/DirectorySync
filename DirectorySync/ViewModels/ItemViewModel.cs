@@ -90,6 +90,8 @@ namespace DirectorySync.ViewModels
         /// </summary>
         public string IconPath => IsDirectory ? _folderIconPath : _fileIconPath;
 
+        public Action CommandAction { get; private set; }
+
         /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
@@ -99,9 +101,9 @@ namespace DirectorySync.ViewModels
         /// </summary>
         public event Action StartedSyncEvent;
         /// <summary>
-        /// Событие завершения синхронизации.
+        /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
         /// </summary>
-        public event Action FinishedSyncEvent;
+        public event Action<IItemViewModel> FinishedSyncEvent;
         /// <summary>
         /// Событие возникае, после удаления элемента, на основание которого создана данная модель представления.
         /// </summary>
@@ -126,13 +128,14 @@ namespace DirectorySync.ViewModels
         /// <param name="action">Метод для синхронизации.</param>
         public void SetActionCommand(Action action)
         {
+            CommandAction = action;
             AcceptCommand = new Command(call =>
             {
                 Task.Run(() =>
                 {
                     StartedSyncEvent?.Invoke();
                     action.Invoke();
-                    FinishedSyncEvent?.Invoke();
+                    FinishedSyncEvent?.Invoke(this);
                 });
             });
         }

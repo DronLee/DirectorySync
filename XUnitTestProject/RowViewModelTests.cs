@@ -237,7 +237,7 @@ namespace XUnitTestProject
             var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
-            Thread.Sleep(10); //  Чтобы успела выполниться команда.
+            Thread.Sleep(15); //  Чтобы успела выполниться команда.
 
             Assert.True(useAcceptCommand);
 
@@ -257,7 +257,7 @@ namespace XUnitTestProject
             var rightItemViewModel = new ItemViewModel("RightItem", false, () => { useAcceptCommand = true; });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
-            Thread.Sleep(10); //  Чтобы успела выполниться команда.
+            Thread.Sleep(15); //  Чтобы успела выполниться команда.
 
             Assert.True(useAcceptCommand);
 
@@ -360,6 +360,8 @@ namespace XUnitTestProject
 
             public ItemStatus Status { get; private set; }
 
+            public Action CommandAction { get; }
+
             public ICommand AcceptCommand { get; set; }
 
             public string IconPath => throw new NotImplementedException();
@@ -368,13 +370,10 @@ namespace XUnitTestProject
 
             public event PropertyChangedEventHandler PropertyChanged;
             public event Action StartedSyncEvent;
-            public event Action FinishedSyncEvent;
+            public event Action<IItemViewModel> FinishedSyncEvent;
             public event Action ItemIsDeletedEvent;
 
-            public void SetActionCommand(Action action)
-            {
-                throw new NotImplementedException();
-            }
+            public void SetActionCommand(Action action) { }
 
             public void UpdateStatus(ItemStatusEnum statusEnum)
             {
