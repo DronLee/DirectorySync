@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Xunit;
+using IItem = DirectorySync.Models.IItem;
 
 namespace XUnitTestProject
 {
@@ -19,12 +20,23 @@ namespace XUnitTestProject
                 var fileText = Guid.NewGuid().ToString();
 
                 File.WriteAllText(sourceFile, fileText);
+
+                IItem sourceCopyFile = null, destinationCopyFile = null;
+
                 var file = new DirectorySync.Models.File(sourceFile);
+                file.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem) =>
+                    {
+                        sourceCopyFile = sourceItem;
+                        destinationCopyFile = destinationItem;
+                    };
                 file.CopyTo(destinationFile).Wait();
 
                 Assert.True(File.Exists(sourceFile));
                 Assert.True(File.Exists(destinationFile));
                 Assert.Equal(fileText, File.ReadAllText(destinationFile));
+                Assert.Equal(file, sourceCopyFile);
+                Assert.NotNull(destinationCopyFile);
+                Assert.Equal(destinationFile, destinationCopyFile.FullPath);
             }
         }
 

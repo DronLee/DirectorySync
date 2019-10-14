@@ -29,6 +29,13 @@ namespace DirectorySync.Models
         event Action DeletedEvent;
 
         /// <summary>
+        /// Событие возникает, когда было выполнено копирование элемента.
+        /// Первый параметр - копируемый элемент.
+        /// Второй параметр - элемент, созданный на основе копируемого.
+        /// </summary>
+        event Action<IItem, IItem> CopiedFromToEvent;
+
+        /// <summary>
         /// Событие сообщает об ошибке, возникшей в процессе синхронизации.
         /// </summary>
         event Action<string> SyncErrorEvent;

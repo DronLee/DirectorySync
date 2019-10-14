@@ -42,11 +42,22 @@ namespace XUnitTestProject
             {
                 var sourceDirectory =  testDirectory.CreateDirectory("SorceDir");
                 var destinationDirectory = System.IO.Path.Combine(testDirectory.FullPath, "DestDir");
+
+                IItem sourceCopyDirectory = null, destinationCopyDirectory = null;
+
                 var directory = new Directory(sourceDirectory, new TestItemFactory());
+                directory.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem) =>
+                {
+                    sourceCopyDirectory = sourceItem;
+                    destinationCopyDirectory = destinationItem;
+                };
                 await directory.CopyTo(destinationDirectory);
 
                 Assert.True(IODirectory.Exists(sourceDirectory));
                 Assert.True(IODirectory.Exists(destinationDirectory));
+                Assert.Equal(directory, sourceCopyDirectory);
+                Assert.NotNull(destinationCopyDirectory);
+                Assert.Equal(destinationDirectory, destinationCopyDirectory.FullPath);
             }
         }
 
@@ -118,7 +129,7 @@ namespace XUnitTestProject
                 });
 
                 // Только после добавления файлов в директорию, так как дата перетёрлась бы.
-                System.IO.Directory.SetLastWriteTime(notEmptyDirectoryPath, notEmptyDirectoryLastUpdate);
+                IODirectory.SetLastWriteTime(notEmptyDirectoryPath, notEmptyDirectoryLastUpdate);
 
                 const string rootFileName = "RootFile";
                 var rootFileLastUpdate = new DateTime(2019, 2, 5, 8, 5, 0);
@@ -188,6 +199,7 @@ namespace XUnitTestProject
 
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;
+            public event Action<IItem, IItem> CopiedFromToEvent;
 
             public Task CopyTo(string destinationPath)
             {

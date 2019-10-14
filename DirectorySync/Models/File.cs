@@ -46,6 +46,13 @@ namespace DirectorySync.Models
         public event Action<string> SyncErrorEvent;
 
         /// <summary>
+        /// Событие возникает, когда было выполнено копирование файла.
+        /// Первый параметр - копируемый файл.
+        /// Второй параметр - файл, созданный на основе копируемого.
+        /// </summary>
+        public event Action<IItem, IItem> CopiedFromToEvent;
+
+        /// <summary>
         /// Копировать элемент в указанный путь с заменой.
         /// </summary>
         /// <param name="destinationPath">Путь куда копировать.</param>
@@ -61,6 +68,8 @@ namespace DirectorySync.Models
                 {
                     SyncErrorEvent?.Invoke("Не удаётся скопировать файл по пути: " + destinationPath);
                 }
+
+                CopiedFromToEvent?.Invoke(this, new File(destinationPath));
             });
         }
 
