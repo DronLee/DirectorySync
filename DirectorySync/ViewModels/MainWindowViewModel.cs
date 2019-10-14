@@ -144,8 +144,8 @@ namespace DirectorySync.ViewModels
 
         private void RemoveSynchronizedDirectories(ISynchronizedDirectories synchronizedDirectories)
         {
-            var removingRow = Rows.Single(r => r.LeftItem.Directory.FullPath == synchronizedDirectories.LeftDirectory.FullPath &&
-                r.RightItem.Directory.FullPath == synchronizedDirectories.RightDirectory.FullPath);
+            var removingRow = Rows.Single(r => r.LeftItem.Directory == synchronizedDirectories.LeftDirectory &&
+                r.RightItem.Directory == synchronizedDirectories.RightDirectory);
             Rows.Remove(removingRow);
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
         }
