@@ -114,7 +114,7 @@ namespace DirectorySync.Models
                 foreach (var item in _items)
                     await item.CopyTo(System.IO.Path.Combine(destinationPath, item.Name));
 
-                CopiedFromToEvent?.Invoke(this, new Directory(destinationPath, _itemFactory));
+                CopiedFromToEvent?.Invoke(this, _itemFactory.CreateDirectory(destinationPath));
             });
         }
 

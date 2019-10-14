@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using IO = System.IO;
 
 namespace DirectorySync.Models
 {
@@ -15,7 +16,7 @@ namespace DirectorySync.Models
         internal File(string fullPath)
         {
             FullPath = fullPath;
-            var info = new System.IO.FileInfo(fullPath);
+            var info = new IO.FileInfo(fullPath);
             Name = info.Name;
             LastUpdate = info.LastWriteTime;
         }
@@ -62,14 +63,20 @@ namespace DirectorySync.Models
             {
                 try
                 {
-                    System.IO.File.Copy(FullPath, destinationPath, true);
+                    IO.File.Copy(FullPath, destinationPath, true);
                 }
                 catch
                 {
                     SyncErrorEvent?.Invoke("Не удаётся скопировать файл по пути: " + destinationPath);
                 }
 
-                CopiedFromToEvent?.Invoke(this, new File(destinationPath));
+                File destinationFile = null;
+                try
+                {
+                    destinationFile = new File(destinationPath);
+                }
+                catch { }
+                CopiedFromToEvent?.Invoke(this, destinationFile);
             });
         }
 
@@ -83,7 +90,7 @@ namespace DirectorySync.Models
                 var error = false;
                 try
                 {
-                    System.IO.File.Delete(FullPath);
+                    IO.File.Delete(FullPath);
                 }
                 catch
                 {
