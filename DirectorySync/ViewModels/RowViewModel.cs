@@ -13,6 +13,7 @@ namespace DirectorySync.ViewModels
     {
         private bool _isExpanded;
         private bool _isSelected;
+        private bool _processIconIsVisible = true;
 
         /// <summary>
         /// Конструктор.
@@ -33,9 +34,13 @@ namespace DirectorySync.ViewModels
             LeftItem.StartedSyncEvent += StartedSync;
             LeftItem.FinishedSyncEvent += FinishedSync;
             LeftItem.ItemIsDeletedEvent += Delete;
+            LeftItem.CopiedFromToEvent += CopiedFromTo;
+            LeftItem.AcceptCommandChangedEvent += AcceptCommandChanged;
             RightItem.StartedSyncEvent += StartedSync;
             RightItem.FinishedSyncEvent += FinishedSync;
             RightItem.ItemIsDeletedEvent += Delete;
+            RightItem.CopiedFromToEvent += CopiedFromTo;
+            RightItem.AcceptCommandChangedEvent += AcceptCommandChanged;
         }
 
         /// <summary>
@@ -75,6 +80,11 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
+        /// True - строка содержит элементы, описывающие директории.
+        /// </summary>
+        public bool IsDirectory => LeftItem != null && LeftItem.IsDirectory || RightItem != null && RightItem.IsDirectory;
+
+        /// <summary>
         /// Видимость кнопки команды.
         /// </summary>
         public bool CommandButtonIsVisible => LeftItem.AcceptCommand != null;
@@ -82,7 +92,18 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Видимость заставки процесса.
         /// </summary>
-        public bool ProcessIconIsVisible { get; private set; }
+        public bool ProcessIconIsVisible
+        {
+            get { return _processIconIsVisible; }
+            private set
+            {
+                if(_processIconIsVisible!=value)
+                {
+                    _processIconIsVisible = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
+                }
+            }
+        }
 
         /// <summary>
         /// Дочерние строки.
@@ -126,37 +147,49 @@ namespace DirectorySync.ViewModels
         {
             if (ChildRows.Count > 0)
             {
-                var leftStatuses = ChildRows.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
+                var notEquallyChilds = ChildRows.Where(r => r.LeftItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
 
-                // Если с одной стороны все элементы имеют один статус, то и сдругой тоже.
-                if (leftStatuses.Length == 1)
+                if (notEquallyChilds.Length == 0)
                 {
-                    LeftItem.UpdateStatus(leftStatuses.First());
-
-                    // Если нет, команды, но должна быть? исходя из дочерних элементов,
-                    // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-                    if (LeftItem.Status.StatusEnum != ItemStatusEnum.Equally && LeftItem.AcceptCommand == null)
-                        LeftItem.SetActionCommand(() =>
-                        {
-                            foreach (var actionCommand in ChildRows.Select(r => r.LeftItem.CommandAction))
-                                actionCommand.Invoke();
-                        });
-
-                    RightItem.UpdateStatus(ChildRows.First().RightItem.Status.StatusEnum);
-
-                    // Если нет, команды, но должна быть? исходя из дочерних элементов,
-                    // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-                    if (RightItem.Status.StatusEnum != ItemStatusEnum.Equally && RightItem.AcceptCommand == null)
-                        RightItem.SetActionCommand(() =>
-                        {
-                            foreach (var actionCommand in ChildRows.Select(r => r.RightItem.CommandAction))
-                                actionCommand.Invoke();
-                        });
+                    LeftItem.UpdateStatus(ItemStatusEnum.Equally);
+                    LeftItem.SetActionCommand(null);
+                    RightItem.UpdateStatus(ItemStatusEnum.Equally);
+                    RightItem.SetActionCommand(null);
                 }
                 else
                 {
-                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+                    var leftStatuses = notEquallyChilds.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
+
+                    // Если с одной стороны все элементы имеют один статус, то и с другой тоже.
+                    if (leftStatuses.Length == 1)
+                    {
+                        LeftItem.UpdateStatus(leftStatuses.First());
+
+                        // Если нет, команды, но должна быть, исходя из дочерних элементов,
+                        // то можно команду представить как последовательное выпонения команд дочерних элементов. 
+                        if (LeftItem.Status.StatusEnum != ItemStatusEnum.Equally && LeftItem.AcceptCommand == null)
+                            LeftItem.SetActionCommand(() =>
+                            {
+                                foreach (var actionCommand in notEquallyChilds.Select(r => r.LeftItem.CommandAction))
+                                    actionCommand.Invoke();
+                            });
+
+                        RightItem.UpdateStatus(notEquallyChilds.First().RightItem.Status.StatusEnum);
+
+                        // Если нет, команды, но должна быть, исходя из дочерних элементов,
+                        // то можно команду представить как последовательное выпонения команд дочерних элементов. 
+                        if (RightItem.Status.StatusEnum != ItemStatusEnum.Equally && RightItem.AcceptCommand == null)
+                            RightItem.SetActionCommand(() =>
+                            {
+                                foreach (var actionCommand in notEquallyChilds.Select(r => r.RightItem.CommandAction))
+                                    actionCommand.Invoke();
+                            });
+                    }
+                    else
+                    {
+                        LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+                        RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+                    }
                 }
             }
         }
@@ -168,52 +201,23 @@ namespace DirectorySync.ViewModels
         private void LoadedDirectory(IDirectory directory)
         {
             if (RowViewModelIsLoadedEvent != null && LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
+            {
                 RowViewModelIsLoadedEvent.Invoke(this);
+                ProcessIconIsVisible = false;
+            }
         }
 
         private void StartedSync()
         {
-            LeftItem.AcceptCommand = null;
-            RightItem.AcceptCommand = null;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
+            LeftItem.SetActionCommand(null);
+            RightItem.SetActionCommand(null);
             ProcessIconIsVisible = true;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
         }
 
-        private void FinishedSync(IItemViewModel itemViewModel)
+        private void FinishedSync()
         {
-            // Если принят был не отсутствующий элемент, то чтобы построить дерево новых элеменртов,
-            // надо сообщить о завершении загрузки элементов строки.
-            if (itemViewModel.Status.StatusEnum == ItemStatusEnum.ThereIs && itemViewModel.IsDirectory)
-            {
-                if (LeftItem != itemViewModel)
-                {
-                    LeftItem = itemViewModel;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
-                }
-                else
-                {
-                    RightItem = itemViewModel;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
-                }
-
-                //RowViewModelIsLoadedEvent?.Invoke(this);
-
-                //var item = LeftItem == itemViewModel ? RightItem : LeftItem;
-
-
-
-                //IItemFactory factory = null;
-                //var directory =  factory.CreateDirectory(System.IO.Path.Combine(Parent.LeftItem.Directory.FullPath, itemViewModel.Name));
-                //directory.Load();
-                //LeftItem.Directory
-            }
-
-            
-
-            ItIsOk(this);
+            //ItIsOk(this);
             ProcessIconIsVisible = false;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
         }
 
         private void ItIsOk(IRowViewModel rowViewModel)
@@ -227,6 +231,27 @@ namespace DirectorySync.ViewModels
         private void Delete()
         {
             DeleteRowViewModelEvent?.Invoke(this, Parent);
+        }
+
+        private void CopiedFromTo(IItemViewModel fromItem, IItemViewModel toItem)
+        {
+            if (LeftItem == fromItem)
+                RightItem = toItem;
+            else
+                LeftItem = toItem;
+
+            if (toItem.IsDirectory)
+                toItem.Directory.Load().Wait();
+
+            RowViewModelIsLoadedEvent?.Invoke(this);
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
+        }
+
+        private void AcceptCommandChanged()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
         }
     }
 }

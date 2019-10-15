@@ -35,6 +35,11 @@ namespace DirectorySync.ViewModels
         bool IsExpanded { get; set; }
 
         /// <summary>
+        /// True - строка содержит элементы, описывающие директории.
+        /// </summary>
+        bool IsDirectory { get; }
+
+        /// <summary>
         /// Дочерние строки.
         /// </summary>
         ObservableCollection<IRowViewModel> ChildRows { get; }
