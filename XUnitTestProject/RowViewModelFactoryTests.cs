@@ -8,7 +8,7 @@ using Xunit;
 
 namespace XUnitTestProject
 {
-    public class ItemViewModelFactoryTests
+    public class RowViewModelFactoryTests
     {
         [Fact]
         public void CreateRowViewModel()
@@ -32,7 +32,7 @@ namespace XUnitTestProject
                 IRowViewModel loadedRowViewModel = null;
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new RowViewModelFactory();
+                var factory = new RowViewModelFactory(null);
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
                 rowViewModel.RowViewModelIsLoadedEvent += (IRowViewModel delegateRowViewModel) => 
                     { loadedRowViewModel = delegateRowViewModel; };
@@ -77,7 +77,7 @@ namespace XUnitTestProject
                 IRowViewModel loadedRowViewModel = null;
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new RowViewModelFactory();
+                var factory = new RowViewModelFactory(new ItemViewModelMatcher());
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
                 rowViewModel.RowViewModelIsLoadedEvent += (IRowViewModel delegateRowViewModel) =>
                     { loadedRowViewModel = delegateRowViewModel; };
@@ -148,7 +148,7 @@ namespace XUnitTestProject
                 rightDirectory.CreateDirectory(directoryAndFileName);
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new RowViewModelFactory();
+                var factory = new RowViewModelFactory(new ItemViewModelMatcher());
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
 
                 await synchronizedDirectories.Load();
@@ -202,7 +202,7 @@ namespace XUnitTestProject
                 rightDirectory.CreateDirectory(directoryName, DateTime.Parse(strRightDirectoryLastUpdate));
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new RowViewModelFactory();
+                var factory = new RowViewModelFactory(new ItemViewModelMatcher());
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
 
                 await synchronizedDirectories.Load();
@@ -247,7 +247,7 @@ namespace XUnitTestProject
                     { fileName, newerDate } });
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new RowViewModelFactory();
+                var factory = new RowViewModelFactory(new ItemViewModelMatcher());
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
 
                 await synchronizedDirectories.Load();
@@ -297,7 +297,7 @@ namespace XUnitTestProject
                 rightDirectory.CreateDirectory(directoryName, olderDate);
 
                 var synchronizedDirectories = new TestSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                var factory = new RowViewModelFactory();
+                var factory = new RowViewModelFactory(new ItemViewModelMatcher());
                 var rowViewModel = factory.CreateRowViewModel(synchronizedDirectories);
 
                 await synchronizedDirectories.Load();
@@ -371,7 +371,7 @@ namespace XUnitTestProject
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;
-            public event Action<IItem, IItem> CopiedFromToEvent;
+            public event Action<IItem, IItem, string> CopiedFromToEvent;
 
             public Task CopyTo(string destinationPath)
             {
@@ -423,7 +423,7 @@ namespace XUnitTestProject
 
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;
-            public event Action<IItem, IItem> CopiedFromToEvent;
+            public event Action<IItem, IItem, string> CopiedFromToEvent;
 
             public Task CopyTo(string destinationPath)
             {
