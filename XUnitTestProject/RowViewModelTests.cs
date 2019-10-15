@@ -31,8 +31,11 @@ namespace XUnitTestProject
         [InlineData("Equally", "Equally", new[] { "Missing" }, new[] { "ThereIs" }, "Missing", "ThereIs")]
         [InlineData("Unknown", "Unknown", new[] { "Equally" }, new[] { "Equally" }, "Equally", "Equally")]
 
-        // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
+        // Если дочерние элементы имеют один статус не считая Equally, то статус родительского будет такой же, как этот один.
         [InlineData("Equally", "Equally", new[] { "Missing", "Equally" }, new[] { "ThereIs", "Equally" }, "Missing", "ThereIs")]
+
+        // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
+        [InlineData("Equally", "Equally", new[] { "Missing", "ThereIs" }, new[] { "ThereIs", "Missing" }, "Unknown", "Unknown")]
         public void RefreshStatusesFromChilds_CheckStatus(string leftStartStatus, string rightStartStatus,
             string[] leftItemsStatuses, string[] rightItemsStatuses,
             string leftExpectedStatus, string rightExpectedStatus)
@@ -228,9 +231,9 @@ namespace XUnitTestProject
         [Fact]
         public void VisibilityAcceptButton_StartedLeftItemAccept()
         {
-            // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
             var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
+            // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
             leftItemViewModel.SetActionCommand(() => { Thread.Sleep(70); });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
@@ -247,8 +250,8 @@ namespace XUnitTestProject
         public void VisibilityAcceptButton_StartedRightItemAccept()
         {
             var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
-            // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
             var rightItemViewModel = new ItemViewModel("RightItem", false, null);
+            // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
             rightItemViewModel.SetActionCommand(() => { Thread.Sleep(70); });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
