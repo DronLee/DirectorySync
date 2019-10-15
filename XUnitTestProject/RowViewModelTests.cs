@@ -215,11 +215,11 @@ namespace XUnitTestProject
         public void VisibilityAcceptButton_Init()
         {
             var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
-            var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
+            leftItemViewModel.SetActionCommand(() => { });
+            var rightItemViewModel = new ItemViewModel("RightItem", false, null);
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
 
             Assert.True(rowViewModel.CommandButtonIsVisible);
-            Assert.False(rowViewModel.ProcessIconIsVisible);
         }
 
         /// <summary>
@@ -265,6 +265,7 @@ namespace XUnitTestProject
         public void VisibilityAcceptButton_FinishedLeftItemAccept()
         {
             var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
+            leftItemViewModel.SetActionCommand(() => { });
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
@@ -282,6 +283,7 @@ namespace XUnitTestProject
         {
             var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
             var rightItemViewModel = new ItemViewModel("RightItem", false, null);
+            rightItemViewModel.SetActionCommand(() => { });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); // Чтобы успели обновиться свойства.
