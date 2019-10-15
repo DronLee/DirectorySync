@@ -22,12 +22,14 @@ namespace XUnitTestProject
                 File.WriteAllText(sourceFile, fileText);
 
                 IItem sourceCopyFile = null, destinationCopyFile = null;
+                string destinationCopyPath = null;
 
                 var file = new DirectorySync.Models.File(sourceFile);
-                file.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem) =>
+                file.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem, string destinationPath) =>
                     {
                         sourceCopyFile = sourceItem;
                         destinationCopyFile = destinationItem;
+                        destinationCopyPath = destinationPath;
                     };
                 file.CopyTo(destinationFile).Wait();
 
@@ -37,6 +39,7 @@ namespace XUnitTestProject
                 Assert.Equal(file, sourceCopyFile);
                 Assert.NotNull(destinationCopyFile);
                 Assert.Equal(destinationFile, destinationCopyFile.FullPath);
+                Assert.Equal(destinationFile, destinationCopyPath);
             }
         }
 

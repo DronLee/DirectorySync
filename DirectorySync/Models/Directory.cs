@@ -74,8 +74,9 @@ namespace DirectorySync.Models
         /// Событие возникает, когда было выполнено копирование директории.
         /// Первый параметр - копируемая директория.
         /// Второй параметр - директория, созданная на основе копируемой.
+        /// Третий параметр - путь, по которому осуществлялось копирование.
         /// </summary>
-        public event Action<IItem, IItem> CopiedFromToEvent;
+        public event Action<IItem, IItem, string> CopiedFromToEvent;
 
         /// <summary>
         /// Загрузка элементов директории.
@@ -114,7 +115,7 @@ namespace DirectorySync.Models
                 foreach (var item in _items)
                     await item.CopyTo(System.IO.Path.Combine(destinationPath, item.Name));
 
-                CopiedFromToEvent?.Invoke(this, _itemFactory.CreateDirectory(destinationPath));
+                CopiedFromToEvent?.Invoke(this, _itemFactory.CreateDirectory(destinationPath), destinationPath);
             });
         }
 

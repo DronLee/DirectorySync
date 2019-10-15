@@ -44,12 +44,14 @@ namespace XUnitTestProject
                 var destinationDirectory = System.IO.Path.Combine(testDirectory.FullPath, "DestDir");
 
                 IItem sourceCopyDirectory = null, destinationCopyDirectory = null;
+                string destinationCopyPath = null;
 
                 var directory = new Directory(sourceDirectory, new TestItemFactory());
-                directory.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem) =>
+                directory.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem, string destinationPath) =>
                 {
                     sourceCopyDirectory = sourceItem;
                     destinationCopyDirectory = destinationItem;
+                    destinationCopyPath = destinationPath;
                 };
                 await directory.CopyTo(destinationDirectory);
 
@@ -58,6 +60,7 @@ namespace XUnitTestProject
                 Assert.Equal(directory, sourceCopyDirectory);
                 Assert.NotNull(destinationCopyDirectory);
                 Assert.Equal(destinationDirectory, destinationCopyDirectory.FullPath);
+                Assert.Equal(destinationDirectory, destinationCopyPath);
             }
         }
 
@@ -199,7 +202,7 @@ namespace XUnitTestProject
 
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;
-            public event Action<IItem, IItem> CopiedFromToEvent;
+            public event Action<IItem, IItem, string> CopiedFromToEvent;
 
             public Task CopyTo(string destinationPath)
             {

@@ -50,8 +50,9 @@ namespace DirectorySync.Models
         /// Событие возникает, когда было выполнено копирование файла.
         /// Первый параметр - копируемый файл.
         /// Второй параметр - файл, созданный на основе копируемого.
+        /// Третий параметр - путь, по которому осуществлялось копирование.
         /// </summary>
-        public event Action<IItem, IItem> CopiedFromToEvent;
+        public event Action<IItem, IItem, string> CopiedFromToEvent;
 
         /// <summary>
         /// Копировать элемент в указанный путь с заменой.
@@ -76,7 +77,7 @@ namespace DirectorySync.Models
                     destinationFile = new File(destinationPath);
                 }
                 catch { }
-                CopiedFromToEvent?.Invoke(this, destinationFile);
+                CopiedFromToEvent?.Invoke(this, destinationFile, destinationPath);
             });
         }
 
