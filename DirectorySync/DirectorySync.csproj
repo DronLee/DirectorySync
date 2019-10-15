@@ -76,6 +76,8 @@
     <Compile Include="Models\Settings\ISettingsStorage.cs" />
     <Compile Include="ViewModels\Converters\BoolToTextConverter.cs" />
     <Compile Include="ViewModels\Converters\MessageTextColorConverter .cs" />
+    <Compile Include="ViewModels\IItemViewModelMatcher.cs" />
+    <Compile Include="ViewModels\ItemViewModelMatcher.cs" />
     <Compile Include="ViewModels\MessageTypeEnum.cs" />
     <Compile Include="ViewModels\Settings\ISettingsDirectoryViewModel.cs" />
     <Compile Include="ViewModels\Settings\ISettingsRowViewModel.cs" />
