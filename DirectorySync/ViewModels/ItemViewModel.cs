@@ -14,57 +14,40 @@ namespace DirectorySync.ViewModels
         private const string _fileIconPath = "/DirectorySync;component/Icons/File.png";
         private const string _folderIconPath = "/DirectorySync;component/Icons/Folder.png";
 
-        private readonly IItem _item;
-
         /// <summary>
         /// Конструктор.
-        /// </summary>
-        /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
-        public ItemViewModel(IItem item, Action acceptAction = null)
-        {
-            _item = item;
-            _item.DeletedEvent += () => { ItemIsDeletedEvent?.Invoke(); };
-            _item.SyncErrorEvent += (string error) => { Status.Comment = error; };
-            Name = item.Name;
-            if (item is IDirectory)
-            {
-                Directory = (IDirectory)item;
-                Directory.LoadedDirectoryEvent += LoadedDirectory;
-                IsDirectory = true;
-            }
-            if (acceptAction != null)
-                SetActionCommand(acceptAction);
-        }
-
-        /// <summary>
-        /// Конструктор.
-        /// </summary>
-        /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
-        /// <param name="itemStatusEnum">Статус, с которым будет создана модель.</param>
-        public ItemViewModel(IItem item, ItemStatusEnum itemStatusEnum, Action acceptAction)
-            : this(item, acceptAction)
-        {
-            Status = new ItemStatus(itemStatusEnum);
-        }
-
-        /// <summary>
-        /// Конструктор создания отсутствующего элемента.
         /// </summary>
         /// <param name="name">Наименование отображаемого элемента.</param>
         /// <param name="isDirectory">True - присутствующий элемент является директорией.</param>
-        public ItemViewModel(string name, bool isDirectory, Action acceptAction)
+        /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
+        public ItemViewModel(string fullPath, bool isDirectory, IItem item)
         {
-            _item = null;
-            Name = name;
-            Status = new ItemStatus(ItemStatusEnum.Missing);
+            Name = System.IO.Path.GetFileName(fullPath);
+            FullPath = fullPath;
             IsDirectory = isDirectory;
-            SetActionCommand(acceptAction);
+            Item = item;
+            if (item != null)
+            {
+                item.DeletedEvent += () => { ItemIsDeletedEvent?.Invoke(); };
+                item.SyncErrorEvent += (string error) => { Status.Comment = error; };
+                item.CopiedFromToEvent += CopiedItemTo;
+                if (item is IDirectory)
+                {
+                    Directory = (IDirectory)item;
+                    Directory.LoadedDirectoryEvent += LoadedDirectory;
+                }
+            }
         }
 
         /// <summary>
         /// Наименование.
         /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Полный руть к отслеживаемому элементу, который представляет данная модель.
+        /// </summary>
+        public string FullPath { get; }
 
         /// <summary>
         /// True - элемент является директорией.
@@ -74,12 +57,17 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Выполняемая команда синхронизации. 
         /// </summary>
-        public ICommand AcceptCommand { get; set; }
+        public ICommand AcceptCommand { get; private set; }
 
         /// <summary>
         /// Статус элемента.
         /// </summary>
         public ItemStatus Status { get; private set; }
+
+        /// <summary>
+        /// Отображаемый моделью элемент синхронизации.
+        /// </summary>
+        public IItem Item { get; }
 
         /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
@@ -94,6 +82,11 @@ namespace DirectorySync.ViewModels
         public Action CommandAction { get; private set; }
 
         /// <summary>
+        /// Была изменена команда принятия элемента.
+        /// </summary>
+        public event Action AcceptCommandChangedEvent;
+
+        /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -104,11 +97,12 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
         /// </summary>
-        public event Action<IItemViewModel> FinishedSyncEvent;
+        public event Action FinishedSyncEvent;
         /// <summary>
         /// Событие возникае, после удаления элемента, на основание которого создана данная модель представления.
         /// </summary>
         public event Action ItemIsDeletedEvent;
+        public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
 
         /// <summary>
         /// Обновление статуса.
@@ -129,21 +123,41 @@ namespace DirectorySync.ViewModels
         /// <param name="action">Метод для синхронизации.</param>
         public void SetActionCommand(Action action)
         {
-            CommandAction = action;
-            AcceptCommand = new Command(call =>
+            if (CommandAction != action)
             {
-                Task.Run(() =>
+                CommandAction = action;
+                if (action == null)
+                    AcceptCommand = null;
+                else
                 {
-                    StartedSyncEvent?.Invoke();
-                    action.Invoke();
-                    FinishedSyncEvent?.Invoke(this);
-                });
-            });
+                    AcceptCommand = new Command(call =>
+                    {
+                        Task.Run(() =>
+                        {
+                            StartedSyncEvent?.Invoke();
+                            action.Invoke();
+                            FinishedSyncEvent?.Invoke();
+                        });
+                    });
+                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
+                AcceptCommandChangedEvent?.Invoke();
+            }
         }
 
         private void LoadedDirectory(IDirectory directory)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
+        }
+
+        private void CopiedItemTo(IItem fromItem, IItem toItem, string destinationPath)
+        {
+            IItemViewModel itemViewModel;
+            if (toItem == null)
+                itemViewModel = new ItemViewModel(destinationPath, fromItem is IDirectory, null);
+            else
+                itemViewModel = new ItemViewModel(destinationPath, toItem is IDirectory, toItem);
+            CopiedFromToEvent?.Invoke(this, itemViewModel);
         }
     }
 }

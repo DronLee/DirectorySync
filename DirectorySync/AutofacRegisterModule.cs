@@ -20,6 +20,7 @@ namespace DirectorySync
 
             builder.RegisterType<ItemFactory>().As<IItemFactory>().SingleInstance();
             builder.RegisterType<SynchronizedDirectoriesManager>().As<ISynchronizedDirectoriesManager>().SingleInstance();
+            builder.RegisterType<ItemViewModelMatcher>().As<IItemViewModelMatcher>().SingleInstance();
             builder.RegisterType<RowViewModelFactory>().As<IRowViewModelFactory>().SingleInstance();
         }
     }

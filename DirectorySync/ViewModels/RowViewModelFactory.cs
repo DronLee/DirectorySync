@@ -9,6 +9,13 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class RowViewModelFactory : IRowViewModelFactory
     {
+        private readonly IItemViewModelMatcher _itemViewModelMatcher;
+
+        public RowViewModelFactory(IItemViewModelMatcher itemViewModelMatcher)
+        {
+            _itemViewModelMatcher = itemViewModelMatcher;
+        }
+
         /// <summary>
         /// Создание строки, отображающей отслеживаемые элементы.
         /// </summary>
@@ -16,8 +23,8 @@ namespace DirectorySync.ViewModels
         /// <returns>Строка, отображающая отслеживаемые элементы.</returns>
         public IRowViewModel CreateRowViewModel(ISynchronizedDirectories synchronizedDirectories)
         {
-            var result = new RowViewModel(new ItemViewModel(synchronizedDirectories.LeftDirectory),
-                new ItemViewModel(synchronizedDirectories.RightDirectory), null);
+            var result = new RowViewModel(new ItemViewModel(synchronizedDirectories.LeftDirectory.FullPath, true, synchronizedDirectories.LeftDirectory),
+                new ItemViewModel(synchronizedDirectories.RightDirectory.FullPath, true, synchronizedDirectories.RightDirectory), null);
             result.RowViewModelIsLoadedEvent += RefreshRow;
             return result;
         }
@@ -94,10 +101,13 @@ namespace DirectorySync.ViewModels
         /// <returns>Строка представления отслеживаемых элементов.</returns>
         private RowViewModel LeftMissing(IItem rightItem, string leftItemDirectory, IRowViewModel parentRow)
         {
-            var rightItemViewModel = new ItemViewModel(rightItem, ItemStatusEnum.ThereIs,
-                () => rightItem.CopyTo(Path.Combine(leftItemDirectory, rightItem.Name)));
-            var leftItemViewModel = new ItemViewModel(rightItem.Name, rightItemViewModel.IsDirectory, () => rightItem.Delete());
+            var rightItemViewModel = new ItemViewModel(rightItem.FullPath, rightItem is IDirectory, rightItem);
+            var leftItemViewModel = new ItemViewModel(Path.Combine(leftItemDirectory, rightItem.Name), rightItemViewModel.IsDirectory, null);
+
+            _itemViewModelMatcher.UpdateStatusesAndCommands(leftItemViewModel, rightItemViewModel);
+
             var result = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
+            result.RowViewModelIsLoadedEvent += RefreshRow;
             return result;
         }
 
@@ -110,10 +120,13 @@ namespace DirectorySync.ViewModels
         /// <returns>Строка представления отслеживаемых элементов.</returns>
         private RowViewModel RightMissing(IItem leftItem, string rightItemDirectory, IRowViewModel parentRow)
         {
-            var leftItemViewModel = new ItemViewModel(leftItem, ItemStatusEnum.ThereIs, 
-                () => leftItem.CopyTo(Path.Combine(rightItemDirectory, leftItem.Name)));
-            var rightItemViewModel = new ItemViewModel(leftItem.Name, leftItemViewModel.IsDirectory, () => leftItem.Delete());
+            var leftItemViewModel = new ItemViewModel(leftItem.FullPath, leftItem is IDirectory, leftItem);
+            var rightItemViewModel = new ItemViewModel(Path.Combine(rightItemDirectory, leftItem.Name), leftItemViewModel.IsDirectory, null);
+
+            _itemViewModelMatcher.UpdateStatusesAndCommands(leftItemViewModel, rightItemViewModel);
+
             var result = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
+            result.RowViewModelIsLoadedEvent += RefreshRow;
             return result;
         }
 
@@ -126,9 +139,10 @@ namespace DirectorySync.ViewModels
         /// <returns>Строка представления отслеживаемых элементов.</returns>
         private RowViewModel FullRow(IItem leftItem, IItem rightItem, IRowViewModel parentRow)
         {
-            var leftItemViewModel = new ItemViewModel(leftItem);
-            var rightItemViewModel = new ItemViewModel(rightItem);
+            var leftItemViewModel = new ItemViewModel(leftItem.FullPath, leftItem is IDirectory, leftItem);
+            var rightItemViewModel = new ItemViewModel(rightItem.FullPath, rightItem is IDirectory, rightItem);
             var result = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
+            result.RowViewModelIsLoadedEvent += RefreshRow;
 
             if (leftItem is IDirectory && rightItem is IDirectory &&
                 (((IDirectory)leftItem).Items.Length > 0 || ((IDirectory)rightItem).Items.Length > 0))
@@ -137,25 +151,8 @@ namespace DirectorySync.ViewModels
                     result.ChildRows.Add(childItem);
                 result.RefreshStatusesFromChilds();
             }
-            else if (leftItem.LastUpdate > rightItem.LastUpdate)
-            {
-                leftItemViewModel.UpdateStatus(ItemStatusEnum.Newer);
-                leftItemViewModel.SetActionCommand(() => { leftItem.CopyTo(rightItem.FullPath); });
-                rightItemViewModel.UpdateStatus(ItemStatusEnum.Older);
-                rightItemViewModel.SetActionCommand(() => { rightItem.CopyTo(leftItem.FullPath); });
-            }
-            else if (leftItem.LastUpdate < rightItem.LastUpdate)
-            {
-                leftItemViewModel.UpdateStatus(ItemStatusEnum.Older);
-                leftItemViewModel.SetActionCommand(() => { leftItem.CopyTo(rightItem.FullPath); });
-                rightItemViewModel.UpdateStatus(ItemStatusEnum.Newer);
-                rightItemViewModel.SetActionCommand(() => { rightItem.CopyTo(leftItem.FullPath); });
-            }
             else
-            {
-                leftItemViewModel.UpdateStatus(ItemStatusEnum.Equally);
-                rightItemViewModel.UpdateStatus(ItemStatusEnum.Equally);
-            }
+                _itemViewModelMatcher.UpdateStatusesAndCommands(leftItemViewModel, rightItemViewModel);
 
             return result;
         }
@@ -166,7 +163,27 @@ namespace DirectorySync.ViewModels
         /// <param name="rowViewModel">Обновляемая модель представления строки.</param>
         private void RefreshRow(IRowViewModel rowViewModel)
         {
-            rowViewModel.RefreshChildRows(CreateRowViewModels(rowViewModel));
+            if (rowViewModel.LeftItem.Directory != null && rowViewModel.RightItem.Directory != null)
+            {
+                rowViewModel.RefreshChildRows(CreateRowViewModels(rowViewModel));
+                rowViewModel.RefreshStatusesFromChilds();
+            }
+            else
+                _itemViewModelMatcher.UpdateStatusesAndCommands(rowViewModel.LeftItem, rowViewModel.RightItem);
+            RefreshParentStatuses(rowViewModel);
+        }
+
+        /// <summary>
+        /// Обновление статусов всех родительских строк.
+        /// </summary>
+        /// <param name="rowViewModel">Строка, у родителя которой будет обновлён статус.</param>
+        private void RefreshParentStatuses(IRowViewModel rowViewModel)
+        {
+            if (rowViewModel.Parent != null)
+            {
+                rowViewModel.Parent.RefreshStatusesFromChilds();
+                RefreshParentStatuses(rowViewModel.Parent);
+            }
         }
     }
 }

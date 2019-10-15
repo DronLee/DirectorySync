@@ -16,9 +16,19 @@ namespace DirectorySync.ViewModels
         string Name { get; }
 
         /// <summary>
+        /// Полный руть к отслеживаемому элементу, который представляет данная модель.
+        /// </summary>
+        string FullPath { get; }
+
+        /// <summary>
         /// True - элемент является директорией.
         /// </summary>
         bool IsDirectory { get; }
+
+        /// <summary>
+        /// Отображаемый моделью элемент синхронизации.
+        /// </summary>
+        IItem Item { get; }
 
         /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
@@ -38,9 +48,14 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Выполняемая команда синхронизации. 
         /// </summary>
-        ICommand AcceptCommand { get; set; }
+        ICommand AcceptCommand { get; }
 
         Action CommandAction { get; }
+
+        /// <summary>
+        /// Была изменена команда принятия элемента.
+        /// </summary>
+        event Action AcceptCommandChangedEvent;
 
         /// <summary>
         /// Событие запуска синхронизации.
@@ -50,12 +65,14 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
         /// </summary>
-        event Action<IItemViewModel> FinishedSyncEvent;
+        event Action FinishedSyncEvent;
 
         /// <summary>
         /// Событие возникает после удаления элемента, на основание которого создана данная модель представления.
         /// </summary>
         event Action ItemIsDeletedEvent;
+
+        event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
 
         /// <summary>
         /// Обновление статуса.
