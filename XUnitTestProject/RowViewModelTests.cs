@@ -32,7 +32,7 @@ namespace XUnitTestProject
         [InlineData("Unknown", "Unknown", new[] { "Equally" }, new[] { "Equally" }, "Equally", "Equally")]
 
         // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
-        [InlineData("Equally", "Equally", new[] { "Missing", "Equally" }, new[] { "ThereIs", "Equally" }, "Unknown", "Unknown")]
+        [InlineData("Equally", "Equally", new[] { "Missing", "Equally" }, new[] { "ThereIs", "Equally" }, "Missing", "ThereIs")]
         public void RefreshStatusesFromChilds_CheckStatus(string leftStartStatus, string rightStartStatus,
             string[] leftItemsStatuses, string[] rightItemsStatuses,
             string leftExpectedStatus, string rightExpectedStatus)
@@ -318,23 +318,10 @@ namespace XUnitTestProject
 
             public event PropertyChangedEventHandler PropertyChanged;
             public event Action StartedSyncEvent;
-            public event Action<IItemViewModel> FinishedSyncEvent;
+            public event Action FinishedSyncEvent;
             public event Action ItemIsDeletedEvent;
             public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
             public event Action AcceptCommandChangedEvent;
-
-            event Action IItemViewModel.FinishedSyncEvent
-            {
-                add
-                {
-                    throw new NotImplementedException();
-                }
-
-                remove
-                {
-                    throw new NotImplementedException();
-                }
-            }
 
             public void SetActionCommand(Action action) { }
 
