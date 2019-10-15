@@ -2,8 +2,16 @@
 
 namespace DirectorySync.ViewModels
 {
+    /// <summary>
+    /// Класс для сравнения двух моделей представлений элементов и простановки в них статусов и команд синхронизации.
+    /// </summary>
     public class ItemViewModelMatcher : IItemViewModelMatcher
     {
+        /// <summary>
+        /// Простановка в модели представления команд статусов и команд синхронизации.
+        /// </summary>
+        /// <param name="itemViewModel1">Модель представления одного элемента.</param>
+        /// <param name="itemViewModel2">Модель представления второго элемента.</param>
         public void UpdateStatusesAndCommands(IItemViewModel itemViewModel1, IItemViewModel itemViewModel2)
         {
             if (itemViewModel1.Item == null)
