@@ -53,74 +53,6 @@ namespace XUnitTestProject
         }
 
         /// <summary>
-        /// Проверка, что после принятие левого элемента, всем дочерним элементам слева и справа проставляется статус Equally.
-        /// </summary>
-        [Theory]
-        [InlineData("Newer", "Older")]
-        [InlineData("Older", "Newer")]
-        public void CheckStatusAfterLeftAccept(string strLeftStatusEnum, string strRightStatusEnum)
-        {
-            var leftStatusEnum = Enum.Parse<ItemStatusEnum>(strLeftStatusEnum);
-            var rightStatusEnum = Enum.Parse<ItemStatusEnum>(strRightStatusEnum);
-
-            var rowViewModel = new RowViewModel(
-                new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null);
-
-            for (byte i = 0; i < 5; i++)
-            {
-                rowViewModel.ChildRows.Add(new RowViewModel(
-                    new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null));
-            }
-
-            rowViewModel.LeftItem.AcceptCommand.Execute(null);
-            Thread.Sleep(25); //  Чтобы успели обновиться статусы.
-
-            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.LeftItem.Status.StatusEnum);
-            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.RightItem.Status.StatusEnum);
-            foreach (var childRow in rowViewModel.ChildRows)
-            {
-                Assert.Equal(ItemStatusEnum.Equally, childRow.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Equally, childRow.RightItem.Status.StatusEnum);
-            }
-        }
-
-        /// <summary>
-        /// Проверка, что после принятие правого элемента, всем дочерним элементам слева и справа проставляется статус Equally.
-        /// </summary>
-        [Theory]
-        [InlineData("Newer", "Older")]
-        [InlineData("Older", "Newer")]
-        public void CheckStatusAfterRightAccept(string strLeftStatusEnum, string strRightStatusEnum)
-        {
-            var leftStatusEnum = Enum.Parse<ItemStatusEnum>(strLeftStatusEnum);
-            var rightStatusEnum = Enum.Parse<ItemStatusEnum>(strRightStatusEnum);
-
-            var rowViewModel = new RowViewModel(
-                new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null);
-
-            for (byte i = 0; i < 5; i++)
-            {
-                rowViewModel.ChildRows.Add(new RowViewModel(
-                    new ItemViewModel(new TestItem(), leftStatusEnum, () => { }),
-                    new ItemViewModel(new TestItem(), rightStatusEnum, () => { }), null));
-            }
-
-            rowViewModel.RightItem.AcceptCommand.Execute(null);
-            Thread.Sleep(25); //  Чтобы успели обновиться статусы.
-
-            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.LeftItem.Status.StatusEnum);
-            Assert.Equal(ItemStatusEnum.Equally, rowViewModel.RightItem.Status.StatusEnum);
-            foreach (var childRow in rowViewModel.ChildRows)
-            {
-                Assert.Equal(ItemStatusEnum.Equally, childRow.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Equally, childRow.RightItem.Status.StatusEnum);
-            }
-        }
-
-        /// <summary>
         /// Проверка возникновения события на удаление строки, при прнятии левого элемента, который отсутсвует.
         /// </summary>
         [Fact]
@@ -143,22 +75,26 @@ namespace XUnitTestProject
                 Infrastructure.TestDirectory.CreateFiles(rightDirectory.FullPath, filesDictionary);
 
                 var parentRow = new RowViewModel(
-                    new ItemViewModel(new Directory(leftParentDirectoryPath, null)),
-                    new ItemViewModel(new Directory(rightParentDirectoryPath, null)), null);
+                    new ItemViewModel(leftParentDirectoryPath, true, new Directory(leftParentDirectoryPath, null)),
+                    new ItemViewModel(rightParentDirectoryPath, true, new Directory(rightParentDirectoryPath, null)), null);
 
-                var rowViewModel = new RowViewModel(
-                    new ItemViewModel("Test", true, async () => { await rightDirectory.Delete(); }),
-                    new ItemViewModel(rightDirectory, ItemStatusEnum.ThereIs, () => { }), parentRow);
+                var leftItemViewModel = new ItemViewModel("Test", true, null);
+                leftItemViewModel.SetActionCommand(async () => { await rightDirectory.Delete(); });
+                var rowViewModel = new RowViewModel(leftItemViewModel,
+                    new ItemViewModel(rightDirectory.FullPath, true, rightDirectory), parentRow);
 
                 foreach (var fileName in filesDictionary.Keys)
+                {
+                    var rightItem = new File(System.IO.Path.Combine(rightDirectory.FullPath, fileName));
                     rowViewModel.ChildRows.Add(new RowViewModel(
-                        new ItemViewModel(fileName, true, () => { }),
-                        new ItemViewModel(new File(System.IO.Path.Combine(rightDirectory.FullPath, fileName)), 
-                            ItemStatusEnum.ThereIs, () => { }), rowViewModel));
+                        new ItemViewModel(fileName, false, null),
+                        new ItemViewModel(rightItem.FullPath, false, rightItem),
+                        rowViewModel));
+                }
 
                 IRowViewModel deletedRow = null; // Удалённая строка.
                 IRowViewModel parentDeletedRow = null; // Родительская строка удалённой строки.
-                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel deletingRow, IRowViewModel parentDeletingRow) => 
+                rowViewModel.DeleteRowViewModelEvent += (IRowViewModel deletingRow, IRowViewModel parentDeletingRow) =>
                 {
                     deletedRow = deletingRow;
                     parentDeletedRow = parentDeletingRow;
@@ -196,18 +132,22 @@ namespace XUnitTestProject
                 Infrastructure.TestDirectory.CreateFiles(leftDirectory.FullPath, filesDictionary);
 
                 var parentRow = new RowViewModel(
-                    new ItemViewModel(new Directory(leftParentDirectoryPath, null)),
-                    new ItemViewModel(new Directory(rightParentDirectoryPath, null)), null);
+                    new ItemViewModel(leftParentDirectoryPath, true, new Directory(leftParentDirectoryPath, null)),
+                    new ItemViewModel(rightParentDirectoryPath, true, new Directory(rightParentDirectoryPath, null)), null);
 
+                var rightItemViewModel = new ItemViewModel("Test", true, null);
+                rightItemViewModel.SetActionCommand(async () => { await leftDirectory.Delete(); });
                 var rowViewModel = new RowViewModel(
-                    new ItemViewModel(leftDirectory, ItemStatusEnum.ThereIs, () => { }),
-                    new ItemViewModel("Test", true, async () => { await leftDirectory.Delete(); }), parentRow);
+                    new ItemViewModel(leftDirectory.FullPath, true, leftDirectory),
+                    rightItemViewModel, parentRow);
 
                 foreach (var fileName in filesDictionary.Keys)
+                {
+                    var leftItem = new File(System.IO.Path.Combine(leftDirectory.FullPath, fileName));
                     rowViewModel.ChildRows.Add(new RowViewModel(
-                        new ItemViewModel(new File(System.IO.Path.Combine(leftDirectory.FullPath, fileName)),
-                            ItemStatusEnum.ThereIs, () => { }),
-                        new ItemViewModel(fileName, true, () => { }), parentRow));
+                        new ItemViewModel(leftItem.FullPath, false, leftItem),
+                        new ItemViewModel(fileName, false, null), parentRow));
+                }
 
                 IRowViewModel deletedRow = null; // Удалённая строка.
                 IRowViewModel parentDeletedRow = null; // Родительская строка удалённой строки.
@@ -233,8 +173,9 @@ namespace XUnitTestProject
         public void LeftItemAcceptCommand()
         {
             var useAcceptCommand = false;
-            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { useAcceptCommand = true; });
-            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
+            var rightItemViewModel = new ItemViewModel("RightItem", false, null);
+            leftItemViewModel.SetActionCommand(() => { useAcceptCommand = true; });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
             Thread.Sleep(15); //  Чтобы успела выполниться команда.
@@ -253,8 +194,9 @@ namespace XUnitTestProject
         public void RightItemAcceptCommand()
         {
             var useAcceptCommand = false;
-            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
-            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { useAcceptCommand = true; });
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
+            var rightItemViewModel = new ItemViewModel("RightItem", false, null);
+            rightItemViewModel.SetActionCommand(() => { useAcceptCommand = true; });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(15); //  Чтобы успела выполниться команда.
@@ -272,7 +214,7 @@ namespace XUnitTestProject
         [Fact]
         public void VisibilityAcceptButton_Init()
         {
-            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
 
@@ -287,8 +229,9 @@ namespace XUnitTestProject
         public void VisibilityAcceptButton_StartedLeftItemAccept()
         {
             // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
-            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { Thread.Sleep(70); });
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
+            leftItemViewModel.SetActionCommand(() => { Thread.Sleep(70); });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
@@ -305,7 +248,8 @@ namespace XUnitTestProject
         {
             var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
             // Sleep, чтобы была возможность проверить свойства в процессе выполнения синхронизации.
-            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { Thread.Sleep(70); });
+            var rightItemViewModel = new ItemViewModel("RightItem", false, null);
+            rightItemViewModel.SetActionCommand(() => { Thread.Sleep(70); });
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
@@ -320,7 +264,7 @@ namespace XUnitTestProject
         [Fact]
         public void VisibilityAcceptButton_FinishedLeftItemAccept()
         {
-            var leftItemViewModel = new ItemViewModel("LeftItem", false, () => { });
+            var leftItemViewModel = new ItemViewModel("LeftItem", false, null);
             var rightItemViewModel = new TestItemViewModel("RightItem", ItemStatusEnum.Older);
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
@@ -337,10 +281,10 @@ namespace XUnitTestProject
         public void VisibilityAcceptButton_FinishedRightItemAccept()
         {
             var leftItemViewModel = new TestItemViewModel("LeftItem", ItemStatusEnum.Older);
-            var rightItemViewModel = new ItemViewModel("RightItem", false, () => { });
+            var rightItemViewModel = new ItemViewModel("RightItem", false, null);
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
-            Thread.Sleep(25); //  Чтобы успели обновиться свойства.
+            Thread.Sleep(25); // Чтобы успели обновиться свойства.
 
             Assert.False(rowViewModel.CommandButtonIsVisible);
             Assert.False(rowViewModel.ProcessIconIsVisible);
@@ -368,10 +312,29 @@ namespace XUnitTestProject
 
             public bool IsDirectory { get; }
 
+            public IItem Item => throw new NotImplementedException();
+
+            public string FullPath => throw new NotImplementedException();
+
             public event PropertyChangedEventHandler PropertyChanged;
             public event Action StartedSyncEvent;
             public event Action<IItemViewModel> FinishedSyncEvent;
             public event Action ItemIsDeletedEvent;
+            public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
+            public event Action AcceptCommandChangedEvent;
+
+            event Action IItemViewModel.FinishedSyncEvent
+            {
+                add
+                {
+                    throw new NotImplementedException();
+                }
+
+                remove
+                {
+                    throw new NotImplementedException();
+                }
+            }
 
             public void SetActionCommand(Action action) { }
 
@@ -391,6 +354,7 @@ namespace XUnitTestProject
 
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;
+            public event Action<IItem, IItem, string> CopiedFromToEvent;
 
             public Task CopyTo(string destinationPath)
             {
