@@ -13,7 +13,7 @@ namespace DirectorySync.ViewModels
     {
         private bool _isExpanded;
         private bool _isSelected;
-        private bool _processIconIsVisible = true;
+        private bool _inProcess = true;
 
         /// <summary>
         /// Конструктор.
@@ -33,12 +33,10 @@ namespace DirectorySync.ViewModels
 
             LeftItem.StartedSyncEvent += StartedSync;
             LeftItem.FinishedSyncEvent += FinishedSync;
-            LeftItem.ItemIsDeletedEvent += Delete;
             LeftItem.CopiedFromToEvent += CopiedFromTo;
             LeftItem.AcceptCommandChangedEvent += AcceptCommandChanged;
             RightItem.StartedSyncEvent += StartedSync;
             RightItem.FinishedSyncEvent += FinishedSync;
-            RightItem.ItemIsDeletedEvent += Delete;
             RightItem.CopiedFromToEvent += CopiedFromTo;
             RightItem.AcceptCommandChangedEvent += AcceptCommandChanged;
         }
@@ -87,20 +85,21 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Видимость кнопки команды.
         /// </summary>
-        public bool CommandButtonIsVisible => LeftItem.AcceptCommand != null;
+        public bool CommandButtonIsVisible => LeftItem.AcceptCommand != null && !InProcess;
 
         /// <summary>
-        /// Видимость заставки процесса.
+        /// True - строка находится в процессе обновления.
         /// </summary>
-        public bool ProcessIconIsVisible
+        public bool InProcess
         {
-            get { return _processIconIsVisible; }
-            private set
+            get { return _inProcess; }
+            set
             {
-                if(_processIconIsVisible!=value)
+                if(_inProcess!=value)
                 {
-                    _processIconIsVisible = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessIconIsVisible)));
+                    _inProcess = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(InProcess)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
                 }
             }
         }
@@ -124,11 +123,6 @@ namespace DirectorySync.ViewModels
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
         public event Action<IRowViewModel> RowViewModelIsLoadedEvent;
-
-        /// <summary>
-        /// Событие возникает, когда строка должна быть удалена. Указывается какая строка удаляется и из какой строки она удаляется.
-        /// </summary>
-        public event Action<IRowViewModel, IRowViewModel> DeleteRowViewModelEvent;
 
         /// <summary>
         /// Обновление дочерних строк.
@@ -167,22 +161,22 @@ namespace DirectorySync.ViewModels
 
                         // Если нет, команды, но должна быть, исходя из дочерних элементов,
                         // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-                        if (LeftItem.Status.StatusEnum != ItemStatusEnum.Equally && LeftItem.AcceptCommand == null)
-                            LeftItem.SetActionCommand(() =>
+                        if (LeftItem.Status.StatusEnum != ItemStatusEnum.Equally)
+                            LeftItem.SetActionCommand(async () => 
                             {
                                 foreach (var actionCommand in notEquallyChilds.Select(r => r.LeftItem.CommandAction))
-                                    actionCommand.Invoke();
+                                    await actionCommand.Invoke();
                             });
 
                         RightItem.UpdateStatus(notEquallyChilds.First().RightItem.Status.StatusEnum);
 
                         // Если нет, команды, но должна быть, исходя из дочерних элементов,
                         // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-                        if (RightItem.Status.StatusEnum != ItemStatusEnum.Equally && RightItem.AcceptCommand == null)
-                            RightItem.SetActionCommand(() =>
+                        if (RightItem.Status.StatusEnum != ItemStatusEnum.Equally)
+                            RightItem.SetActionCommand(async () =>
                             {
                                 foreach (var actionCommand in notEquallyChilds.Select(r => r.RightItem.CommandAction))
-                                    actionCommand.Invoke();
+                                    await actionCommand.Invoke();
                             });
                     }
                     else
@@ -200,37 +194,45 @@ namespace DirectorySync.ViewModels
         /// <param name="directory">Загруженная директория.</param>
         private void LoadedDirectory(IDirectory directory)
         {
-            if (RowViewModelIsLoadedEvent != null && LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
+            if(LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
             {
-                RowViewModelIsLoadedEvent.Invoke(this);
-                ProcessIconIsVisible = false;
+                RowViewModelIsLoadedEvent?.Invoke(this);
+                InProcess = false;
+                SetInProcessForChildren(this, false);
+            }
+        }
+
+        private void SetInProcessForChildren(IRowViewModel row, bool inProcessValue)
+        {
+            foreach(var child in row.ChildRows)
+            {
+                child.InProcess = inProcessValue;
+                SetInProcessForChildren(child, inProcessValue);
             }
         }
 
         private void StartedSync()
         {
-            LeftItem.SetActionCommand(null);
-            RightItem.SetActionCommand(null);
-            ProcessIconIsVisible = true;
+            InProcess = true;
         }
 
-        private void FinishedSync()
+        private void FinishedSync(IItemViewModel acceptedItem)
         {
-            //ItIsOk(this);
-            ProcessIconIsVisible = false;
-        }
+            var refreshItem = LeftItem == acceptedItem ? RightItem : LeftItem;
+            if (refreshItem.Directory != null)
+                refreshItem.Directory.Load().Wait();
+            else if (LeftItem.Item == null && RightItem.Item == null)
+            {
+                // Если обоих элементов уже нет, пусть обновляется родительский элемент, чтобы убралась эта строка.
+                RowViewModelIsLoadedEvent?.Invoke(Parent);
+                SetInProcessForChildren(Parent, false);
+            }
+            else
+                RowViewModelIsLoadedEvent?.Invoke(this);
 
-        private void ItIsOk(IRowViewModel rowViewModel)
-        {
-            rowViewModel.LeftItem.UpdateStatus(ItemStatusEnum.Equally);
-            rowViewModel.RightItem.UpdateStatus(ItemStatusEnum.Equally);
-            foreach (var childRow in rowViewModel.ChildRows)
-                ItIsOk(childRow);
-        }
-
-        private void Delete()
-        {
-            DeleteRowViewModelEvent?.Invoke(this, Parent);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
+            InProcess = false;
         }
 
         private void CopiedFromTo(IItemViewModel fromItem, IItemViewModel toItem)
@@ -239,14 +241,6 @@ namespace DirectorySync.ViewModels
                 RightItem = toItem;
             else
                 LeftItem = toItem;
-
-            if (toItem.IsDirectory)
-                toItem.Directory.Load().Wait();
-
-            RowViewModelIsLoadedEvent?.Invoke(this);
-
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
         }
 
         private void AcceptCommandChanged()

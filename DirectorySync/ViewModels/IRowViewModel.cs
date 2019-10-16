@@ -50,19 +50,14 @@ namespace DirectorySync.ViewModels
         bool CommandButtonIsVisible { get; }
 
         /// <summary>
-        /// Видимость заставки процесса.
+        /// True - строка находится в процессе обновления.
         /// </summary>
-        bool ProcessIconIsVisible { get; }
+        bool InProcess { get; set; }
 
         /// <summary>
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
         event Action<IRowViewModel> RowViewModelIsLoadedEvent;
-
-        /// <summary>
-        /// Событие возникает, когда строка должна быть удалена. Указывается какая строка удаляется и из какой строки она удаляется.
-        /// </summary>
-        event Action<IRowViewModel, IRowViewModel> DeleteRowViewModelEvent;
 
         /// <summary>
         /// Обновление дочерних строк.

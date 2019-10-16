@@ -67,7 +67,7 @@
                                 <Image Style="{StaticResource ItemIcon}" Source="/DirectorySync;component/Icons/LeftItemCommand.png"/>
                             </Button>
                             <Image Style="{StaticResource ItemIcon}" Source="/DirectorySync;component/Icons/SyncProcess.gif"
-                                   Visibility="{Binding Path=ProcessIconIsVisible, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}"/>
+                                   Visibility="{Binding InProcess, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}"/>
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
@@ -92,7 +92,7 @@
                     <HierarchicalDataTemplate ItemsSource="{Binding ChildRows}">
                         <StackPanel Orientation="Horizontal">
                             <Image Style="{StaticResource ItemIcon}" Source="/DirectorySync;component/Icons/SyncProcess.gif"
-                                   Visibility="{Binding Path=ProcessIconIsVisible, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}"/>
+                                   Visibility="{Binding Path=InProcess, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}"/>
                             <Button Style="{StaticResource AcceptButton}" Command="{Binding RightItem.AcceptCommand}">
                                 <Image Style="{StaticResource ItemIcon}" Source="/DirectorySync;component/Icons/RightItemCommand.png"/>
                             </Button>

@@ -113,16 +113,7 @@ namespace DirectorySync.ViewModels
                 Environment.Exit(-1);
 
             await _synchronizedDirectoriesManager.Load();
-            foreach (var row in Rows)
-                SetDeleteAction(row);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
-        }
-
-        private void SetDeleteAction(IRowViewModel rowViewModel)
-        {
-            rowViewModel.DeleteRowViewModelEvent += DeleteRow;
-            foreach (var childRow in rowViewModel.ChildRows)
-                SetDeleteAction(childRow);
         }
 
         private void DeleteRow(IRowViewModel deletingRow, IRowViewModel parantRow)
