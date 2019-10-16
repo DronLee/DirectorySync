@@ -28,7 +28,7 @@ namespace DirectorySync.ViewModels
             Item = item;
             if (item != null)
             {
-                item.DeletedEvent += () => { ItemIsDeletedEvent?.Invoke(); };
+                item.DeletedEvent += DeletedItem;
                 item.SyncErrorEvent += (string error) => { Status.Comment = error; };
                 item.CopiedFromToEvent += CopiedItemTo;
                 if (item is IDirectory)
@@ -67,7 +67,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Отображаемый моделью элемент синхронизации.
         /// </summary>
-        public IItem Item { get; }
+        public IItem Item { get; private set; }
 
         /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
@@ -79,7 +79,10 @@ namespace DirectorySync.ViewModels
         /// </summary>
         public string IconPath => IsDirectory ? _folderIconPath : _fileIconPath;
 
-        public Action CommandAction { get; private set; }
+        /// <summary>
+        /// Действия команды синхронизации.
+        /// </summary>
+        public Func<Task> CommandAction { get; private set; }
 
         /// <summary>
         /// Была изменена команда принятия элемента.
@@ -90,18 +93,20 @@ namespace DirectorySync.ViewModels
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
         /// <summary>
         /// Событие запуска синхронизации.
         /// </summary>
         public event Action StartedSyncEvent;
+
         /// <summary>
         /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
         /// </summary>
-        public event Action FinishedSyncEvent;
+        public event Action<IItemViewModel> FinishedSyncEvent;
+
         /// <summary>
-        /// Событие возникае, после удаления элемента, на основание которого создана данная модель представления.
+        /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
         /// </summary>
-        public event Action ItemIsDeletedEvent;
         public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
 
         /// <summary>
@@ -121,7 +126,7 @@ namespace DirectorySync.ViewModels
         /// Задание метода, который будет выполняться как команда синхронизации.
         /// </summary>
         /// <param name="action">Метод для синхронизации.</param>
-        public void SetActionCommand(Action action)
+        public void SetActionCommand(Func<Task> action)
         {
             if (CommandAction != action)
             {
@@ -135,8 +140,8 @@ namespace DirectorySync.ViewModels
                         Task.Run(() =>
                         {
                             StartedSyncEvent?.Invoke();
-                            action.Invoke();
-                            FinishedSyncEvent?.Invoke();
+                            action.Invoke().Wait();
+                            FinishedSyncEvent?.Invoke(this);
                         });
                     });
                 }
@@ -150,14 +155,14 @@ namespace DirectorySync.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
         }
 
-        private void CopiedItemTo(IItem fromItem, IItem toItem, string destinationPath)
+        private void DeletedItem()
         {
-            IItemViewModel itemViewModel;
-            if (toItem == null)
-                itemViewModel = new ItemViewModel(destinationPath, fromItem is IDirectory, null);
-            else
-                itemViewModel = new ItemViewModel(destinationPath, toItem is IDirectory, toItem);
-            CopiedFromToEvent?.Invoke(this, itemViewModel);
+            Item = null;
+        }
+
+        private void CopiedItemTo(IItem toItem, string destinationPath)
+        {
+            CopiedFromToEvent?.Invoke(this, new ItemViewModel(destinationPath, IsDirectory, toItem));
         }
     }
 }

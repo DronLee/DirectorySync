@@ -1,6 +1,7 @@
 ﻿using DirectorySync.Models;
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace DirectorySync.ViewModels
@@ -50,7 +51,10 @@ namespace DirectorySync.ViewModels
         /// </summary>
         ICommand AcceptCommand { get; }
 
-        Action CommandAction { get; }
+        /// <summary>
+        /// Действия команды синхронизации.
+        /// </summary>
+        Func<Task> CommandAction { get; }
 
         /// <summary>
         /// Была изменена команда принятия элемента.
@@ -65,13 +69,11 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
         /// </summary>
-        event Action FinishedSyncEvent;
+        event Action<IItemViewModel> FinishedSyncEvent;
 
         /// <summary>
-        /// Событие возникает после удаления элемента, на основание которого создана данная модель представления.
+        /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
         /// </summary>
-        event Action ItemIsDeletedEvent;
-
         event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
 
         /// <summary>
@@ -84,6 +86,6 @@ namespace DirectorySync.ViewModels
         /// Задание метода, который будет выполняться как команда синхронизации.
         /// </summary>
         /// <param name="action">Метод для синхронизации.</param>
-        void SetActionCommand(Action action);
+        void SetActionCommand(Func<Task> action);
     }
 }
