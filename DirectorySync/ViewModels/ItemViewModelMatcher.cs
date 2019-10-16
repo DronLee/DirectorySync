@@ -43,10 +43,10 @@ namespace DirectorySync.ViewModels
         private void OneItemIsOlder(IItemViewModel olderItem, IItemViewModel newerItem)
         {
             olderItem.UpdateStatus(ItemStatusEnum.Older);
-            olderItem.SetActionCommand(() => { olderItem.Item.CopyTo(newerItem.FullPath); });
+            olderItem.SetActionCommand(() => { return olderItem.Item.CopyTo(newerItem.FullPath); });
 
             newerItem.UpdateStatus(ItemStatusEnum.Newer);
-            newerItem.SetActionCommand(() => { newerItem.Item.CopyTo(olderItem.FullPath); });
+            newerItem.SetActionCommand(() => { return newerItem.Item.CopyTo(olderItem.FullPath); });
         }
     }
 }
