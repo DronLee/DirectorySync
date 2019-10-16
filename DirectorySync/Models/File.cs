@@ -37,7 +37,7 @@ namespace DirectorySync.Models
         public DateTime LastUpdate { get; }
 
         /// <summary>
-        /// Событие возникает, после удаления элемента.
+        /// Событие возникает, после удаления файла.
         /// </summary>
         public event Action DeletedEvent;
 
@@ -48,11 +48,10 @@ namespace DirectorySync.Models
 
         /// <summary>
         /// Событие возникает, когда было выполнено копирование файла.
-        /// Первый параметр - копируемый файл.
-        /// Второй параметр - файл, созданный на основе копируемого.
-        /// Третий параметр - путь, по которому осуществлялось копирование.
+        /// Первый параметр - файл, созданный на основе копируемого.
+        /// Второй параметр - путь, по которому осуществлялось копирование.
         /// </summary>
-        public event Action<IItem, IItem, string> CopiedFromToEvent;
+        public event Action<IItem, string> CopiedFromToEvent;
 
         /// <summary>
         /// Копировать элемент в указанный путь с заменой.
@@ -77,7 +76,7 @@ namespace DirectorySync.Models
                     destinationFile = new File(destinationPath);
                 }
                 catch { }
-                CopiedFromToEvent?.Invoke(this, destinationFile, destinationPath);
+                CopiedFromToEvent?.Invoke(destinationFile, destinationPath);
             });
         }
 

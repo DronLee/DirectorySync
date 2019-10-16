@@ -61,7 +61,7 @@ namespace DirectorySync.Models
         public bool IsLoaded { get; private set; }
 
         /// <summary>
-        /// Событие возникает, после удаления элемента.
+        /// Событие возникает, после удаления директории.
         /// </summary>
         public event Action DeletedEvent;
 
@@ -72,17 +72,18 @@ namespace DirectorySync.Models
 
         /// <summary>
         /// Событие возникает, когда было выполнено копирование директории.
-        /// Первый параметр - копируемая директория.
-        /// Второй параметр - директория, созданная на основе копируемой.
-        /// Третий параметр - путь, по которому осуществлялось копирование.
+        /// Первый параметр - директория, созданная на основе копируемой.
+        /// Второй параметр - путь, по которому осуществлялось копирование.
         /// </summary>
-        public event Action<IItem, IItem, string> CopiedFromToEvent;
+        public event Action<IItem, string> CopiedFromToEvent;
 
         /// <summary>
         /// Загрузка элементов директории.
         /// </summary>
         public async Task Load()
         {
+            _items.Clear();
+
             await Task.Run(() =>
             {
                 foreach (var directoryPath in System.IO.Directory.GetDirectories(FullPath))
@@ -115,7 +116,7 @@ namespace DirectorySync.Models
                 foreach (var item in _items)
                     await item.CopyTo(System.IO.Path.Combine(destinationPath, item.Name));
 
-                CopiedFromToEvent?.Invoke(this, _itemFactory.CreateDirectory(destinationPath), destinationPath);
+                CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath), destinationPath);
             });
         }
 
@@ -131,6 +132,7 @@ namespace DirectorySync.Models
                 catch
                 {
                     SyncErrorEvent?.Invoke("Не удаётся удалить директорию.");
+                    error = true;
                 }
                 if (!error)
                     DeletedEvent?.Invoke();
