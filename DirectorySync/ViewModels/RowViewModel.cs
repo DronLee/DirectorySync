@@ -75,7 +75,8 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Видимость кнопки команды.
         /// </summary>
-        public bool CommandButtonIsVisible => LeftItem.AcceptCommand != null && !InProcess;
+        public bool CommandButtonIsVisible =>
+            LeftItem.AcceptCommand != null && RightItem.AcceptCommand != null && !InProcess;
 
         /// <summary>
         /// True - строка находится в процессе обновления.
