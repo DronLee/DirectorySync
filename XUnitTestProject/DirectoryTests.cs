@@ -43,13 +43,12 @@ namespace XUnitTestProject
                 var sourceDirectory =  testDirectory.CreateDirectory("SorceDir");
                 var destinationDirectory = System.IO.Path.Combine(testDirectory.FullPath, "DestDir");
 
-                IItem sourceCopyDirectory = null, destinationCopyDirectory = null;
+                IItem destinationCopyDirectory = null;
                 string destinationCopyPath = null;
 
                 var directory = new Directory(sourceDirectory, new TestItemFactory());
-                directory.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem, string destinationPath) =>
+                directory.CopiedFromToEvent += (IItem destinationItem, string destinationPath) =>
                 {
-                    sourceCopyDirectory = sourceItem;
                     destinationCopyDirectory = destinationItem;
                     destinationCopyPath = destinationPath;
                 };
@@ -57,7 +56,6 @@ namespace XUnitTestProject
 
                 Assert.True(IODirectory.Exists(sourceDirectory));
                 Assert.True(IODirectory.Exists(destinationDirectory));
-                Assert.Equal(directory, sourceCopyDirectory);
                 Assert.NotNull(destinationCopyDirectory);
                 Assert.Equal(destinationDirectory, destinationCopyDirectory.FullPath);
                 Assert.Equal(destinationDirectory, destinationCopyPath);
@@ -202,7 +200,7 @@ namespace XUnitTestProject
 
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;
-            public event Action<IItem, IItem, string> CopiedFromToEvent;
+            public event Action<IItem, string> CopiedFromToEvent;
 
             public Task CopyTo(string destinationPath)
             {

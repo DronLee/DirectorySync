@@ -21,13 +21,12 @@ namespace XUnitTestProject
 
                 File.WriteAllText(sourceFile, fileText);
 
-                IItem sourceCopyFile = null, destinationCopyFile = null;
+                IItem destinationCopyFile = null;
                 string destinationCopyPath = null;
 
                 var file = new DirectorySync.Models.File(sourceFile);
-                file.CopiedFromToEvent += (IItem sourceItem, IItem destinationItem, string destinationPath) =>
+                file.CopiedFromToEvent += (IItem destinationItem, string destinationPath) =>
                     {
-                        sourceCopyFile = sourceItem;
                         destinationCopyFile = destinationItem;
                         destinationCopyPath = destinationPath;
                     };
@@ -36,7 +35,6 @@ namespace XUnitTestProject
                 Assert.True(File.Exists(sourceFile));
                 Assert.True(File.Exists(destinationFile));
                 Assert.Equal(fileText, File.ReadAllText(destinationFile));
-                Assert.Equal(file, sourceCopyFile);
                 Assert.NotNull(destinationCopyFile);
                 Assert.Equal(destinationFile, destinationCopyFile.FullPath);
                 Assert.Equal(destinationFile, destinationCopyPath);
