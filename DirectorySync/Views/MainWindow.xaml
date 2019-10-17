@@ -36,6 +36,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition />
+            <RowDefinition Height="100" />
         </Grid.RowDefinitions>
 
         <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,20,0" ToolTip="Настройка отслеживаемых директорий" Background="Transparent" BorderThickness="0"
@@ -105,5 +106,12 @@
             </TreeView>
         </ScrollViewer>
 
+        <ListView HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="10" Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding Log}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" FontSize="12" FontStyle="Italic" Foreground="IndianRed" FontWeight="Bold"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Window>

@@ -77,6 +77,11 @@ namespace DirectorySync.ViewModels
         event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
 
         /// <summary>
+        /// Событие возникновения ошибки в процессе синхронизации.
+        /// </summary>
+        event Action<string> SyncErrorEvent;
+
+        /// <summary>
         /// Обновление статуса.
         /// </summary>
         /// <param name="statusEnum">Новое значение статуса.</param>

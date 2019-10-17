@@ -42,8 +42,10 @@ namespace DirectorySync.ViewModels
             _synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += RemoveSynchronizedDirectories;
             _settingsViewModel = settingsViewModel;
             _rowViewModelFactory = rowViewModelFactory;
+            _rowViewModelFactory.RefreshedRowEvent += (IRowViewModel refreshedRow) => { SubscribeOnErrors(refreshedRow); };
             Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
                 rowViewModelFactory.CreateRowViewModel(d)));
+            Log = new ObservableCollection<string>();
         }
 
         /// <summary>
@@ -93,7 +95,12 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Строки, отображающие отслеживание директорий.
         /// </summary>
-        public ObservableCollection<IRowViewModel> Rows { get; private set; }
+        public ObservableCollection<IRowViewModel> Rows { get; }
+
+        /// <summary>
+        /// Строки лога.
+        /// </summary>
+        public ObservableCollection<string> Log { get; }
 
         /// <summary>
         /// Событие изменения одного из свойств модели.
@@ -104,25 +111,16 @@ namespace DirectorySync.ViewModels
         {
             bool checkDirectory = true;
 
-            if(_settingsStorage.SettingsRows.Count(r => r.IsUsed) == 0)
+            if (_settingsStorage.SettingsRows.Count(r => r.IsUsed) == 0)
                 checkDirectory = ShowSettingsWindow("Чтобы начать работу укажите пары синхронизируемых между собой директорий.");
-            else if(_settingsStorage.SettingsRows.Where(r=>r.IsUsed).Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
+            else if (_settingsStorage.SettingsRows.Where(r => r.IsUsed).Any(r => r.LeftDirectory.NotFound || r.RightDirectory.NotFound))
                 checkDirectory = ShowSettingsWindow("Среди указаных директорий есть те, которые не удаётся найти. Отключите их или удалите из списка.");
 
-            if(!checkDirectory)
+            if (!checkDirectory)
                 Environment.Exit(-1);
 
             await _synchronizedDirectoriesManager.Load();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
-        }
-
-        private void DeleteRow(IRowViewModel deletingRow, IRowViewModel parantRow)
-        {
-            _dispatcher.Invoke(() =>
-            {
-                parantRow.ChildRows.Remove(deletingRow);
-                PropertyChanged?.Invoke(parantRow, new PropertyChangedEventArgs(nameof(parantRow.ChildRows)));
-            });
         }
 
         private bool ShowSettingsWindow(string comment)
@@ -145,6 +143,20 @@ namespace DirectorySync.ViewModels
         {
             Rows.Add(_rowViewModelFactory.CreateRowViewModel(synchronizedDirectories));
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+        }
+
+        private void SubscribeOnErrors(IRowViewModel row)
+        {
+            row.SyncErrorEvent += (string error) =>
+            {
+                _dispatcher.Invoke(() =>
+                {
+                    Log.Add(error);
+                    PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
+                });
+            };
+            foreach (var childRow in row.ChildRows)
+                SubscribeOnErrors(childRow);
         }
     }
 }

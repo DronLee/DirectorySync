@@ -15,6 +15,11 @@ namespace DirectorySync.ViewModels
         ObservableCollection<IRowViewModel> Rows { get; }
 
         /// <summary>
+        /// Строки лога.
+        /// </summary>
+        ObservableCollection<string> Log { get; }
+
+        /// <summary>
         /// Команда загрузки директорий.
         /// </summary>
         ICommand LoadDirectoriesCommand { get; }

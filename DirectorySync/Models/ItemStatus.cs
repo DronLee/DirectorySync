@@ -43,6 +43,6 @@ namespace DirectorySync.Models
         /// <summary>
         /// Пояснение к статусу.
         /// </summary>
-        public string Comment { get; set; }
+        public string Comment { get; }
     }
 }

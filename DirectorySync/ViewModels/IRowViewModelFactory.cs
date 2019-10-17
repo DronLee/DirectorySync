@@ -1,4 +1,5 @@
 ﻿using DirectorySync.Models;
+using System;
 
 namespace DirectorySync.ViewModels
 {
@@ -13,5 +14,10 @@ namespace DirectorySync.ViewModels
         /// <param name="synchronizedDirectories">Синхронизируемые директории.</param>
         /// <returns>Строка, отображающая отслеживаемые элементы.</returns>
         IRowViewModel CreateRowViewModel(ISynchronizedDirectories synchronizedDirectories);
+
+        /// <summary>
+        /// Событие сообщает о том, что строка была обновлена.
+        /// </summary>
+        event Action<IRowViewModel> RefreshedRowEvent;
     }
 }

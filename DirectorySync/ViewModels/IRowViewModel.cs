@@ -60,6 +60,11 @@ namespace DirectorySync.ViewModels
         event Action<IRowViewModel> RowViewModelIsLoadedEvent;
 
         /// <summary>
+        /// Событие возникновения ошибки в процессе синхронизации.
+        /// </summary>
+        event Action<string> SyncErrorEvent;
+
+        /// <summary>
         /// Обновление дочерних строк.
         /// </summary>
         /// <param name="rows">Новые дочерние строки.</param>

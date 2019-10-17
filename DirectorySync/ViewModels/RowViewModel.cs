@@ -26,19 +26,9 @@ namespace DirectorySync.ViewModels
             RightItem = rightItem;
             Parent = parent;
             ChildRows = new ObservableCollection<IRowViewModel>();
-            if (LeftItem.Directory != null)
-                LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
-            if (RightItem.Directory != null)
-                RightItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
 
-            LeftItem.StartedSyncEvent += StartedSync;
-            LeftItem.FinishedSyncEvent += FinishedSync;
-            LeftItem.CopiedFromToEvent += CopiedFromTo;
-            LeftItem.AcceptCommandChangedEvent += AcceptCommandChanged;
-            RightItem.StartedSyncEvent += StartedSync;
-            RightItem.FinishedSyncEvent += FinishedSync;
-            RightItem.CopiedFromToEvent += CopiedFromTo;
-            RightItem.AcceptCommandChangedEvent += AcceptCommandChanged;
+            SetItemViewModelEvents(LeftItem);
+            SetItemViewModelEvents(RightItem);
         }
 
         /// <summary>
@@ -123,6 +113,11 @@ namespace DirectorySync.ViewModels
         /// Событие, возникающее при полной загрузке входящих в строку элементов.
         /// </summary>
         public event Action<IRowViewModel> RowViewModelIsLoadedEvent;
+
+        /// <summary>
+        /// Событие возникновения ошибки в процессе синхронизации.
+        /// </summary>
+        public event Action<string> SyncErrorEvent;
 
         /// <summary>
         /// Обновление дочерних строк.
@@ -246,6 +241,18 @@ namespace DirectorySync.ViewModels
         private void AcceptCommandChanged()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
+        }
+
+        private void SetItemViewModelEvents(IItemViewModel itemViewModel)
+        {
+            if (itemViewModel.Directory != null)
+                itemViewModel.Directory.LoadedDirectoryEvent += LoadedDirectory;
+
+            itemViewModel.StartedSyncEvent += StartedSync;
+            itemViewModel.FinishedSyncEvent += FinishedSync;
+            itemViewModel.CopiedFromToEvent += CopiedFromTo;
+            itemViewModel.AcceptCommandChangedEvent += AcceptCommandChanged;
+            itemViewModel.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
         }
     }
 }

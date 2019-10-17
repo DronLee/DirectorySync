@@ -29,7 +29,7 @@ namespace DirectorySync.ViewModels
             if (item != null)
             {
                 item.DeletedEvent += DeletedItem;
-                item.SyncErrorEvent += (string error) => { Status.Comment = error; };
+                item.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
                 item.CopiedFromToEvent += CopiedItemTo;
                 if (item is IDirectory)
                 {
@@ -108,6 +108,11 @@ namespace DirectorySync.ViewModels
         /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
         /// </summary>
         public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
+
+        /// <summary>
+        /// Событие возникновения ошибки в процессе синхронизации.
+        /// </summary>
+        public event Action<string> SyncErrorEvent;
 
         /// <summary>
         /// Обновление статуса.

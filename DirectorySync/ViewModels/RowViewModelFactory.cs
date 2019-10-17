@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using DirectorySync.Models;
 
@@ -15,6 +16,11 @@ namespace DirectorySync.ViewModels
         {
             _itemViewModelMatcher = itemViewModelMatcher;
         }
+
+        /// <summary>
+        /// Событие сообщает о том, что строка была обновлена.
+        /// </summary>
+        public event Action<IRowViewModel> RefreshedRowEvent;
 
         /// <summary>
         /// Создание строки, отображающей отслеживаемые элементы.
@@ -171,6 +177,7 @@ namespace DirectorySync.ViewModels
             else
                 _itemViewModelMatcher.UpdateStatusesAndCommands(rowViewModel.LeftItem, rowViewModel.RightItem);
             RefreshParentStatuses(rowViewModel);
+            RefreshedRowEvent?.Invoke(rowViewModel);
         }
 
         /// <summary>
