@@ -131,7 +131,7 @@ namespace DirectorySync.Models
                 }
                 catch
                 {
-                    SyncErrorEvent?.Invoke("Не удаётся удалить директорию.");
+                    SyncErrorEvent?.Invoke("Не удаётся удалить директорию: " + FullPath);
                     error = true;
                 }
                 if (!error)

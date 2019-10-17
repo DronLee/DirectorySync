@@ -95,7 +95,7 @@ namespace DirectorySync.Models
                 catch
                 {
                     error = true;
-                    SyncErrorEvent?.Invoke("Не удаётся удалить файл.");
+                    SyncErrorEvent?.Invoke("Не удаётся удалить файл: " + FullPath);
                 }
                 if (!error)
                     DeletedEvent?.Invoke();
