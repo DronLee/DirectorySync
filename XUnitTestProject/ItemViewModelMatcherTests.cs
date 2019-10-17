@@ -39,8 +39,8 @@ namespace XUnitTestProject
 
             var item1 = new ItemViewModel(null, false, new TestItem(lastUpdate));
             var item2 = new ItemViewModel(null, false, new TestItem(lastUpdate));
-            item1.SetActionCommand(() => { });
-            item2.SetActionCommand(() => { });
+            item1.SetActionCommand(() => { return Task.FromResult(true); });
+            item2.SetActionCommand(() => { return Task.FromResult(true); });
 
             var matcher = new ItemViewModelMatcher();
             matcher.UpdateStatusesAndCommands(item1, item2);
@@ -65,7 +65,7 @@ namespace XUnitTestProject
             public DateTime LastUpdate { get; }
 
             public event Action DeletedEvent;
-            public event Action<IItem, IItem, string> CopiedFromToEvent;
+            public event Action<IItem, string> CopiedFromToEvent;
             public event Action<string> SyncErrorEvent;
 
             public Task CopyTo(string destinationPath)
