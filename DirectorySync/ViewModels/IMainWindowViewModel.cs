@@ -20,6 +20,11 @@ namespace DirectorySync.ViewModels
         ObservableCollection<string> Log { get; }
 
         /// <summary>
+        /// True - кнопка очистки лога видна.
+        /// </summary>
+        bool ClearLogButtonIsVisible { get; }
+
+        /// <summary>
         /// Команда загрузки директорий.
         /// </summary>
         ICommand LoadDirectoriesCommand { get; }
@@ -29,6 +34,14 @@ namespace DirectorySync.ViewModels
         /// </summary>
         ICommand SelectedItemCommand { get; }
 
+        /// <summary>
+        /// Команда вызова окна настроек.
+        /// </summary>
         ICommand SettingsCommand { get; }
+
+        /// <summary>
+        /// Команда на очистку окна сообщений.
+        /// </summary>
+        ICommand ClearLogCommand { get; }
     }
 }

@@ -40,6 +40,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="80" />
         </Grid.RowDefinitions>
 
@@ -108,7 +109,13 @@
             </TreeView>
         </ScrollViewer>
 
-        <ListView HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="10" Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding Log}">
+        <Button Grid.Row="2" HorizontalAlignment="Left" Margin="10, 0, 0, 0" ToolTip="Очистить окно сообщений" Command="{Binding ClearLogCommand}"
+                Background="Transparent" BorderThickness="0" 
+                Visibility="{Binding ClearLogButtonIsVisible, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}">
+            <Image Style="{StaticResource ItemIcon}" Source="/DirectorySync;component/Icons/Clear.png" />
+        </Button>
+        
+        <ListView HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="10, 0, 10, 0" Grid.Row="3" Grid.ColumnSpan="2" ItemsSource="{Binding Log}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}" FontSize="12" FontStyle="Italic" Foreground="IndianRed" FontWeight="Bold"/>

@@ -187,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DLL\Newtonsoft.Json.dll" />
+    <Resource Include="Icons\Clear.png" />
     <Resource Include="Icons\Settings.png" />
     <Resource Include="Icons\OkButton.png" />
     <Resource Include="Icons\ItemDelete.png" />

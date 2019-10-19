@@ -26,6 +26,7 @@ namespace DirectorySync.ViewModels
         private ICommand _loadDirectoriesCommand;
         private ICommand _selectedItemCommand;
         private ICommand _settingsCommand;
+        private ICommand _clearLogCommand;
 
         /// <summary>
         /// Конструктор.
@@ -78,6 +79,9 @@ namespace DirectorySync.ViewModels
             }
         }
 
+        /// <summary>
+        /// Команда вызова окна настроек.
+        /// </summary>
         public ICommand SettingsCommand
         {
             get
@@ -93,6 +97,24 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
+        /// Команда на очистку окна сообщений.
+        /// </summary>
+        public ICommand ClearLogCommand
+        {
+            get
+            {
+                if (_clearLogCommand == null)
+                    _clearLogCommand = new Command(action =>
+                    {
+                        Log.Clear();
+                        PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
+                        PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
+                    });
+                return _clearLogCommand;
+            }
+        }
+
+        /// <summary>
         /// Строки, отображающие отслеживание директорий.
         /// </summary>
         public ObservableCollection<IRowViewModel> Rows { get; }
@@ -101,6 +123,11 @@ namespace DirectorySync.ViewModels
         /// Строки лога.
         /// </summary>
         public ObservableCollection<string> Log { get; }
+
+        /// <summary>
+        /// True - кнопка очистки лога видна.
+        /// </summary>
+        public bool ClearLogButtonIsVisible => Log.Count > 0;
 
         /// <summary>
         /// Событие изменения одного из свойств модели.
@@ -151,12 +178,18 @@ namespace DirectorySync.ViewModels
             {
                 _dispatcher.Invoke(() =>
                 {
-                    Log.Add(error);
-                    PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
+                    AddToLog(error);
                 });
             };
             foreach (var childRow in row.ChildRows)
                 SubscribeOnErrors(childRow);
+        }
+
+        private void AddToLog(string message)
+        {
+            Log.Add(message);
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
+            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
         }
     }
 }
