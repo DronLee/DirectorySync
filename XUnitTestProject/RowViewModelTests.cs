@@ -284,7 +284,7 @@ namespace XUnitTestProject
 
             public void SetActionCommand(Func<Task> action) { }
 
-            public void UpdateStatus(ItemStatusEnum statusEnum)
+            public void UpdateStatus(ItemStatusEnum statusEnum, string comment = null)
             {
                 Status = new ItemStatus(statusEnum);
             }

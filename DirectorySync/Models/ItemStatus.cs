@@ -27,12 +27,20 @@ namespace DirectorySync.Models
             { ItemStatusEnum.Unknown, "Не однозначно" }
         };
 
+        /// <summary>
+        /// Значение статуса.
+        /// </summary>
         public readonly ItemStatusEnum StatusEnum;
 
-        public ItemStatus(ItemStatusEnum statusEnum)
+        /// <summary>
+        /// Конструктор.
+        /// </summary>
+        /// <param name="statusEnum">Значение статуса.</param>
+        /// <param name="comment">Пояснение к статусу.</param>
+        public ItemStatus(ItemStatusEnum statusEnum, string comment = null)
         {
             StatusEnum = statusEnum;
-            Comment = _commentsOnStatus[statusEnum];
+            Comment = comment ?? _commentsOnStatus[statusEnum];
         }
 
         /// <summary>

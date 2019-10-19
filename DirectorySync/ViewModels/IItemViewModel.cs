@@ -85,7 +85,8 @@ namespace DirectorySync.ViewModels
         /// Обновление статуса.
         /// </summary>
         /// <param name="statusEnum">Новое значение статуса.</param>
-        void UpdateStatus(ItemStatusEnum statusEnum);
+        /// <param name="comment">Пояснение к статусу.</param>
+        void UpdateStatus(ItemStatusEnum statusEnum, string comment = null);
 
         /// <summary>
         /// Задание метода, который будет выполняться как команда синхронизации.

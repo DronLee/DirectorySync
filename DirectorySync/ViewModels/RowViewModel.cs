@@ -1,8 +1,10 @@
 ﻿using DirectorySync.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DirectorySync.ViewModels
 {
@@ -11,6 +13,14 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class RowViewModel : IRowViewModel
     {
+        private static readonly Dictionary<ItemStatusEnum, string> _statusCommentsFromChildren = new Dictionary<ItemStatusEnum, string>
+            {
+                {ItemStatusEnum.Missing, "Не хватает тех элементов, что есть с другой стороны"},
+                {ItemStatusEnum.ThereIs, "Содержит отсутствующие с другой стороны элементы"},
+                {ItemStatusEnum.Older, "Содержит более старые"},
+                {ItemStatusEnum.Newer, "Содержит более новые"}
+            };
+
         private bool _isExpanded;
         private bool _isSelected;
         private bool _inProcess = true;
@@ -153,27 +163,8 @@ namespace DirectorySync.ViewModels
                     // Если с одной стороны все элементы имеют один статус, то и с другой тоже.
                     if (leftStatuses.Length == 1)
                     {
-                        LeftItem.UpdateStatus(leftStatuses.First());
-
-                        // Если нет, команды, но должна быть, исходя из дочерних элементов,
-                        // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-                        if (LeftItem.Status.StatusEnum != ItemStatusEnum.Equally)
-                            LeftItem.SetActionCommand(async () => 
-                            {
-                                foreach (var actionCommand in notEquallyChilds.Select(r => r.LeftItem.CommandAction))
-                                    await actionCommand.Invoke();
-                            });
-
-                        RightItem.UpdateStatus(notEquallyChilds.First().RightItem.Status.StatusEnum);
-
-                        // Если нет, команды, но должна быть, исходя из дочерних элементов,
-                        // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-                        if (RightItem.Status.StatusEnum != ItemStatusEnum.Equally)
-                            RightItem.SetActionCommand(async () =>
-                            {
-                                foreach (var actionCommand in notEquallyChilds.Select(r => r.RightItem.CommandAction))
-                                    await actionCommand.Invoke();
-                            });
+                        SetItemStatusAndCommands(LeftItem, leftStatuses.First(), notEquallyChilds.Select(r => r.LeftItem.CommandAction));
+                        SetItemStatusAndCommands(RightItem, notEquallyChilds.First().RightItem.Status.StatusEnum, notEquallyChilds.Select(r => r.RightItem.CommandAction));
                     }
                     else
                     {
@@ -182,6 +173,27 @@ namespace DirectorySync.ViewModels
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Задание статуса и комманд синхронизации для модели представления элемента, исходя из дочерних неидентичных строк.
+        /// </summary>
+        /// <param name="itemViewModel">Модель представления элемента, для которой задаётся статус и команды.</param>
+        /// <param name="status">Задаваемй статус.</param>
+        /// <param name="actionCommands">Команды синхронизации.</param>
+        private void SetItemStatusAndCommands(IItemViewModel itemViewModel, ItemStatusEnum status, IEnumerable<Func<Task>> actionCommands)
+        {
+            itemViewModel.UpdateStatus(status, _statusCommentsFromChildren.ContainsKey(status) ?
+                            _statusCommentsFromChildren[status] : null);
+
+            // Если нет, команды, но должна быть, исходя из дочерних элементов,
+            // то можно команду представить как последовательное выпонения команд дочерних элементов. 
+            if (status != ItemStatusEnum.Equally)
+                itemViewModel.SetActionCommand(async () =>
+                {
+                    foreach (var actionCommand in actionCommands)
+                        await actionCommand.Invoke();
+                });
         }
 
         /// <summary>

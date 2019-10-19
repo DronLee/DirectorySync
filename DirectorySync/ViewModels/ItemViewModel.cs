@@ -118,11 +118,11 @@ namespace DirectorySync.ViewModels
         /// Обновление статуса.
         /// </summary>
         /// <param name="statusEnum">Новое значение статуса.</param>
-        public void UpdateStatus(ItemStatusEnum statusEnum)
+        public void UpdateStatus(ItemStatusEnum statusEnum, string comment = null)
         {
             if (Status == null || Status.StatusEnum != statusEnum)
             {
-                Status = new ItemStatus(statusEnum);
+                Status = new ItemStatus(statusEnum, comment);
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
             }
         }
