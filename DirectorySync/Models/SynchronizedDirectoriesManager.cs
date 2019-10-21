@@ -71,5 +71,14 @@ namespace DirectorySync.Models
             foreach (var synchronizedDirectories in _synchronizedDirectoriesList.Where(d => !d.IsLoaded))
                 await synchronizedDirectories.Load();
         }
+
+        /// <summary>
+        /// Обновление содержимого синхронизируемых директорий.
+        /// </summary>
+        public async Task Refresh()
+        {
+            foreach (var synchronizedDirectories in _synchronizedDirectoriesList)
+                await synchronizedDirectories.Load();
+        }
     }
 }

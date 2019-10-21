@@ -14,11 +14,6 @@ namespace DirectorySync.Models
         ISynchronizedDirectories[] SynchronizedDirectories { get; }
 
         /// <summary>
-        /// Загрузка директорий.
-        /// </summary>
-        Task Load();
-
-        /// <summary>
         /// Событие удаления одной из пары синхронизируемых директорий.
         /// </summary>
         event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoriesEvent;
@@ -27,5 +22,15 @@ namespace DirectorySync.Models
         /// Событие добавления пары синхронизируемых директорий.
         /// </summary>
         event Action<ISynchronizedDirectories> AddSynchronizedDirectoriesEvent;
+
+        /// <summary>
+        /// Загрузка директорий.
+        /// </summary>
+        Task Load();
+
+        /// <summary>
+        /// Обновление содержимого синхронизируемых директорий.
+        /// </summary>
+        Task Refresh();
     }
 }
