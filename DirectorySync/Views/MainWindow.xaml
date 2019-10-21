@@ -9,7 +9,10 @@
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="booleanToVisiblityConverter" />
-        
+
+        <Style x:Key="MenuButtonIcon" TargetType="Image">
+            <Setter Property="Width" Value="30" />
+        </Style>
         <Style x:Key="ItemIcon" TargetType="Image">
             <Setter Property="Width" Value="19" />
         </Style>
@@ -17,9 +20,11 @@
             <Setter Property="Source" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ProcessGifSource}"/>
             <Setter Property="Visibility" Value="{Binding InProcess, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}"/>
         </Style>
-        <Style x:Key="AcceptButton" TargetType="Button">
+        <Style x:Key="TransparentButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style x:Key="AcceptButton" TargetType="Button" BasedOn="{StaticResource TransparentButton}">
             <Setter Property="Visibility" 
                     Value="{Binding Path=CommandButtonIsVisible, UpdateSourceTrigger=PropertyChanged, 
                         Converter={StaticResource booleanToVisiblityConverter}}"/>
@@ -44,10 +49,16 @@
             <RowDefinition Height="80" />
         </Grid.RowDefinitions>
 
-        <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,20,0" ToolTip="Настройка отслеживаемых директорий" Background="Transparent" BorderThickness="0"
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,20,0">
+            <Button Style="{StaticResource TransparentButton}" ToolTip="Обновить содержимое директорий"
+                Command="{Binding RefreshSynchronizedDirectoriesCommand}">
+                <Image Style="{StaticResource MenuButtonIcon}" Source="/DirectorySync;component/Icons/Refresh.png"/>
+            </Button>
+            <Button Style="{StaticResource TransparentButton}" ToolTip="Настройка отслеживаемых директорий"
                 Command="{Binding SettingsCommand}">
-            <Image Source="/DirectorySync;component/Icons/Settings.png" Width="30" />
-        </Button>
+                <Image Style="{StaticResource MenuButtonIcon}" Source="/DirectorySync;component/Icons/Settings.png"/>
+            </Button>
+        </StackPanel>
 
         <ScrollViewer x:Name="LeftTreeViewScroll" Grid.Row="1" Grid.Column="0" ScrollChanged="LeftTreeViewScroll_ScrollChanged" PreviewMouseWheel="TreeViewScroll_PreviewMouseWheel">
             <TreeView Name="LeftTree" ItemsSource="{Binding Rows}">

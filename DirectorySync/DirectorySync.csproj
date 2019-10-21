@@ -184,12 +184,11 @@
     <Resource Include="Icons\RightItemCommand.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Icons\SyncProcess.gif">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    <Resource Include="Icons\SyncProcess.gif" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="DLL\Newtonsoft.Json.dll" />
+    <Resource Include="Icons\Refresh.png" />
     <Resource Include="Icons\Clear.png" />
     <Resource Include="Icons\Settings.png" />
     <Resource Include="Icons\OkButton.png" />
