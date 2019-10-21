@@ -111,9 +111,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Button Grid.Row="2" Margin="30, 10, 30, 10" BorderThickness="0" Background="Transparent" ToolTip="Принять изменённые настройки"
+        <Button Style="{StaticResource TransparentButton}" Grid.Row="2" Margin="30, 10, 30, 10" ToolTip="Принять изменённые настройки"
                 Command="{Binding OkCommand}" CommandParameter="{Binding ElementName=SettingsForm}">
-            <Image Width="30" Source="/DirectorySync;component/Icons/OkButton.png"/>
+            <Image Style="{StaticResource MenuButtonIcon}" Source="/DirectorySync;component/Icons/OkButton.png"/>
         </Button>
     </Grid>
 </Window>
