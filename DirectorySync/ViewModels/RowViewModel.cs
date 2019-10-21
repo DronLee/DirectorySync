@@ -176,6 +176,15 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
+        /// Отобразить, что идёт обновление строки.
+        /// </summary>
+        public void ShowInProcess()
+        {
+            InProcess = true;
+            SetInProcessForChildren(this, true);
+        }
+
+        /// <summary>
         /// Задание статуса и комманд синхронизации для модели представления элемента, исходя из дочерних неидентичных строк.
         /// </summary>
         /// <param name="itemViewModel">Модель представления элемента, для которой задаётся статус и команды.</param>

@@ -74,5 +74,10 @@ namespace DirectorySync.ViewModels
         /// Проставить статусы отслеживаемых элементов на основании статусов дочерних элементов.
         /// </summary>
         void RefreshStatusesFromChilds();
+
+        /// <summary>
+        /// Отобразить, что идёт обновление строки.
+        /// </summary>
+        void ShowInProcess();
     }
 }
