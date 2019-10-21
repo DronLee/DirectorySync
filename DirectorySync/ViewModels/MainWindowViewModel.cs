@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using DirectorySync.Models;
 using DirectorySync.Models.Settings;
@@ -23,7 +27,9 @@ namespace DirectorySync.ViewModels
         private readonly IRowViewModelFactory _rowViewModelFactory;
         private readonly Dispatcher _dispatcher;
 
-        private ICommand _loadDirectoriesCommand;
+        private Bitmap _processGifBitmap;
+
+        private ICommand _loadedFormCommand;
         private ICommand _selectedItemCommand;
         private ICommand _settingsCommand;
         private ICommand _clearLogCommand;
@@ -52,13 +58,18 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Команда загрузки директорий.
         /// </summary>
-        public ICommand LoadDirectoriesCommand
+        public ICommand LoadedFormCommand
         {
             get
             {
-                if (_loadDirectoriesCommand == null)
-                    _loadDirectoriesCommand = new Command(x => LoadDirectories());
-                return _loadDirectoriesCommand;
+                if (_loadedFormCommand == null)
+                    _loadedFormCommand = new Command(x =>
+                    {
+                        ProcessGifSource = GetProcessGifSource();
+                        ImageAnimator.Animate(_processGifBitmap, OnFrameChanged);
+                        LoadDirectories();
+                    });
+                return _loadedFormCommand;
             }
         }
 
@@ -130,6 +141,11 @@ namespace DirectorySync.ViewModels
         public bool ClearLogButtonIsVisible => Log.Count > 0;
 
         /// <summary>
+        /// Gif для отображения процесса синхронизации.
+        /// </summary>
+        public BitmapSource ProcessGifSource { get; private set; }
+
+        /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -191,5 +207,30 @@ namespace DirectorySync.ViewModels
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
         }
+
+        #region Методы, реализующие анимацию gif для отрображения процесса синхронизации.
+        private BitmapSource GetProcessGifSource()
+        {
+            if (_processGifBitmap == null)
+                _processGifBitmap = new Bitmap(@"c:\MyProgramms\Своё\DirectorySync\DirectorySync\Icons\SyncProcess.gif"); //System.IO.Path.Combine(Environment.CurrentDirectory, "Icons", "SyncProcess.gif"));
+            var handle = _processGifBitmap.GetHbitmap();
+            return Imaging.CreateBitmapSourceFromHBitmap(
+                    handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+        }
+
+        private void OnFrameChanged(object sender, EventArgs e)
+        {
+            _dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(FrameUpdatedCallback));
+        }
+
+        private void FrameUpdatedCallback()
+        {
+            ImageAnimator.UpdateFrames();
+            if (ProcessGifSource != null)
+                ProcessGifSource.Freeze();
+            ProcessGifSource = GetProcessGifSource();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessGifSource)));
+        }
+        #endregion
     }
 }

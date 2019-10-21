@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace DirectorySync.ViewModels
 {
@@ -9,6 +10,11 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public interface IMainWindowViewModel : INotifyPropertyChanged
     {
+        /// <summary>
+        /// Gif для отображения процесса синхронизации.
+        /// </summary>
+        BitmapSource ProcessGifSource { get; }
+
         /// <summary>
         /// Строки, отображающие отслеживание директорий.
         /// </summary>
@@ -27,7 +33,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Команда загрузки директорий.
         /// </summary>
-        ICommand LoadDirectoriesCommand { get; }
+        ICommand LoadedFormCommand { get; }
 
         /// <summary>
         /// Комнада выбора строки.

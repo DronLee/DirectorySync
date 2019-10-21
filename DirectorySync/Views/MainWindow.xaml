@@ -14,7 +14,7 @@
             <Setter Property="Width" Value="19" />
         </Style>
         <Style x:Key="ProcessIcon" BasedOn="{StaticResource ItemIcon}" TargetType="Image">
-            <Setter Property="Source" Value="/DirectorySync;component/Icons/SyncProcess.gif"/>
+            <Setter Property="Source" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}, Path=DataContext.ProcessGifSource}"/>
             <Setter Property="Visibility" Value="{Binding InProcess, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}"/>
         </Style>
         <Style x:Key="AcceptButton" TargetType="Button">
@@ -28,7 +28,7 @@
     
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
-            <i:InvokeCommandAction Command="{Binding LoadDirectoriesCommand}"/>
+            <i:InvokeCommandAction Command="{Binding LoadedFormCommand}"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
 
@@ -114,7 +114,7 @@
                 Visibility="{Binding ClearLogButtonIsVisible, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource booleanToVisiblityConverter}}">
             <Image Style="{StaticResource ItemIcon}" Source="/DirectorySync;component/Icons/Clear.png" />
         </Button>
-        
+
         <ListView HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="10, 0, 10, 0" Grid.Row="3" Grid.ColumnSpan="2" ItemsSource="{Binding Log}">
             <ListView.ItemTemplate>
                 <DataTemplate>
