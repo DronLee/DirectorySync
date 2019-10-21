@@ -49,5 +49,10 @@ namespace DirectorySync.ViewModels
         /// Команда на очистку окна сообщений.
         /// </summary>
         ICommand ClearLogCommand { get; }
+
+        /// <summary>
+        /// Команда обновления представлений синхронизируемых директорий.
+        /// </summary>
+        ICommand RefreshSynchronizedDirectoriesCommand { get; }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -33,6 +34,7 @@ namespace DirectorySync.ViewModels
         private ICommand _selectedItemCommand;
         private ICommand _settingsCommand;
         private ICommand _clearLogCommand;
+        private ICommand _refreshSynchronizedDirectoriesCommand;
 
         /// <summary>
         /// Конструктор.
@@ -63,11 +65,11 @@ namespace DirectorySync.ViewModels
             get
             {
                 if (_loadedFormCommand == null)
-                    _loadedFormCommand = new Command(x =>
+                    _loadedFormCommand = new Command(async x =>
                     {
                         ProcessGifSource = GetProcessGifSource();
                         ImageAnimator.Animate(_processGifBitmap, OnFrameChanged);
-                        LoadDirectories();
+                        await LoadDirectories();
                     });
                 return _loadedFormCommand;
             }
@@ -126,6 +128,27 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
+        /// Команда обновления представлений синхронизируемых директорий.
+        /// </summary>
+        public ICommand RefreshSynchronizedDirectoriesCommand 
+        { 
+            get
+            {
+                if(_refreshSynchronizedDirectoriesCommand == null)
+                {
+                    _refreshSynchronizedDirectoriesCommand = new Command(async action =>
+                    {
+
+                        foreach (var row in Rows)
+                            row.ShowInProcess();
+                        await _synchronizedDirectoriesManager.Refresh();
+                    });
+                }
+                return _refreshSynchronizedDirectoriesCommand;
+            }
+        }
+
+        /// <summary>
         /// Строки, отображающие отслеживание директорий.
         /// </summary>
         public ObservableCollection<IRowViewModel> Rows { get; }
@@ -150,7 +173,7 @@ namespace DirectorySync.ViewModels
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private async void LoadDirectories()
+        private async Task LoadDirectories()
         {
             bool checkDirectory = true;
 
