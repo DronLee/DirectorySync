@@ -14,7 +14,8 @@ namespace DirectorySync.Models
             { ItemStatusEnum.Newer, "/DirectorySync;component/Icons/Status/Newer.png" },
             { ItemStatusEnum.Older, "/DirectorySync;component/Icons/Status/Older.png" },
             { ItemStatusEnum.ThereIs, "/DirectorySync;component/Icons/Status/ThereIs.png" },
-            { ItemStatusEnum.Unknown, "/DirectorySync;component/Icons/Status/Unknown.png" }
+            { ItemStatusEnum.Unknown, "/DirectorySync;component/Icons/Status/Unknown.png" },
+            { ItemStatusEnum.LoadError, "/DirectorySync;component/Icons/Status/Error.png" }
         };
 
         private readonly static Dictionary<ItemStatusEnum, string> _commentsOnStatus = new Dictionary<ItemStatusEnum, string>

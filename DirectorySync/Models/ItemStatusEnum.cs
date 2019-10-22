@@ -28,6 +28,10 @@
         /// <summary>
         /// Идентичный.
         /// </summary>
-        Equally = 5
+        Equally = 5,
+        /// <summary>
+        /// Ошибка при загрузке.
+        /// </summary>
+        LoadError = 6
     }
 }
