@@ -211,7 +211,7 @@ namespace DirectorySync.ViewModels
         /// <param name="directory">Загруженная директория.</param>
         private void LoadedDirectory(IDirectory directory)
         {
-            if(LeftItem.Directory.IsLoaded && RightItem.Directory.IsLoaded)
+            if((LeftItem.Directory == null || LeftItem.Directory.IsLoaded) && (RightItem.Directory == null || RightItem.Directory.IsLoaded))
             {
                 RowViewModelIsLoadedEvent?.Invoke(this);
                 InProcess = false;
@@ -255,9 +255,19 @@ namespace DirectorySync.ViewModels
         private void CopiedFromTo(IItemViewModel fromItem, IItemViewModel toItem)
         {
             if (LeftItem == fromItem)
+            {
+                if (RightItem.Directory == null && toItem.Directory != null)
+                    // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
+                    toItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
                 RightItem = toItem;
+            }
             else
+            {
+                if (LeftItem.Directory == null && toItem.Directory != null)
+                    // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
+                    LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
                 LeftItem = toItem;
+            }
         }
 
         private void AcceptCommandChanged()
