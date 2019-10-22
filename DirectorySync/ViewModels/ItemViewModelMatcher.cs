@@ -18,16 +18,28 @@ namespace DirectorySync.ViewModels
                 OneItemIsMissing(itemViewModel1, itemViewModel2);
             else if (itemViewModel2.Item == null)
                 OneItemIsMissing(itemViewModel2, itemViewModel1);
-            else if (itemViewModel1.Item.LastUpdate > itemViewModel2.Item.LastUpdate)
-                OneItemIsOlder(itemViewModel2, itemViewModel1);
-            else if (itemViewModel1.Item.LastUpdate < itemViewModel2.Item.LastUpdate)
-                OneItemIsOlder(itemViewModel1, itemViewModel2);
-            else // Значит одинаковые
+            else
             {
-                itemViewModel1.UpdateStatus(ItemStatusEnum.Equally);
-                itemViewModel1.SetActionCommand(null);
-                itemViewModel2.UpdateStatus(ItemStatusEnum.Equally);
-                itemViewModel2.SetActionCommand(null);
+                string loadError = null;
+                if ((loadError = (itemViewModel1.Item as IDirectory)?.LastLoadError) != null ||
+                    (loadError = (itemViewModel2.Item as IDirectory)?.LastLoadError) != null)
+                {
+                    itemViewModel1.UpdateStatus(ItemStatusEnum.LoadError, loadError);
+                    itemViewModel2.UpdateStatus(ItemStatusEnum.LoadError, loadError);
+                    itemViewModel1.SetActionCommand(null);
+                    itemViewModel2.SetActionCommand(null);
+                }
+                else if (itemViewModel1.Item.LastUpdate > itemViewModel2.Item.LastUpdate)
+                    OneItemIsOlder(itemViewModel2, itemViewModel1);
+                else if (itemViewModel1.Item.LastUpdate < itemViewModel2.Item.LastUpdate)
+                    OneItemIsOlder(itemViewModel1, itemViewModel2);
+                else // Значит одинаковые
+                {
+                    itemViewModel1.UpdateStatus(ItemStatusEnum.Equally);
+                    itemViewModel1.SetActionCommand(null);
+                    itemViewModel2.UpdateStatus(ItemStatusEnum.Equally);
+                    itemViewModel2.SetActionCommand(null);
+                }
             }
         }
 

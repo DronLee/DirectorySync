@@ -8,6 +8,13 @@ namespace XUnitTestProject
 {
     public class ItemViewModelMatcherTests
     {
+        /// <summary>
+        /// Тест на простановку статусов при различии сравниваемых элементов.
+        /// </summary>
+        /// <param name="date1">Дата последнего обновления первого элемента.</param>
+        /// <param name="date2">Дата последнего обновления второго элемента.</param>
+        /// <param name="strExpextedStatus1">Ожидаемый статус первого элемента.</param>
+        /// <param name="strExpextedStatus2">Ожидаемый статус второго элемента.</param>
         [Theory]
         [InlineData("2019-01-01", "2018-01-01", "Newer", "Older")]
         [InlineData("2018-01-01", "2019-01-01", "Older", "Newer")]
@@ -32,6 +39,35 @@ namespace XUnitTestProject
             Assert.NotNull(item2.AcceptCommand);
         }
 
+        /// <summary>
+        /// Тест на простановку статуса ошибки загрузки.
+        /// </summary>
+        /// <param name="loadError1">Текст ошибки для первого элемента.</param>
+        /// <param name="loadError2">Текст ошибки для второго элемента.</param>
+        [Theory]
+        [InlineData("Error1", null)]
+        [InlineData(null, "Error2")]
+        public void UpdateStatusesAndCommandsForLoadError(string loadError1, string loadError2)
+        {
+            var itemViewModel1 = new ItemViewModel(null, false, new TestItem(DateTime.Now) { LastLoadError = loadError1 });
+            var itemViewModel2 = new ItemViewModel(null, false, new TestItem(DateTime.Now) { LastLoadError = loadError2 });
+
+            // Чтобы потом проверить, что команд не стало.
+            itemViewModel1.SetActionCommand(() => { return Task.FromResult(true); });
+            itemViewModel2.SetActionCommand(() => { return Task.FromResult(true); });
+
+            var matcher = new ItemViewModelMatcher();
+            matcher.UpdateStatusesAndCommands(itemViewModel1, itemViewModel2);
+
+            Assert.Equal(ItemStatusEnum.LoadError , itemViewModel1.Status.StatusEnum);
+            Assert.Equal(ItemStatusEnum.LoadError, itemViewModel2.Status.StatusEnum);
+            Assert.Null(itemViewModel1.AcceptCommand);
+            Assert.Null(itemViewModel2.AcceptCommand);
+        }
+
+        /// <summary>
+        /// Тест на проостановку статуса Equally.
+        /// </summary>
         [Fact]
         public void UpdateStatusesAndCommandsForEquals()
         {
@@ -39,6 +75,8 @@ namespace XUnitTestProject
 
             var item1 = new ItemViewModel(null, false, new TestItem(lastUpdate));
             var item2 = new ItemViewModel(null, false, new TestItem(lastUpdate));
+
+            // Чтобы потом проверить, что команд не стало.
             item1.SetActionCommand(() => { return Task.FromResult(true); });
             item2.SetActionCommand(() => { return Task.FromResult(true); });
 
@@ -51,7 +89,7 @@ namespace XUnitTestProject
             Assert.Null(item2.AcceptCommand);
         }
 
-        private class TestItem : IItem
+        private class TestItem : IDirectory
         {
             public TestItem(DateTime lastUpdate)
             {
@@ -64,9 +102,16 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate { get; }
 
+            public IItem[] Items => throw new NotImplementedException();
+
+            public bool IsLoaded => throw new NotImplementedException();
+
+            public string LastLoadError { get; set; }
+
             public event Action DeletedEvent;
             public event Action<IItem, string> CopiedFromToEvent;
             public event Action<string> SyncErrorEvent;
+            public event Action<IDirectory> LoadedDirectoryEvent;
 
             public Task CopyTo(string destinationPath)
             {
@@ -74,6 +119,11 @@ namespace XUnitTestProject
             }
 
             public Task Delete()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task Load()
             {
                 throw new NotImplementedException();
             }
