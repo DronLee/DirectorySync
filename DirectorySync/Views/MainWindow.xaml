@@ -42,7 +42,7 @@
             <RowDefinition Height="80" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,20,0">
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,20,0" IsEnabled="{Binding MenuButtonsIsEnabled}">
             <Button Style="{StaticResource TransparentButton}" ToolTip="Обновить содержимое директорий"
                 Command="{Binding RefreshSynchronizedDirectoriesCommand}">
                 <Image Style="{StaticResource MenuButtonIcon}" Source="/DirectorySync;component/Icons/Refresh.png"/>

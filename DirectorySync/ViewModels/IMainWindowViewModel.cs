@@ -31,6 +31,11 @@ namespace DirectorySync.ViewModels
         bool ClearLogButtonIsVisible { get; }
 
         /// <summary>
+        /// True - кнопки меню доступны.
+        /// </summary>
+        bool MenuButtonsIsEnabled { get; }
+
+        /// <summary>
         /// Команда загрузки директорий.
         /// </summary>
         ICommand LoadedFormCommand { get; }

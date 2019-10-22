@@ -29,6 +29,7 @@ namespace DirectorySync.ViewModels
         private readonly Dispatcher _dispatcher;
 
         private Bitmap _processGifBitmap;
+        private bool _menuButtonsIsEnabled;
 
         private ICommand _loadedFormCommand;
         private ICommand _selectedItemCommand;
@@ -67,9 +68,11 @@ namespace DirectorySync.ViewModels
                 if (_loadedFormCommand == null)
                     _loadedFormCommand = new Command(async x =>
                     {
+                        MenuButtonsIsEnabled = false;
                         ProcessGifSource = GetProcessGifSource();
                         ImageAnimator.Animate(_processGifBitmap, OnFrameChanged);
                         await LoadDirectories();
+                        MenuButtonsIsEnabled = true;
                     });
                 return _loadedFormCommand;
             }
@@ -103,7 +106,11 @@ namespace DirectorySync.ViewModels
                     _settingsCommand = new Command(action =>
                     {
                         if (ShowSettingsWindow(null))
+                        {
+                            MenuButtonsIsEnabled = false;
                             _synchronizedDirectoriesManager.Load();
+                            MenuButtonsIsEnabled = true;
+                        }
                     });
                 return _settingsCommand;
             }
@@ -138,10 +145,11 @@ namespace DirectorySync.ViewModels
                 {
                     _refreshSynchronizedDirectoriesCommand = new Command(action =>
                     {
-
+                        MenuButtonsIsEnabled = false;
                         foreach (var row in Rows)
                             row.ShowInProcess();
                         _synchronizedDirectoriesManager.Refresh();
+                        MenuButtonsIsEnabled = true;
                     });
                 }
                 return _refreshSynchronizedDirectoriesCommand;
@@ -162,6 +170,25 @@ namespace DirectorySync.ViewModels
         /// True - кнопка очистки лога видна.
         /// </summary>
         public bool ClearLogButtonIsVisible => Log.Count > 0;
+
+        /// <summary>
+        /// True - кнопки меню доступны.
+        /// </summary>
+        public bool MenuButtonsIsEnabled
+        {
+            get
+            {
+                return _menuButtonsIsEnabled;
+            }
+            set
+            {
+                if (_menuButtonsIsEnabled != value)
+                {
+                    _menuButtonsIsEnabled = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MenuButtonsIsEnabled)));
+                }
+            }
+        }
 
         /// <summary>
         /// Gif для отображения процесса синхронизации.
