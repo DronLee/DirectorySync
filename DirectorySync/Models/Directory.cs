@@ -88,6 +88,7 @@ namespace DirectorySync.Models
         /// </summary>
         public async Task Load()
         {
+            IsLoaded = false;
             _items.Clear();
 
             await LoadDirectories();

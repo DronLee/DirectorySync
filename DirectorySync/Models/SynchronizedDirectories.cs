@@ -18,8 +18,7 @@ namespace DirectorySync.Models
 
         public async Task Load()
         {
-            await LeftDirectory.Load();
-            await RightDirectory.Load();
+            await Task.Run(() => Task.WaitAll(LeftDirectory.Load(), RightDirectory.Load()));
         }
     }
 }

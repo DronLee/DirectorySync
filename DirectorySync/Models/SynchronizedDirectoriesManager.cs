@@ -68,8 +68,7 @@ namespace DirectorySync.Models
             }
 
             // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
-            foreach (var synchronizedDirectories in _synchronizedDirectoriesList.Where(d => !d.IsLoaded))
-                await synchronizedDirectories.Load();
+            await Task.Run(() => Task.WaitAll(_synchronizedDirectoriesList.Where(d => !d.IsLoaded).Select(d => d.Load()).ToArray()));
         }
 
         /// <summary>
@@ -77,8 +76,7 @@ namespace DirectorySync.Models
         /// </summary>
         public async Task Refresh()
         {
-            foreach (var synchronizedDirectories in _synchronizedDirectoriesList)
-                await synchronizedDirectories.Load();
+            await Task.Run(() => Task.WaitAll(_synchronizedDirectoriesList.Select(d => d.Load()).ToArray()));
         }
     }
 }

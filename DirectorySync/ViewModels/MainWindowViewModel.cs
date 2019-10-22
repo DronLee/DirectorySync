@@ -100,10 +100,10 @@ namespace DirectorySync.ViewModels
             get
             {
                 if (_settingsCommand == null)
-                    _settingsCommand = new Command(async action =>
+                    _settingsCommand = new Command(action =>
                     {
                         if (ShowSettingsWindow(null))
-                            await _synchronizedDirectoriesManager.Load();
+                            _synchronizedDirectoriesManager.Load();
                     });
                 return _settingsCommand;
             }
@@ -136,12 +136,12 @@ namespace DirectorySync.ViewModels
             {
                 if(_refreshSynchronizedDirectoriesCommand == null)
                 {
-                    _refreshSynchronizedDirectoriesCommand = new Command(async action =>
+                    _refreshSynchronizedDirectoriesCommand = new Command(action =>
                     {
 
                         foreach (var row in Rows)
                             row.ShowInProcess();
-                        await _synchronizedDirectoriesManager.Refresh();
+                        _synchronizedDirectoriesManager.Refresh();
                     });
                 }
                 return _refreshSynchronizedDirectoriesCommand;
