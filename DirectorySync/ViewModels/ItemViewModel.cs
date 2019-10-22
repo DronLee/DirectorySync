@@ -31,11 +31,6 @@ namespace DirectorySync.ViewModels
                 item.DeletedEvent += DeletedItem;
                 item.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
                 item.CopiedFromToEvent += CopiedItemTo;
-                if (item is IDirectory)
-                {
-                    Directory = (IDirectory)item;
-                    Directory.LoadedDirectoryEvent += LoadedDirectory;
-                }
             }
         }
 
@@ -72,7 +67,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
         /// </summary>
-        public IDirectory Directory { get; }
+        public IDirectory Directory => Item as IDirectory;
 
         /// <summary>
         /// Путь к иконке отслеживаемого элемента.
@@ -153,11 +148,6 @@ namespace DirectorySync.ViewModels
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
                 AcceptCommandChangedEvent?.Invoke();
             }
-        }
-
-        private void LoadedDirectory(IDirectory directory)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
         }
 
         private void DeletedItem()
