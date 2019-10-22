@@ -1,4 +1,6 @@
-﻿namespace DirectorySync.Models.Settings
+﻿using IODirectory = System.IO.Directory;
+
+namespace DirectorySync.Models.Settings
 {
     /// <summary>
     /// Строка настройки.
@@ -26,5 +28,14 @@
         /// Директории строки отслеживаются.
         /// </summary>
         public bool IsUsed { get; set; }
+
+        /// <summary>
+        /// Проверка существуют ли указанные директории и обновление свойства NotFound этих директорий.
+        /// </summary>
+        public void NotFoundRefresh()
+        {
+            LeftDirectory.NotFound = !IODirectory.Exists(LeftDirectory.DirectoryPath);
+            RightDirectory.NotFound = !IODirectory.Exists(RightDirectory.DirectoryPath);
+        }
     }
 }

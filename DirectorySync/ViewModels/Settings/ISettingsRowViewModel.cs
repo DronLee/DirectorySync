@@ -40,6 +40,11 @@ namespace DirectorySync.ViewModels.Settings
         ICommand DeleteCommand { get; }
 
         /// <summary>
+        /// Команда обновления строки.
+        /// </summary>
+        ICommand RefreshCommand { get; }
+
+        /// <summary>
         /// Событие записи директории в пустую строку.
         /// </summary>
         event Action SetEmptyDirectoryEvent;

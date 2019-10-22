@@ -192,6 +192,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="DLL\Newtonsoft.Json.dll" />
+    <Resource Include="Icons\RefreshRow.png" />
     <Resource Include="Icons\Status\Error.png" />
     <Resource Include="Icons\Refresh.png" />
     <Resource Include="Icons\Clear.png" />

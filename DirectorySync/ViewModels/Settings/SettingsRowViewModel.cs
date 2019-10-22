@@ -16,10 +16,13 @@ namespace DirectorySync.ViewModels.Settings
         private const string _leftDirectoryButtonStyleName = "LeftDirectoryButton";
         private const string _rightDirectoryButtonStyleName = "RightDirectoryButton";
 
+        private readonly ISettingsRow _settingsRow;
+
         private bool _isUsed = true; 
 
         private ICommand _folderDialogCommand = null;
         private ICommand _deleteRowCommand = null;
+        private ICommand _refreshRowCommand = null;
 
         /// <summary>
         /// Конструктор создания модели пустой строки, нужной, чтобы пользователь мог добавить новые директории.
@@ -37,11 +40,9 @@ namespace DirectorySync.ViewModels.Settings
         /// <param name="settingsRow"></param>
         public SettingsRowViewModel(ISettingsRow settingsRow)
         {
+            _settingsRow = settingsRow;
             IsEmpty = false;
-            LeftDirectory = new SettingsDirectoryViewModel(settingsRow.LeftDirectory.DirectoryPath, settingsRow.LeftDirectory.NotFound,
-                settingsRow.LeftDirectory.NotFound ? _notFoundLeftDirectoryButtonStyleName : _leftDirectoryButtonStyleName);
-            RightDirectory = new SettingsDirectoryViewModel(settingsRow.RightDirectory.DirectoryPath, settingsRow.RightDirectory.NotFound,
-                settingsRow.RightDirectory.NotFound ? _notFoundRightDirectoryButtonStyleName : _rightDirectoryButtonStyleName);
+            RefreshDirectory();
             _isUsed = settingsRow.IsUsed;
         }
 
@@ -125,6 +126,25 @@ namespace DirectorySync.ViewModels.Settings
         }
 
         /// <summary>
+        /// Команда обновления строки.
+        /// </summary>
+        public ICommand RefreshCommand
+        {
+            get
+            {
+                if (_refreshRowCommand == null)
+                    _refreshRowCommand = new Command(action =>
+                    {
+                        _settingsRow.NotFoundRefresh();
+                        RefreshDirectory();
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftDirectory)));
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightDirectory)));
+                    });
+                return _refreshRowCommand;
+            }
+        }
+
+        /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -138,5 +158,13 @@ namespace DirectorySync.ViewModels.Settings
         /// Событие удаления строки.
         /// </summary>
         public event Action<ISettingsRowViewModel> DeleteRowEvent;
+
+        private void RefreshDirectory()
+        {
+            LeftDirectory = new SettingsDirectoryViewModel(_settingsRow.LeftDirectory.DirectoryPath, _settingsRow.LeftDirectory.NotFound,
+                _settingsRow.LeftDirectory.NotFound ? _notFoundLeftDirectoryButtonStyleName : _leftDirectoryButtonStyleName);
+            RightDirectory = new SettingsDirectoryViewModel(_settingsRow.RightDirectory.DirectoryPath, _settingsRow.RightDirectory.NotFound,
+                _settingsRow.RightDirectory.NotFound ? _notFoundRightDirectoryButtonStyleName : _rightDirectoryButtonStyleName);
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using Newtonsoft.Json;
-using IO = System.IO;
+using IOFile = System.IO.File;
 
 namespace DirectorySync.Models.Settings
 {
@@ -20,16 +20,13 @@ namespace DirectorySync.Models.Settings
         public SettingsStorage(string settingsFile)
         {
             _settingsFile = settingsFile;
-            if (IO.File.Exists(_settingsFile))
+            if (IOFile.Exists(_settingsFile))
             {
-                var fileText = IO.File.ReadAllText(_settingsFile, _encoding);
+                var fileText = IOFile.ReadAllText(_settingsFile, _encoding);
                 SettingsRows = JsonConvert.DeserializeObject<SettingsRow[]>(fileText);
 
                 foreach (var row in SettingsRows)
-                {
-                    row.LeftDirectory.NotFound = !IO.Directory.Exists(row.LeftDirectory.DirectoryPath);
-                    row.RightDirectory.NotFound = !IO.Directory.Exists(row.RightDirectory.DirectoryPath);
-                }
+                    row.NotFoundRefresh();
             }
             else
                 SettingsRows = new ISettingsRow[0];
@@ -57,7 +54,7 @@ namespace DirectorySync.Models.Settings
         /// </summary>
         public void Save()
         {
-            IO.File.WriteAllText(_settingsFile,
+            IOFile.WriteAllText(_settingsFile,
                 JsonConvert.SerializeObject(SettingsRows), _encoding);
         }
     }

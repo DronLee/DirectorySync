@@ -101,6 +101,16 @@
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
+                            <Button Background="#FF9EC757" ToolTip="Проверить ещё раз директории" Command="{Binding RefreshCommand}">
+                                <Image Width="20" Source="/DirectorySync;component/Icons/RefreshRow.png"/>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
                             <Button Background="IndianRed" ToolTip="Удалить строку" Command="{Binding DeleteCommand}">
                                 <Image Width="20" Source="/DirectorySync;component/Icons/ItemDelete.png"/>
                             </Button>
