@@ -150,7 +150,7 @@ namespace DirectorySync.ViewModels
             }
         }
 
-        private void DeletedItem()
+        private void DeletedItem(IItem deletedItem)
         {
             Item = null;
         }

@@ -298,7 +298,7 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate => throw new NotImplementedException();
 
-            public event Action DeletedEvent;
+            public event Action<IItem> DeletedEvent;
             public event Action<string> SyncErrorEvent;
             public event Action<IItem, string> CopiedFromToEvent;
 

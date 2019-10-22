@@ -24,9 +24,9 @@ namespace DirectorySync.Models
         DateTime LastUpdate { get; }
 
         /// <summary>
-        /// Событие возникает, после удаления элемента.
+        /// Событие возникает, после удаления элемента и передаёт его.
         /// </summary>
-        event Action DeletedEvent;
+        event Action<IItem> DeletedEvent;
 
         /// <summary>
         /// Событие возникает, когда было выполнено копирование элемента.

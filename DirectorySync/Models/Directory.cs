@@ -67,9 +67,9 @@ namespace DirectorySync.Models
         public event Action<IDirectory> LoadedDirectoryEvent;
 
         /// <summary>
-        /// Событие возникает, после удаления директории.
+        /// Событие возникает, после удаления директории и передаёт её.
         /// </summary>
-        public event Action DeletedEvent;
+        public event Action<IItem> DeletedEvent;
 
         /// <summary>
         /// Событие сообщает об ошибке, возникшей в процессе синхронизации.
@@ -138,8 +138,13 @@ namespace DirectorySync.Models
                     error = true;
                 }
                 if (!error)
-                    DeletedEvent?.Invoke();
+                    DeletedEvent?.Invoke(this);
             });
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().Name} {Name}";
         }
 
         private async Task LoadDirectories()
@@ -156,7 +161,7 @@ namespace DirectorySync.Models
                     LastLoadError = "Не удалось считать список папок директории: " + FullPath;
                 else
                     foreach (var directoryPath in directories)
-                        _items.Add(_itemFactory.CreateDirectory(directoryPath));
+                        AddItem(_itemFactory.CreateDirectory(directoryPath));
             });
         }
 
@@ -174,8 +179,14 @@ namespace DirectorySync.Models
                     LastLoadError = "Не удалось считать список файлов директории: " + FullPath;
                 else
                     foreach (var filePath in files)
-                        _items.Add(_itemFactory.CreateFile(filePath));
+                        AddItem(_itemFactory.CreateFile(filePath));
             });
+        }
+
+        private void AddItem(IItem item)
+        {
+            item.DeletedEvent += (IItem deletedItem) => { _items.Remove(deletedItem); };
+            _items.Add(item);
         }
     }
 }

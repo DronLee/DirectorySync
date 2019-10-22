@@ -65,18 +65,35 @@ namespace XUnitTestProject
         [Fact]
         public async Task Delete()
         {
-            var deletedEvent = false;
+            IItem deletedDirectory = null;
 
             using (var testDirectory = new TestDirectory())
             {
                 var sourceDirectory = testDirectory.CreateDirectory("SorceDir");
                 var directory = new Directory(sourceDirectory, new TestItemFactory());
-                directory.DeletedEvent += () => { deletedEvent = true; };
+                directory.DeletedEvent += (IItem item) => { deletedDirectory = item; };
 
                 await directory.Delete();
 
-                Assert.True(deletedEvent);
+                Assert.Equal(directory, deletedDirectory);
                 Assert.False(IODirectory.Exists(sourceDirectory));
+            }
+        }
+
+        /// <summary>
+        /// Проверка удаления дочерего элемента из директории.
+        /// </summary>
+        [Fact]
+        public async Task DeleteChildItem()
+        {
+            using (var testDirectory = new TestDirectory())
+            {
+                testDirectory.CreateDirectory("Child");
+                var directory = new Directory(testDirectory.FullPath, new TestItemFactory());
+                await directory.Load();
+                await directory.Items[0].Delete();
+
+                Assert.Empty(directory.Items); // Дочерний элемент должен удаляться из коллекции. 
             }
         }
 
@@ -198,7 +215,7 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate { get; }
 
-            public event Action DeletedEvent;
+            public event Action<IItem> DeletedEvent;
             public event Action<string> SyncErrorEvent;
             public event Action<IItem, string> CopiedFromToEvent;
 

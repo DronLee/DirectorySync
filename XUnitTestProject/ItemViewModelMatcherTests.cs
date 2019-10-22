@@ -108,7 +108,7 @@ namespace XUnitTestProject
 
             public string LastLoadError { get; set; }
 
-            public event Action DeletedEvent;
+            public event Action<IItem> DeletedEvent;
             public event Action<IItem, string> CopiedFromToEvent;
             public event Action<string> SyncErrorEvent;
             public event Action<IDirectory> LoadedDirectoryEvent;

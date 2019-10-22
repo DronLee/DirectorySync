@@ -68,17 +68,17 @@ namespace XUnitTestProject
         [Fact]
         public void Delete()
         {
-            var deletedEvent = false;
+            IItem deletedFile = null;
             using (var testDirectory = new Infrastructure.TestDirectory())
             {
                 var sourceFile = Path.Combine(testDirectory.FullPath, Guid.NewGuid().ToString());
                 File.WriteAllBytes(sourceFile, new byte[0]);
                 var file = new DirectorySync.Models.File(sourceFile);
-                file.DeletedEvent += () => { deletedEvent = true; };
+                file.DeletedEvent += (IItem item) => { deletedFile = item; };
 
                 file.Delete().Wait();
 
-                Assert.True(deletedEvent);
+                Assert.Equal(file, deletedFile);
                 Assert.False(File.Exists(sourceFile));
             }
         }

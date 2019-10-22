@@ -371,7 +371,7 @@ namespace XUnitTestProject
             public string LastLoadError { get; }
 
             public event Action<IDirectory> LoadedDirectoryEvent;
-            public event Action DeletedEvent;
+            public event Action<IItem> DeletedEvent;
             public event Action<string> SyncErrorEvent;
             public event Action<IItem, string> CopiedFromToEvent;
 
@@ -423,7 +423,7 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate { get; }
 
-            public event Action DeletedEvent;
+            public event Action<IItem> DeletedEvent;
             public event Action<string> SyncErrorEvent;
             public event Action<IItem, string> CopiedFromToEvent;
 

@@ -37,9 +37,9 @@ namespace DirectorySync.Models
         public DateTime LastUpdate { get; }
 
         /// <summary>
-        /// Событие возникает, после удаления файла.
+        /// Событие возникает, после удаления файла и передаёт его.
         /// </summary>
-        public event Action DeletedEvent;
+        public event Action<IItem> DeletedEvent;
 
         /// <summary>
         /// Событие сообщает об ошибке, возникшей в процессе синхронизации.
@@ -98,8 +98,13 @@ namespace DirectorySync.Models
                     SyncErrorEvent?.Invoke("Не удаётся удалить файл: " + FullPath);
                 }
                 if (!error)
-                    DeletedEvent?.Invoke();
+                    DeletedEvent?.Invoke(this);
             });
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().Name} {Name}";
         }
     }
 }
