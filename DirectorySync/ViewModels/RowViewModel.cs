@@ -245,7 +245,10 @@ namespace DirectorySync.ViewModels
                 SetInProcessForChildren(Parent, false);
             }
             else
+            {
+                (refreshItem == LeftItem ? Parent.LeftItem : Parent.RightItem).Directory.Load().Wait();
                 RowViewModelIsLoadedEvent?.Invoke(this);
+            }
 
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
