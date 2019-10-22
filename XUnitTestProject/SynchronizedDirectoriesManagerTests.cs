@@ -100,6 +100,8 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate => throw new NotImplementedException();
 
+            public string LastLoadError => throw new NotImplementedException();
+
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;

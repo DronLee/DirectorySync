@@ -14,9 +14,14 @@ namespace DirectorySync.Models
         IItem[] Items { get; }
 
         /// <summary>
-        /// Загрузка элементов директории.
+        /// True - директория загружена.
         /// </summary>
-        Task Load();
+        bool IsLoaded { get; }
+
+        /// <summary>
+        /// Последняя ошмбка возникшая при загрузке директории.
+        /// </summary>
+        string LastLoadError { get; }
 
         /// <summary>
         /// Событие возникает при завершении загрузки директории.
@@ -24,8 +29,8 @@ namespace DirectorySync.Models
         event Action<IDirectory> LoadedDirectoryEvent;
 
         /// <summary>
-        /// True - директория загружена.
+        /// Загрузка элементов директории.
         /// </summary>
-        bool IsLoaded { get; }
+        Task Load();
     }
 }

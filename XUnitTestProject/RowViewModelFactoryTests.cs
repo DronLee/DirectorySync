@@ -368,6 +368,8 @@ namespace XUnitTestProject
 
             public DateTime LastUpdate { get; }
 
+            public string LastLoadError { get; }
+
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action DeletedEvent;
             public event Action<string> SyncErrorEvent;

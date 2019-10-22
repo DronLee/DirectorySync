@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IO = System.IO;
 
 namespace DirectorySync.Models
 {
@@ -14,11 +15,6 @@ namespace DirectorySync.Models
         private readonly List<IItem> _items;
 
         /// <summary>
-        /// Событие возникает при завершении загрузки директории.
-        /// </summary>
-        public event Action<IDirectory> LoadedDirectoryEvent;
-
-        /// <summary>
         /// Конструктор.
         /// </summary>
         /// <param name="fullPath">Полный путо к директории.</param>
@@ -26,7 +22,7 @@ namespace DirectorySync.Models
         internal Directory(string fullPath, IItemFactory itemFactory)
         {
             FullPath = fullPath;
-            var info = new System.IO.DirectoryInfo(fullPath);
+            var info = new IO.DirectoryInfo(fullPath);
             Name = info.Name;
             LastUpdate = info.LastWriteTime;
 
@@ -61,6 +57,16 @@ namespace DirectorySync.Models
         public bool IsLoaded { get; private set; }
 
         /// <summary>
+        /// Последняя ошмбка, возникшая при загрузке директории.
+        /// </summary>
+        public string LastLoadError { get; private set; }
+
+        /// <summary>
+        /// Событие возникает при завершении загрузки директории.
+        /// </summary>
+        public event Action<IDirectory> LoadedDirectoryEvent;
+
+        /// <summary>
         /// Событие возникает, после удаления директории.
         /// </summary>
         public event Action DeletedEvent;
@@ -84,20 +90,16 @@ namespace DirectorySync.Models
         {
             _items.Clear();
 
-            await Task.Run(() =>
-            {
-                foreach (var directoryPath in System.IO.Directory.GetDirectories(FullPath))
-                    _items.Add(_itemFactory.CreateDirectory(directoryPath));
-            });
+            await LoadDirectories();
+            await LoadFiles();
 
-            await Task.Run(() =>
-            {
-                foreach (var filePath in System.IO.Directory.GetFiles(FullPath))
-                    _items.Add(_itemFactory.CreateFile(filePath));
-            });
-
-            foreach (IDirectory directory in _items.Where(i => i is IDirectory))
-                await directory.Load();
+            if (LastLoadError == null)
+                foreach (IDirectory directory in _items.Where(i => i is IDirectory))
+                {
+                    await directory.Load();
+                    if(directory.LastLoadError != null && LastLoadError == null)
+                        LastLoadError = "Есть директории, которые не удалось считать.";
+                }
 
             IsLoaded = true;
             LoadedDirectoryEvent?.Invoke(this);
@@ -109,12 +111,12 @@ namespace DirectorySync.Models
             {
                 try
                 {
-                    System.IO.Directory.CreateDirectory(destinationPath);
+                    IO.Directory.CreateDirectory(destinationPath);
                 }
                 catch { }
-                
+
                 foreach (var item in _items)
-                    await item.CopyTo(System.IO.Path.Combine(destinationPath, item.Name));
+                    await item.CopyTo(IO.Path.Combine(destinationPath, item.Name));
 
                 CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath), destinationPath);
             });
@@ -127,7 +129,7 @@ namespace DirectorySync.Models
                 var error = false;
                 try
                 {
-                    System.IO.Directory.Delete(FullPath, true);
+                    IO.Directory.Delete(FullPath, true);
                 }
                 catch
                 {
@@ -136,6 +138,42 @@ namespace DirectorySync.Models
                 }
                 if (!error)
                     DeletedEvent?.Invoke();
+            });
+        }
+
+        private async Task LoadDirectories()
+        {
+            await Task.Run(() =>
+            {
+                string[] directories = null;
+                try
+                {
+                    directories = IO.Directory.GetDirectories(FullPath);
+                }
+                catch { }
+                if (directories == null)
+                    LastLoadError = "Не удалось считать список папок директории: " + FullPath;
+                else
+                    foreach (var directoryPath in directories)
+                        _items.Add(_itemFactory.CreateDirectory(directoryPath));
+            });
+        }
+
+        private async Task LoadFiles()
+        {
+            await Task.Run(() =>
+            {
+                string[] files = null;
+                try
+                {
+                    files = IO.Directory.GetFiles(FullPath);
+                }
+                catch { }
+                if (files == null)
+                    LastLoadError = "Не удалось считать список файлов директории: " + FullPath;
+                else
+                    foreach (var filePath in files)
+                        _items.Add(_itemFactory.CreateFile(filePath));
             });
         }
     }
