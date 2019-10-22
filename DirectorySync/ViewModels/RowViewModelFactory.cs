@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DirectorySync.Models;
 
 namespace DirectorySync.ViewModels
@@ -36,30 +37,49 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
-        /// Создание строк представления отслеживаемых элементов
-        /// на основании коллекции отслеживаемых элементов слева и коллекции отслеживаемых элементов справа.
+        /// Создание дочерних строк моделей представления отслеживаемых элементов для указанной строки.
         /// </summary>
-        /// <param name="leftDirectoryItems">Коллекция отслеживаемых элментов слева.</param>
-        /// <param name="rightDirectoryItems">Коллекция отслеживаемых элментов справа.</param>
-        /// <returns>Строки представления отслеживаемых элементов.</returns>
+        /// <param name="parentRow">Строка для которой создаются дочерние элементы.</param
+        /// <returns>Строки моделей представления отслеживаемых элементов.</returns>
         private RowViewModel[] CreateRowViewModels(IRowViewModel parentRow)
         {
             var leftDirectory = parentRow.LeftItem.Directory;
             var rightDirectory = parentRow.RightItem.Directory;
 
-            var leftDirectoryItems = leftDirectory.Items;
-            var rightDirectoryItems = rightDirectory.Items;
+            var leftDirectoryItems = leftDirectory.Items.OrderBy(i => i.ToString()).ToArray();
+            var rightDirectoryItems = rightDirectory.Items.OrderBy(i => i.ToString()).ToArray();
+
+            var result = new List<RowViewModel>(CreateRowViewModels(parentRow,
+                leftDirectory.Items.Where(i => i is IDirectory).ToArray(), rightDirectory.Items.Where(i => i is IDirectory).ToArray()));
+            result.AddRange(CreateRowViewModels(parentRow,
+                leftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(), rightDirectory.Items.Where(i => !(i is IDirectory)).ToArray()));
+
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// Создание строк моделей представления отслеживаемых элементов
+        /// на основании коллекции отслеживаемых элементов слева и коллекции отслеживаемых элементов справа.
+        /// </summary>
+        /// <param name="parentRow">Строка для которой создаются дочерние элементы.</param>
+        /// <param name="leftItems">Коллекция отслеживаемых элементов слева.</param>
+        /// <param name="rightItems">Коллекция отслеживаемых элементов справа.</param>
+        /// <returns>Строки моделей представления отслеживаемых элементов.</returns>
+        private RowViewModel[] CreateRowViewModels(IRowViewModel parentRow, IItem[] leftItems, IItem[] rightItems)
+        {
+            var leftDirectory = parentRow.LeftItem.Directory;
+            var rightDirectory = parentRow.RightItem.Directory;
 
             var result = new List<RowViewModel>();
             int rightItemIndex = 0;
-            for (int leftItemIndex = 0; leftItemIndex < leftDirectoryItems.Length;)
+            for (int leftItemIndex = 0; leftItemIndex < leftItems.Length;)
             {
-                var leftItem = leftDirectoryItems[leftItemIndex];
+                var leftItem = leftItems[leftItemIndex];
 
                 // Может быть такое, что количество элементов слева больше,
                 // тогда будут создваться записи с отсутсвующими справа элементами. 
-                var rightItem = rightItemIndex < rightDirectoryItems.Length ?
-                    rightDirectoryItems[rightItemIndex] : null;
+                var rightItem = rightItemIndex < rightItems.Length ?
+                    rightItems[rightItemIndex] : null;
 
                 switch (rightItem == null ? -1 : leftItem.Name.CompareTo(rightItem.Name))
                 {
@@ -74,26 +94,14 @@ namespace DirectorySync.ViewModels
                     default:
                         leftItemIndex++;
                         rightItemIndex++;
-
-                        if (leftItem is IDirectory && rightItem is IDirectory || !(leftItem is IDirectory) && !(rightItem is IDirectory))
-                            result.Add(FullRow(leftItem, rightItem, parentRow));
-                        else if (leftItem is IDirectory)
-                        {
-                            result.Add(RightMissing(leftItem, rightDirectory.FullPath, parentRow));
-                            result.Add(LeftMissing(rightItem, leftDirectory.FullPath, parentRow));
-                        }
-                        else
-                        {
-                            result.Add(LeftMissing(rightItem, leftDirectory.FullPath, parentRow));
-                            result.Add(RightMissing(leftItem, rightDirectory.FullPath, parentRow));
-                        }
+                        result.Add(FullRow(leftItem, rightItem, parentRow));
                         break;
                 }
             }
 
             // Если с правой стороны элементов оказалось больше.
-            for (; rightItemIndex < rightDirectoryItems.Length; rightItemIndex++)
-                result.Add(LeftMissing(rightDirectoryItems[rightItemIndex], leftDirectory.FullPath, parentRow));
+            for (; rightItemIndex < rightItems.Length; rightItemIndex++)
+                result.Add(LeftMissing(rightItems[rightItemIndex], leftDirectory.FullPath, parentRow));
 
             return result.ToArray();
         }
