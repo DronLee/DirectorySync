@@ -246,7 +246,7 @@ namespace DirectorySync.ViewModels
             }
             else
             {
-                (refreshItem == LeftItem ? Parent.LeftItem : Parent.RightItem).Directory.Load().Wait();
+                (refreshItem == LeftItem ? Parent.LeftItem : Parent.RightItem).Directory?.Load().Wait();
                 RowViewModelIsLoadedEvent?.Invoke(this);
             }
 

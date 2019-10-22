@@ -219,11 +219,14 @@ namespace XUnitTestProject
         [Fact]
         public void VisibilityAcceptButton_FinishedLeftItemAccept()
         {
+            var parentRow = new RowViewModel(new ItemViewModel("LeftItem", false, new TestItem()),
+                new ItemViewModel("RightItem", false, new TestItem()), null);
+
             var leftItemViewModel = new ItemViewModel("LeftItem", false, new TestItem());
             leftItemViewModel.SetActionCommand(() => { return Task.FromResult(true); });
             var rightItemViewModel = new ItemViewModel("RightItem", false, new TestItem());
             rightItemViewModel.SetActionCommand(() => { return Task.FromResult(true); });
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); //  Чтобы успели обновиться свойства.
 
@@ -237,11 +240,14 @@ namespace XUnitTestProject
         [Fact]
         public void VisibilityAcceptButton_FinishedRightItemAccept()
         {
+            var parentRow = new RowViewModel(new ItemViewModel("LeftItem", false, new TestItem()),
+                new ItemViewModel("RightItem", false, new TestItem()), null);
+
             var leftItemViewModel = new ItemViewModel("LeftItem", false, new TestItem());
             leftItemViewModel.SetActionCommand(() => { return Task.FromResult(true); });
             var rightItemViewModel = new ItemViewModel("RightItem", false, new TestItem());
             rightItemViewModel.SetActionCommand(() => { return Task.FromResult(true); });
-            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, null);
+            var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
             rowViewModel.RightItem.AcceptCommand.Execute(null);
             Thread.Sleep(25); // Чтобы успели обновиться свойства.
 
