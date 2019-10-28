@@ -147,13 +147,23 @@ namespace DirectorySync.ViewModels
         {
             if (ChildRows.Count > 0)
             {
+                // Достаточно проверять статус с одной стороны, так как если с одной стороны Equally, то и с другой стороны обязательно Equally.
                 var notEquallyChilds = ChildRows.Where(r => r.LeftItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
 
                 if (notEquallyChilds.Length == 0)
                 {
+                    // Если все дочерние строки имеют статус Equally, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
                     LeftItem.UpdateStatus(ItemStatusEnum.Equally);
                     LeftItem.SetActionCommand(null);
                     RightItem.UpdateStatus(ItemStatusEnum.Equally);
+                    RightItem.SetActionCommand(null);
+                }
+                else if(notEquallyChilds.Any(r=>r.LeftItem.Status.StatusEnum == ItemStatusEnum.Unknown))
+                {
+                    // Если хоть одна дочерняя строка имеет статус Unknown, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
+                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+                    LeftItem.SetActionCommand(null);
+                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
                     RightItem.SetActionCommand(null);
                 }
                 else
