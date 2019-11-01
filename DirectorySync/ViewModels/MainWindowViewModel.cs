@@ -262,7 +262,7 @@ namespace DirectorySync.ViewModels
         private BitmapSource GetProcessGifSource()
         {
             if (_processGifBitmap == null)
-                _processGifBitmap = new Bitmap(@"c:\MyProgramms\Своё\DirectorySync\DirectorySync\Icons\SyncProcess.gif"); //System.IO.Path.Combine(Environment.CurrentDirectory, "Icons", "SyncProcess.gif"));
+                _processGifBitmap = Resources.SyncProcess;
             var handle = _processGifBitmap.GetHbitmap();
             return Imaging.CreateBitmapSourceFromHBitmap(
                     handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
