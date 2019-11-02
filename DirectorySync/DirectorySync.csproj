@@ -34,6 +34,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>
+    </ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac, Version=4.9.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <HintPath>..\packages\Autofac.4.9.2\lib\net45\Autofac.dll</HintPath>
@@ -170,9 +174,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Icons\AppIcon.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Icons\File.png" />
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +201,7 @@
     <Resource Include="Icons\SyncProcess.gif" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Icons\AppIcon.ico" />
     <Content Include="DLL\Newtonsoft.Json.dll" />
     <Resource Include="Icons\RefreshRow.png" />
     <Resource Include="Icons\Status\Error.png" />

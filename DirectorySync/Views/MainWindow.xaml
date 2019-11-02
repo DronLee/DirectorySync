@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         mc:Ignorable="d"
-        Title="Синхронизация директорий" Height="450" Width="800" Icon="/DirectorySync;component/Icons/AppIcon.jpg" WindowStartupLocation="CenterScreen">
+        Title="Синхронизация директорий" Height="450" Width="800" Icon="/DirectorySync;component/Icons/AppIcon.ico" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="booleanToVisiblityConverter" />
