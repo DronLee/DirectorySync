@@ -35,8 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>
-    </ApplicationIcon>
+    <ApplicationIcon>AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac, Version=4.9.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
@@ -202,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\AppIcon.ico" />
+    <Resource Include="AppIcon.ico" />
     <Content Include="DLL\Newtonsoft.Json.dll" />
     <Resource Include="Icons\RefreshRow.png" />
     <Resource Include="Icons\Status\Error.png" />
