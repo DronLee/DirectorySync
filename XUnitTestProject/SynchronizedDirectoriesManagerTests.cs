@@ -30,6 +30,9 @@ namespace XUnitTestProject
             Assert.Equal("4", synchronizedDirectory.RightDirectory.FullPath);
         }
 
+        /// <summary>
+        /// Тест на акутализацию коллекции синхронизируемых директорий во время загрузки при изменении настроек.
+        /// </summary>
         [Fact]
         public async Task Load()
         {
@@ -41,32 +44,55 @@ namespace XUnitTestProject
             {
                 var settingsRow1 = new SettingsRow(testDirectory.CreateDirectory("1"), testDirectory.CreateDirectory("2"), true, null);
                 var settingsRow2 = new SettingsRow(testDirectory.CreateDirectory("3"), testDirectory.CreateDirectory("4"), false, null);
+                var settingsRow3 = new SettingsRow(testDirectory.CreateDirectory("5"), testDirectory.CreateDirectory("6"), true, new[] { "tiff" });
+                var settingsRow4 = new SettingsRow(testDirectory.CreateDirectory("7"), testDirectory.CreateDirectory("8"), true, new[] { "tiff" });
 
                 testSettingsStorage.SettingsRows = new[]
                 {
                     settingsRow1,
-                    settingsRow2
+                    settingsRow2,
+                    settingsRow3,
+                    settingsRow4
                 };
 
                 var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
+                var oldSynchronizedDirectory2 = synchronizedDirectoriesManager.SynchronizedDirectories[1];
+                var oldSynchronizedDirectory3 = synchronizedDirectoriesManager.SynchronizedDirectories[2];
+
                 synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += (ISynchronizedDirectories synchronizedDirectories) =>
                 {
                     removedSynchronizedDirectories = synchronizedDirectories;
                 };
-                settingsRow1.IsUsed = false; // Это строка при загрузке должна будет удалиться.
-                settingsRow2.IsUsed = true; // Это строка при загрузке должна будет добавиться.
+                settingsRow1.IsUsed = false; // Эта строка при загрузке должна будет удалиться.
+                settingsRow2.IsUsed = true; // Эта строка при загрузке должна будет добавиться.
+                
+                // Эта строка при загрузке должна будет инициализировать новую из-за изменения коллекции ExcludedExtensions.
+                settingsRow3.ExcludedExtensions = new[] { "jpg" };
+
                 await synchronizedDirectoriesManager.Load();
 
-                Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
-                var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories.Single();
-                Assert.Equal(settingsRow2.LeftDirectory.DirectoryPath, synchronizedDirectory.LeftDirectory.FullPath);
-                Assert.Equal(settingsRow2.RightDirectory.DirectoryPath, synchronizedDirectory.RightDirectory.FullPath);
-                Assert.True(synchronizedDirectory.IsLoaded);
+                Assert.Equal(3, synchronizedDirectoriesManager.SynchronizedDirectories.Length);
 
                 // Проверим удалённую директорию.
                 Assert.NotNull(removedSynchronizedDirectories);
                 Assert.Equal(settingsRow1.LeftDirectory.DirectoryPath, removedSynchronizedDirectories.LeftDirectory.FullPath);
                 Assert.Equal(settingsRow1.RightDirectory.DirectoryPath, removedSynchronizedDirectories.RightDirectory.FullPath);
+
+                // Эта запись на синхронизируемую директорию должна быть новой, но соответсвовать изначальной третьей записи.
+                var synchronizedDirectory1 = synchronizedDirectoriesManager.SynchronizedDirectories[0];
+                Assert.NotEqual(oldSynchronizedDirectory2, synchronizedDirectory1);
+                Assert.Equal(oldSynchronizedDirectory2.LeftDirectory.FullPath, synchronizedDirectory1.LeftDirectory.FullPath);
+                Assert.Equal(oldSynchronizedDirectory2.RightDirectory.FullPath, synchronizedDirectory1.RightDirectory.FullPath);
+                Assert.True(synchronizedDirectory1.IsLoaded);
+
+                // Эта запись на синхронизируемую директорию не должна была обновляться.
+                Assert.Equal(oldSynchronizedDirectory3, synchronizedDirectoriesManager.SynchronizedDirectories[1]);
+
+                // Эта запись на синхронизируемую директорию должна быть добавленной из-за включения строки настройки.
+                var synchronizedDirectory3 = synchronizedDirectoriesManager.SynchronizedDirectories[2];
+                Assert.Equal(settingsRow2.LeftDirectory.DirectoryPath, synchronizedDirectory3.LeftDirectory.FullPath);
+                Assert.Equal(settingsRow2.RightDirectory.DirectoryPath, synchronizedDirectory3.RightDirectory.FullPath);
+                Assert.True(synchronizedDirectory3.IsLoaded);
             }
         }
 
@@ -122,7 +148,7 @@ namespace XUnitTestProject
         {
             public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
             {
-                return new TestDirectoryModel(directoryPath);
+                return new TestDirectoryModel(directoryPath, excludedExtensions);
             }
 
             public IItem CreateFile(string filePath)
@@ -133,9 +159,10 @@ namespace XUnitTestProject
 
         private class TestDirectoryModel : IDirectory
         {
-            public TestDirectoryModel(string directoryPath)
+            public TestDirectoryModel(string directoryPath, string[] excludedExtensions)
             {
                 FullPath = directoryPath;
+                ExcludedExtensions = excludedExtensions;
             }
 
             public IItem[] Items => throw new NotImplementedException();
@@ -149,6 +176,8 @@ namespace XUnitTestProject
             public DateTime LastUpdate => throw new NotImplementedException();
 
             public string LastLoadError => throw new NotImplementedException();
+
+            public string[] ExcludedExtensions { get; }
 
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action<IItem> DeletedEvent;

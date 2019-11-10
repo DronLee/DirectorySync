@@ -11,7 +11,6 @@ namespace DirectorySync.Models
     /// </summary>
     internal class Directory : IDirectory
     {
-        private readonly string[] _excludedExtensions;
         private readonly IItemFactory _itemFactory;
         private readonly List<IItem> _items;
 
@@ -24,7 +23,7 @@ namespace DirectorySync.Models
         internal Directory(string fullPath, string[] excludedExtensions, IItemFactory itemFactory)
         {
             FullPath = fullPath;
-            _excludedExtensions = excludedExtensions;
+            ExcludedExtensions = excludedExtensions;
             var info = new IO.DirectoryInfo(fullPath);
             Name = info.Name;
             LastUpdate = info.LastWriteTime;
@@ -63,6 +62,11 @@ namespace DirectorySync.Models
         /// Последняя ошмбка, возникшая при загрузке директории.
         /// </summary>
         public string LastLoadError { get; private set; }
+
+        /// <summary>
+        /// Расширения файлов, которые не нужно загружать.
+        /// </summary>
+        public string[] ExcludedExtensions { get; }
 
         /// <summary>
         /// Событие возникает при завершении загрузки директории.
@@ -122,7 +126,7 @@ namespace DirectorySync.Models
                 foreach (var item in _items)
                     await item.CopyTo(IO.Path.Combine(destinationPath, item.Name));
 
-                CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath, _excludedExtensions), destinationPath);
+                CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath, ExcludedExtensions), destinationPath);
             });
         }
 
@@ -164,7 +168,7 @@ namespace DirectorySync.Models
                     LastLoadError = "Не удалось считать список папок директории: " + FullPath;
                 else
                     foreach (var directoryPath in directories)
-                        AddItem(_itemFactory.CreateDirectory(directoryPath, _excludedExtensions));
+                        AddItem(_itemFactory.CreateDirectory(directoryPath, ExcludedExtensions));
             });
         }
 
@@ -175,8 +179,8 @@ namespace DirectorySync.Models
                 string[] files = null;
                 try
                 {
-                    files = IO.Directory.GetFiles(FullPath).Where(f => _excludedExtensions == null ||
-                        !_excludedExtensions.Contains(IO.Path.GetExtension(f).TrimStart('.'))).ToArray();
+                    files = IO.Directory.GetFiles(FullPath).Where(f => ExcludedExtensions == null ||
+                        !ExcludedExtensions.Contains(IO.Path.GetExtension(f).TrimStart('.'))).ToArray();
                 }
                 catch { }
                 if (files == null)

@@ -24,6 +24,11 @@ namespace DirectorySync.Models
         string LastLoadError { get; }
 
         /// <summary>
+        /// Расширения файлов, которые не нужно загружать.
+        /// </summary>
+        string[] ExcludedExtensions { get; }
+
+        /// <summary>
         /// Событие возникает при завершении загрузки директории.
         /// </summary>
         event Action<IDirectory> LoadedDirectoryEvent;

@@ -370,6 +370,8 @@ namespace XUnitTestProject
 
             public string LastLoadError { get; }
 
+            public string[] ExcludedExtensions => throw new NotImplementedException();
+
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action<IItem> DeletedEvent;
             public event Action<string> SyncErrorEvent;
