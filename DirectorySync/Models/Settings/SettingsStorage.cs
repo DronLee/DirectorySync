@@ -43,10 +43,11 @@ namespace DirectorySync.Models.Settings
         /// <param name="leftDirectoryPath">Путь к одной директории.</param>
         /// <param name="rightDirectoryPath">Путь ко второй директории.</param>
         /// <param name="isUsed">Признак активности настройки.</param>
+        /// <param name="excludedExtensions">Расширения файлов, которые не должны принимать участие в синхронизации.</param>
         /// <returns>Созданная строка настроек.</returns>
-        public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed)
+        public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed, string[] excludedExtensions)
         {
-            return new SettingsRow(leftDirectoryPath, rightDirectoryPath, isUsed);
+            return new SettingsRow(leftDirectoryPath, rightDirectoryPath, isUsed, excludedExtensions);
         }
 
         /// <summary>

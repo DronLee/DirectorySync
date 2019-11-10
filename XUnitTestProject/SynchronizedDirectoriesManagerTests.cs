@@ -18,8 +18,8 @@ namespace XUnitTestProject
             var testSettingsStorage = new TestSettingsStorage();
             testSettingsStorage.SettingsRows = new[]
             {
-                new SettingsRow("1", "2", false),
-                new SettingsRow("3", "4", true)
+                new SettingsRow("1", "2", false, null),
+                new SettingsRow("3", "4", true, null)
             };
 
             var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
@@ -39,8 +39,8 @@ namespace XUnitTestProject
 
             using (var testDirectory = new TestDirectory())
             {
-                var settingsRow1 = new SettingsRow(testDirectory.CreateDirectory("1"), testDirectory.CreateDirectory("2"), true);
-                var settingsRow2 = new SettingsRow(testDirectory.CreateDirectory("3"), testDirectory.CreateDirectory("4"), false);
+                var settingsRow1 = new SettingsRow(testDirectory.CreateDirectory("1"), testDirectory.CreateDirectory("2"), true, null);
+                var settingsRow2 = new SettingsRow(testDirectory.CreateDirectory("3"), testDirectory.CreateDirectory("4"), false, null);
 
                 testSettingsStorage.SettingsRows = new[]
                 {
@@ -70,9 +70,57 @@ namespace XUnitTestProject
             }
         }
 
+        [Theory]
+        [InlineData(null, 6)]
+        [InlineData(new[] { "tiff" }, 3)]
+        [InlineData(new[] { "jpg" }, 4)]
+        [InlineData(new[] { "jpg", "tiff" }, 1)]
+        public async Task LoadWithExcludedExtensions(string[] excludedExtensions, byte loadedFilesCount)
+        {
+            var testSettingsStorage = new TestSettingsStorage();
+
+            using (var testDirectory = new TestDirectory())
+            {
+                var fileLastUpdate = DateTime.Now;
+
+                var leftDirectory = testDirectory.CreateDirectory("1");
+                TestDirectory.CreateFiles(leftDirectory, new System.Collections.Generic.Dictionary<string, DateTime>
+                {
+                    { "1.tiff", fileLastUpdate },
+                    { "2.tiff", fileLastUpdate },
+                    { "3.tiff", fileLastUpdate },
+                    { "4.jpg", fileLastUpdate },
+                    { "5.jpg", fileLastUpdate },
+                    { "6.png", fileLastUpdate }
+                });
+
+                var rightDirectory = testDirectory.CreateDirectory("2");
+                TestDirectory.CreateFiles(rightDirectory, new System.Collections.Generic.Dictionary<string, DateTime>
+                {
+                    { "1.tiff", fileLastUpdate },
+                    { "2.tiff", fileLastUpdate },
+                    { "3.tiff", fileLastUpdate },
+                    { "4.jpg", fileLastUpdate },
+                    { "5.jpg", fileLastUpdate },
+                    { "6.png", fileLastUpdate }
+                });
+
+                var settingsRow1 = new SettingsRow(leftDirectory, rightDirectory, true, excludedExtensions);
+                testSettingsStorage.SettingsRows = new[] { settingsRow1 };
+
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new ItemFactory());
+                await synchronizedDirectoriesManager.Load();
+
+                Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
+                var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories.Single();
+                Assert.Equal(loadedFilesCount, synchronizedDirectory.LeftDirectory.Items.Length);
+                Assert.Equal(loadedFilesCount, synchronizedDirectory.RightDirectory.Items.Length);
+            }
+        }
+
         private class TestItemFactory : IItemFactory
         {
-            public IDirectory CreateDirectory(string directoryPath)
+            public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
             {
                 return new TestDirectoryModel(directoryPath);
             }
@@ -128,7 +176,7 @@ namespace XUnitTestProject
         {
             public ISettingsRow[] SettingsRows { get; set; }
 
-            public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed)
+            public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed, string[] excludedExtensions)
             {
                 throw new NotImplementedException();
             }

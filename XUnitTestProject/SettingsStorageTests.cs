@@ -34,16 +34,17 @@ namespace XUnitTestProject
         }
 
         [Theory]
-        [InlineData("C:\\1", "D:\\2", true)]
-        [InlineData("C:\\2", "D:\\1", false)]
-        public void CreateSettingsRow(string leftDirectory, string rightDirectory, bool isUsed)
+        [InlineData("C:\\1", "D:\\2", true, null)]
+        [InlineData("C:\\2", "D:\\1", false, new[] { "tiff", "png" })]
+        public void CreateSettingsRow(string leftDirectory, string rightDirectory, bool isUsed, string[] excludedExtensions)
         {
             var storage = new SettingsStorage("C:\\Test");
-            var result = storage.CreateSettingsRow(leftDirectory, rightDirectory, isUsed);
+            var result = storage.CreateSettingsRow(leftDirectory, rightDirectory, isUsed, excludedExtensions);
 
             Assert.Equal(leftDirectory, result.LeftDirectory.DirectoryPath);
             Assert.Equal(rightDirectory, result.RightDirectory.DirectoryPath);
             Assert.Equal(isUsed, result.IsUsed);
+            Assert.Equal(excludedExtensions, result.ExcludedExtensions);
 
             //При создании не проверяется наличие директории, создаётся, как будто существующая.
             Assert.False(result.LeftDirectory.NotFound);
@@ -59,8 +60,8 @@ namespace XUnitTestProject
                 var storage = new SettingsStorage(settingsFile);
                 storage.SettingsRows = new[]
                 {
-                    new SettingsRow("1", "2", false),
-                    new SettingsRow("3", "4", true)
+                    new SettingsRow("1", "2", false, new[] { "jpg", "png" }),
+                    new SettingsRow("3", "4", true, null)
                 };
 
                 // Чтобы потом проверить, что при записи NotFound не сохранилось.
@@ -85,6 +86,7 @@ namespace XUnitTestProject
                     Assert.Equal(expectedRow.LeftDirectory.DirectoryPath, resultRow.LeftDirectory.DirectoryPath);
                     Assert.Equal(expectedRow.RightDirectory.DirectoryPath, resultRow.RightDirectory.DirectoryPath);
                     Assert.Equal(expectedRow.IsUsed, resultRow.IsUsed);
+                    Assert.Equal(expectedRow.ExcludedExtensions, resultRow.ExcludedExtensions);
 
                     // NotFound не хранится в файле, так как каждый раз при загрузке снова проверяется.
                     Assert.False(resultRow.LeftDirectory.NotFound);

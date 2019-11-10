@@ -22,6 +22,11 @@
         bool IsUsed { get; set; }
 
         /// <summary>
+        /// Расширения файлов, которые не должны принимать участие в синхронизации. 
+        /// </summary>
+        string[] ExcludedExtensions { get; set; }
+
+        /// <summary>
         /// Проверка существуют ли указанные директории и обновление свойства NotFound этих директорий.
         /// </summary>
         void NotFoundRefresh();

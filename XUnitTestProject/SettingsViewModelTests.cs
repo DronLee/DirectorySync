@@ -15,8 +15,8 @@ namespace XUnitTestProject
             var settingsStorage = new TestSettingsStorage();
             settingsStorage.SettingsRows = new[]
             {
-                new SettingsRow("1", null, true),
-                new SettingsRow(null, "2", false)
+                new SettingsRow("1", null, true, new string[0]),
+                new SettingsRow(null, "2", false, new[] { "jpg", "png" })
             };
 
             // Чтобы потом проверить и NotFound.
@@ -46,6 +46,7 @@ namespace XUnitTestProject
                 Assert.Equal(settingsRow.LeftDirectory.NotFound, settingsRowViewModel.LeftDirectory.NotFound);
                 Assert.Equal(settingsRow.RightDirectory.DirectoryPath, settingsRowViewModel.RightDirectory.DirectoryPath);
                 Assert.Equal(settingsRow.RightDirectory.NotFound, settingsRowViewModel.RightDirectory.NotFound);
+                Assert.Equal(string.Join(";", settingsRow.ExcludedExtensions), settingsRowViewModel.ExcludedExtensions);
             }
 
             // И проверка наименований стилей исходня из обнаружения дирекорий.
@@ -58,7 +59,7 @@ namespace XUnitTestProject
         {
             public ISettingsRow[] SettingsRows { get; set; }
 
-            public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed)
+            public ISettingsRow CreateSettingsRow(string leftDirectoryPath, string rightDirectoryPath, bool isUsed, string[] excludedExtensions)
             {
                 throw new NotImplementedException();
             }
