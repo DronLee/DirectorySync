@@ -186,6 +186,38 @@ namespace XUnitTestProject
             }
         }
 
+        /// <summary>
+        /// Тестирование загрузки директории на исключение из загрузки файлов с указанными расширениями.
+        /// </summary>
+        [Theory]
+        [InlineData(null, 6)]
+        [InlineData(new[] { "tiff" }, 3)]
+        [InlineData(new[] { "jpg" }, 4)]
+        [InlineData(new[] { "jpg", "tiff" }, 1)]
+        public async Task LoadWithExcludedExtensions(string[] excludedExtensions, byte loadedFilesCount)
+        {
+            var fileLastUpdate = DateTime.Now;
+
+            using (var testDirectory = new TestDirectory())
+            {
+                testDirectory.CreateFiles(new System.Collections.Generic.Dictionary<string, DateTime>
+                {
+                    { "1.tiff", fileLastUpdate },
+                    { "2.tiff", fileLastUpdate },
+                    { "3.tiff", fileLastUpdate },
+                    { "4.jpg", fileLastUpdate },
+                    { "5.jpg", fileLastUpdate },
+                    { "6.png", fileLastUpdate }
+                });
+
+                var directory = new Directory(testDirectory.FullPath, excludedExtensions, new TestItemFactory());
+                await directory.Load();
+
+                Assert.True(directory.IsLoaded);
+                Assert.Equal(loadedFilesCount, directory.Items.Length);
+            }
+        }
+
         private class TestItemFactory : IItemFactory
         {
             public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
