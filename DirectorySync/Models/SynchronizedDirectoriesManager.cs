@@ -67,6 +67,25 @@ namespace DirectorySync.Models
                 RemoveSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectory);
             }
 
+            // Если был изменён массив исключаемых из рассмотрения расширений файлов,
+            // то должна выполняться перезагрузка синхронизируемых директорий с учётом этих изменений.
+            foreach (var synchronizedDirectory in _synchronizedDirectoriesList)
+            {
+                var settingsRow = activeSettingsRows.Single(r =>
+                    synchronizedDirectory.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath &&
+                    synchronizedDirectory.RightDirectory.FullPath == r.RightDirectory.DirectoryPath);
+                if (settingsRow.ExcludedExtensions != null &&
+
+                    // Достаточно проверить директорию с одной стороны, так как массив ExcludedExtensions для обоих сторон одниковый.
+                    !settingsRow.ExcludedExtensions.Equals(synchronizedDirectory.LeftDirectory.ExcludedExtensions) ||
+                    settingsRow.ExcludedExtensions != null && synchronizedDirectory.LeftDirectory.ExcludedExtensions == null)
+                {
+                    synchronizedDirectory.LeftDirectory.ExcludedExtensions = settingsRow.ExcludedExtensions;
+                    synchronizedDirectory.RightDirectory.ExcludedExtensions = settingsRow.ExcludedExtensions;
+                    synchronizedDirectory.LoadRequired();
+                }
+            }
+
             // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
             await Task.Run(() => Task.WaitAll(_synchronizedDirectoriesList.Where(d => !d.IsLoaded).Select(d => d.Load()).ToArray()));
         }
