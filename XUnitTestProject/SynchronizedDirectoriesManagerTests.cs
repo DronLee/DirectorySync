@@ -1,6 +1,7 @@
 ﻿using DirectorySync.Models;
 using DirectorySync.Models.Settings;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -39,6 +40,7 @@ namespace XUnitTestProject
             var testItemFactory = new TestItemFactory();
             var testSettingsStorage = new TestSettingsStorage();
             ISynchronizedDirectories removedSynchronizedDirectories = null;
+            var loadedDirectories = new List<IDirectory>();
 
             using (var testDirectory = new TestDirectory())
             {
@@ -46,18 +48,30 @@ namespace XUnitTestProject
                 var settingsRow2 = new SettingsRow(testDirectory.CreateDirectory("3"), testDirectory.CreateDirectory("4"), false, null);
                 var settingsRow3 = new SettingsRow(testDirectory.CreateDirectory("5"), testDirectory.CreateDirectory("6"), true, new[] { "tiff" });
                 var settingsRow4 = new SettingsRow(testDirectory.CreateDirectory("7"), testDirectory.CreateDirectory("8"), true, new[] { "tiff" });
+                var settingsRow5 = new SettingsRow(testDirectory.CreateDirectory("9"), testDirectory.CreateDirectory("10"), true, null);
 
                 testSettingsStorage.SettingsRows = new[]
                 {
                     settingsRow1,
                     settingsRow2,
                     settingsRow3,
-                    settingsRow4
+                    settingsRow4,
+                    settingsRow5
                 };
 
                 var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
+
+                await synchronizedDirectoriesManager.Load(); // Загрузка до изменения настроек.
+
                 var oldSynchronizedDirectory2 = synchronizedDirectoriesManager.SynchronizedDirectories[1];
                 var oldSynchronizedDirectory3 = synchronizedDirectoriesManager.SynchronizedDirectories[2];
+                var oldSynchronizedDirectory4 = synchronizedDirectoriesManager.SynchronizedDirectories[3];
+
+                foreach(var synchronizedDirectory in synchronizedDirectoriesManager.SynchronizedDirectories)
+                {
+                    synchronizedDirectory.LeftDirectory.LoadedDirectoryEvent += (IDirectory loadedDirecory) => { loadedDirectories.Add(loadedDirecory); };
+                    synchronizedDirectory.RightDirectory.LoadedDirectoryEvent += (IDirectory loadedDirecory) => { loadedDirectories.Add(loadedDirecory); };
+                }
 
                 synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += (ISynchronizedDirectories synchronizedDirectories) =>
                 {
@@ -69,27 +83,31 @@ namespace XUnitTestProject
                 // Эта строка при загрузке должна будет инициализировать новую из-за изменения коллекции ExcludedExtensions.
                 settingsRow3.ExcludedExtensions = new[] { "jpg" };
 
-                await synchronizedDirectoriesManager.Load();
+                await synchronizedDirectoriesManager.Load(); // Загрузка после изменения настроек.
 
-                Assert.Equal(3, synchronizedDirectoriesManager.SynchronizedDirectories.Length);
+                Assert.Equal(4, synchronizedDirectoriesManager.SynchronizedDirectories.Length);
 
                 // Проверим удалённую директорию.
                 Assert.NotNull(removedSynchronizedDirectories);
                 Assert.Equal(settingsRow1.LeftDirectory.DirectoryPath, removedSynchronizedDirectories.LeftDirectory.FullPath);
                 Assert.Equal(settingsRow1.RightDirectory.DirectoryPath, removedSynchronizedDirectories.RightDirectory.FullPath);
 
-                // Эта запись на синхронизируемую директорию должна быть новой, но соответсвовать изначальной третьей записи.
-                var synchronizedDirectory1 = synchronizedDirectoriesManager.SynchronizedDirectories[0];
-                Assert.NotEqual(oldSynchronizedDirectory2, synchronizedDirectory1);
-                Assert.Equal(oldSynchronizedDirectory2.LeftDirectory.FullPath, synchronizedDirectory1.LeftDirectory.FullPath);
-                Assert.Equal(oldSynchronizedDirectory2.RightDirectory.FullPath, synchronizedDirectory1.RightDirectory.FullPath);
-                Assert.True(synchronizedDirectory1.IsLoaded);
-
-                // Эта запись на синхронизируемую директорию не должна была обновляться.
+                // Записи на синхронизируемые директории должны оставаться прежними.
+                Assert.Equal(oldSynchronizedDirectory2, synchronizedDirectoriesManager.SynchronizedDirectories[0]);
                 Assert.Equal(oldSynchronizedDirectory3, synchronizedDirectoriesManager.SynchronizedDirectories[1]);
+                Assert.Equal(oldSynchronizedDirectory4, synchronizedDirectoriesManager.SynchronizedDirectories[2]);
+
+                // Лишь две директории одной записи должны были обновиться.
+                Assert.Equal(2, loadedDirectories.Count);
+                Assert.Contains(oldSynchronizedDirectory2.LeftDirectory, loadedDirectories);
+                Assert.Contains(oldSynchronizedDirectory2.RightDirectory, loadedDirectories);
+
+                // И массивы исключаемых из рассмотрения расширений файлов тоже должны были обновиться.
+                Assert.Equal(settingsRow3.ExcludedExtensions, oldSynchronizedDirectory2.LeftDirectory.ExcludedExtensions);
+                Assert.Equal(settingsRow3.ExcludedExtensions, oldSynchronizedDirectory2.RightDirectory.ExcludedExtensions);
 
                 // Эта запись на синхронизируемую директорию должна быть добавленной из-за включения строки настройки.
-                var synchronizedDirectory3 = synchronizedDirectoriesManager.SynchronizedDirectories[2];
+                var synchronizedDirectory3 = synchronizedDirectoriesManager.SynchronizedDirectories[3];
                 Assert.Equal(settingsRow2.LeftDirectory.DirectoryPath, synchronizedDirectory3.LeftDirectory.FullPath);
                 Assert.Equal(settingsRow2.RightDirectory.DirectoryPath, synchronizedDirectory3.RightDirectory.FullPath);
                 Assert.True(synchronizedDirectory3.IsLoaded);
@@ -177,7 +195,7 @@ namespace XUnitTestProject
 
             public string LastLoadError => throw new NotImplementedException();
 
-            public string[] ExcludedExtensions { get; }
+            public string[] ExcludedExtensions { get; set; }
 
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action<IItem> DeletedEvent;
@@ -197,6 +215,7 @@ namespace XUnitTestProject
             public Task Load()
             {
                 IsLoaded = true;
+                LoadedDirectoryEvent?.Invoke(this);
                 return Task.CompletedTask;
             }
         }

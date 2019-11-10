@@ -108,7 +108,7 @@ namespace XUnitTestProject
 
             public string LastLoadError { get; set; }
 
-            public string[] ExcludedExtensions => throw new NotImplementedException();
+            public string[] ExcludedExtensions { get; set; }
 
             public event Action<IItem> DeletedEvent;
             public event Action<IItem, string> CopiedFromToEvent;

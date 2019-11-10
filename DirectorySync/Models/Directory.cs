@@ -66,7 +66,7 @@ namespace DirectorySync.Models
         /// <summary>
         /// Расширения файлов, которые не нужно загружать.
         /// </summary>
-        public string[] ExcludedExtensions { get; }
+        public string[] ExcludedExtensions { get; set; }
 
         /// <summary>
         /// Событие возникает при завершении загрузки директории.

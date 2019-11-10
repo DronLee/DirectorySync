@@ -343,6 +343,11 @@ namespace XUnitTestProject
                 await LeftDirectory.Load();
                 await RightDirectory.Load();
             }
+
+            public void LoadRequired()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class TestDirectory : IDirectory
@@ -370,7 +375,7 @@ namespace XUnitTestProject
 
             public string LastLoadError { get; }
 
-            public string[] ExcludedExtensions => throw new NotImplementedException();
+            public string[] ExcludedExtensions { get; set; }
 
             public event Action<IDirectory> LoadedDirectoryEvent;
             public event Action<IItem> DeletedEvent;
