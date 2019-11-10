@@ -109,6 +109,8 @@ namespace DirectorySync.Models
                         LastLoadError = "Есть директории, которые не удалось считать.";
                 }
 
+            _items.RemoveAll(i => (i as IDirectory)?.Items.Length == 0);
+
             IsLoaded = true;
             LoadedDirectoryEvent?.Invoke(this);
         }

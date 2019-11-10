@@ -88,7 +88,11 @@ namespace XUnitTestProject
         {
             using (var testDirectory = new TestDirectory())
             {
-                testDirectory.CreateDirectory("Child");
+                TestDirectory.CreateFiles(testDirectory.CreateDirectory("Child"), new Dictionary<string, DateTime>
+                {
+                    {"1", DateTime.Now }
+                });
+
                 var directory = new Directory(testDirectory.FullPath, null, new TestItemFactory());
                 await directory.Load();
                 await directory.Items[0].Delete();
@@ -156,33 +160,26 @@ namespace XUnitTestProject
                 await directory.Load();
 
                 Assert.True(directory.IsLoaded);
-                Assert.Equal(3, directory.Items.Length); // Один файл и две директории.
+                Assert.Equal(2, directory.Items.Length); // Один файл и одна не пустая директория.
 
-                // Сначала идут директории, а потом файлы.
+                // Сначала идёт директория, а потом файл.
                 Assert.IsType<Directory>(directory.Items[0]);
-                Assert.IsType<Directory>(directory.Items[1]);
-                Assert.IsType<TestFile>(directory.Items[2]);
+                Assert.IsType<TestFile>(directory.Items[1]);
 
-                Assert.Equal(emptyDirectoryName, directory.Items[0].Name);
-                Assert.Equal(emptyDirectoryPath, directory.Items[0].FullPath);
-                Assert.Equal(emptyDirectoryLastUpdate, directory.Items[0].LastUpdate);
+                Assert.Equal(notEmptyDirectoryName, directory.Items[0].Name);
+                Assert.Equal(notEmptyDirectoryPath, directory.Items[0].FullPath);
+                Assert.Equal(notEmptyDirectoryLastUpdate, directory.Items[0].LastUpdate);
                 Assert.True(((IDirectory)directory.Items[0]).IsLoaded);
-                Assert.Empty(((IDirectory)directory.Items[0]).Items);
-
-                Assert.Equal(notEmptyDirectoryName, directory.Items[1].Name);
-                Assert.Equal(notEmptyDirectoryPath, directory.Items[1].FullPath);
-                Assert.Equal(notEmptyDirectoryLastUpdate, directory.Items[1].LastUpdate);
-                Assert.True(((IDirectory)directory.Items[1]).IsLoaded);
-                Assert.Equal(2, ((IDirectory)directory.Items[1]).Items.Length);
-                var file1 = ((IDirectory)directory.Items[1]).Items[0];
+                Assert.Equal(2, ((IDirectory)directory.Items[0]).Items.Length);
+                var file1 = ((IDirectory)directory.Items[0]).Items[0];
                 Assert.Equal(file1Name, file1.Name);
                 Assert.Equal(file1LastUpdate, file1.LastUpdate);
-                var file2 = ((IDirectory)directory.Items[1]).Items[1];
+                var file2 = ((IDirectory)directory.Items[0]).Items[1];
                 Assert.Equal(file2Name, file2.Name);
                 Assert.Equal(file2LastUpdate, file2.LastUpdate);
 
-                Assert.Equal(rootFileName, directory.Items[2].Name);
-                Assert.Equal(rootFileLastUpdate, directory.Items[2].LastUpdate);
+                Assert.Equal(rootFileName, directory.Items[1].Name);
+                Assert.Equal(rootFileLastUpdate, directory.Items[1].LastUpdate);
             }
         }
 
