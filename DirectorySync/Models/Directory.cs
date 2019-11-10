@@ -11,6 +11,7 @@ namespace DirectorySync.Models
     /// </summary>
     internal class Directory : IDirectory
     {
+        private readonly string[] _excludedExtensions;
         private readonly IItemFactory _itemFactory;
         private readonly List<IItem> _items;
 
@@ -18,10 +19,12 @@ namespace DirectorySync.Models
         /// Конструктор.
         /// </summary>
         /// <param name="fullPath">Полный путо к директории.</param>
+        /// <param name="excludedExtensions">Расширения файлов, которые не нужно считывать.</param>
         /// <param name="itemFactory">Фабрика, отвечающая за создание элементов директории.</param>
-        internal Directory(string fullPath, IItemFactory itemFactory)
+        internal Directory(string fullPath, string[] excludedExtensions, IItemFactory itemFactory)
         {
             FullPath = fullPath;
+            _excludedExtensions = excludedExtensions;
             var info = new IO.DirectoryInfo(fullPath);
             Name = info.Name;
             LastUpdate = info.LastWriteTime;
@@ -119,7 +122,7 @@ namespace DirectorySync.Models
                 foreach (var item in _items)
                     await item.CopyTo(IO.Path.Combine(destinationPath, item.Name));
 
-                CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath), destinationPath);
+                CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath, _excludedExtensions), destinationPath);
             });
         }
 
@@ -161,7 +164,7 @@ namespace DirectorySync.Models
                     LastLoadError = "Не удалось считать список папок директории: " + FullPath;
                 else
                     foreach (var directoryPath in directories)
-                        AddItem(_itemFactory.CreateDirectory(directoryPath));
+                        AddItem(_itemFactory.CreateDirectory(directoryPath, _excludedExtensions));
             });
         }
 
@@ -172,7 +175,8 @@ namespace DirectorySync.Models
                 string[] files = null;
                 try
                 {
-                    files = IO.Directory.GetFiles(FullPath);
+                    files = IO.Directory.GetFiles(FullPath).Where(f => _excludedExtensions == null ||
+                        !_excludedExtensions.Contains(IO.Path.GetExtension(f).TrimStart('.'))).ToArray();
                 }
                 catch { }
                 if (files == null)

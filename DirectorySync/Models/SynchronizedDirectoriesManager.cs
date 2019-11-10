@@ -25,7 +25,7 @@ namespace DirectorySync.Models
             _settingsStorage = settingsStorage;
             _itemFactory = itemFactory;
             _synchronizedDirectoriesList = settingsStorage.SettingsRows.Where(r => r.IsUsed).Select(
-                r => new SynchronizedDirectories(r.LeftDirectory.DirectoryPath, r.RightDirectory.DirectoryPath, itemFactory)).ToList();
+                r => new SynchronizedDirectories(r, itemFactory)).ToList();
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace DirectorySync.Models
             foreach (var settingsRow in activeSettingsRows.Where(r => !_synchronizedDirectoriesList.Any(d =>
                  d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)))
             {
-                var synchronizedDirectories = new SynchronizedDirectories(settingsRow.LeftDirectory.DirectoryPath, settingsRow.RightDirectory.DirectoryPath, _itemFactory);
+                var synchronizedDirectories = new SynchronizedDirectories(settingsRow, _itemFactory);
                 _synchronizedDirectoriesList.Add(synchronizedDirectories);
                 AddSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectories);
             }

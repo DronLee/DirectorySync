@@ -1,13 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using DirectorySync.Models.Settings;
+using System.Threading.Tasks;
 
 namespace DirectorySync.Models
 {
     public class SynchronizedDirectories : ISynchronizedDirectories
     {
-        public SynchronizedDirectories(string leftDirectoryPath, string rightDirectoryPath, IItemFactory itemFactory)
+        public SynchronizedDirectories(ISettingsRow settingsRow, IItemFactory itemFactory)
         {
-            LeftDirectory = itemFactory.CreateDirectory(leftDirectoryPath);
-            RightDirectory = itemFactory.CreateDirectory(rightDirectoryPath);
+            LeftDirectory = itemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions);
+            RightDirectory = itemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions);
         }
 
         public IDirectory LeftDirectory { get; }

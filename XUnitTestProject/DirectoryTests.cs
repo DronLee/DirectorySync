@@ -25,7 +25,7 @@ namespace XUnitTestProject
             using (var testDirectory = new TestDirectory())
             {
                 var directoryPath = testDirectory.CreateDirectory(directoryName, lastWriteTime);
-                var directory = new Directory(directoryPath, new TestItemFactory());
+                var directory = new Directory(directoryPath, null, new TestItemFactory());
 
                 Assert.Equal(directoryName, directory.Name);
                 Assert.Equal(directoryPath, directory.FullPath);
@@ -46,7 +46,7 @@ namespace XUnitTestProject
                 IItem destinationCopyDirectory = null;
                 string destinationCopyPath = null;
 
-                var directory = new Directory(sourceDirectory, new TestItemFactory());
+                var directory = new Directory(sourceDirectory, null, new TestItemFactory());
                 directory.CopiedFromToEvent += (IItem destinationItem, string destinationPath) =>
                 {
                     destinationCopyDirectory = destinationItem;
@@ -70,7 +70,7 @@ namespace XUnitTestProject
             using (var testDirectory = new TestDirectory())
             {
                 var sourceDirectory = testDirectory.CreateDirectory("SorceDir");
-                var directory = new Directory(sourceDirectory, new TestItemFactory());
+                var directory = new Directory(sourceDirectory, null, new TestItemFactory());
                 directory.DeletedEvent += (IItem item) => { deletedDirectory = item; };
 
                 await directory.Delete();
@@ -89,7 +89,7 @@ namespace XUnitTestProject
             using (var testDirectory = new TestDirectory())
             {
                 testDirectory.CreateDirectory("Child");
-                var directory = new Directory(testDirectory.FullPath, new TestItemFactory());
+                var directory = new Directory(testDirectory.FullPath, null, new TestItemFactory());
                 await directory.Load();
                 await directory.Items[0].Delete();
 
@@ -106,7 +106,7 @@ namespace XUnitTestProject
             using (var testDirectory = new TestDirectory())
             {
                 var sourceDirectory = testDirectory.CreateDirectory("SorceDir");
-                var directory = new Directory(sourceDirectory, new TestItemFactory());
+                var directory = new Directory(sourceDirectory, null, new TestItemFactory());
 
                 string error = null;
                 directory.SyncErrorEvent += (string message) => { error = message; };
@@ -126,7 +126,7 @@ namespace XUnitTestProject
         {
             using (var testDirectory = new TestDirectory())
             {
-                var directory = new Directory(testDirectory.FullPath, new TestItemFactory());
+                var directory = new Directory(testDirectory.FullPath, null, new TestItemFactory());
 
                 const string emptyDirectoryName = "EmptyDirectory";
                 var emptyDirectoryLastUpdate = new DateTime(2019, 2, 2, 15, 30, 20);
@@ -188,9 +188,9 @@ namespace XUnitTestProject
 
         private class TestItemFactory : IItemFactory
         {
-            public IDirectory CreateDirectory(string directoryPath)
+            public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
             {
-                return new Directory(directoryPath, this);
+                return new Directory(directoryPath, excludedExtensions, this);
             }
 
             public IItem CreateFile(string filePath)

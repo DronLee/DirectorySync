@@ -9,12 +9,13 @@
         /// Создание директории.
         /// </summary>
         /// <param name="directoryPath">Полный путь к директории.</param>
+        /// <param name="excludedExtensions">Расширения файлов, которые не нужно считывать для создаваемой директории.</param>
         /// <returns>Созданная директория. Если null, значит директорию не удалось найти.</returns>
-        public IDirectory CreateDirectory(string directoryPath)
+        public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
         {
             try
             {
-                return new Directory(directoryPath, this);
+                return new Directory(directoryPath, excludedExtensions, this);
             }
             catch
             {

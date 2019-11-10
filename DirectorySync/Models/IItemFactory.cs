@@ -10,7 +10,7 @@
         /// </summary>
         /// <param name="directoryPath">Полный путь к директории.</param>
         /// <returns>Созданная директория.</returns>
-        IDirectory CreateDirectory(string directoryPath);
+        IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions);
 
         /// <summary>
         /// Создание файла.
