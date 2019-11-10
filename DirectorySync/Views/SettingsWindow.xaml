@@ -6,7 +6,7 @@
         xmlns:converters="clr-namespace:DirectorySync.ViewModels.Converters"
         mc:Ignorable="d"
         Name="SettingsForm"
-        Title="Отслеживаемые директории" Height="450" Width="800" Icon="/DirectorySync;component/Icons/Settings.png" WindowStartupLocation="CenterScreen">
+        Title="Отслеживаемые директории" Height="450" Width="900" Icon="/DirectorySync;component/Icons/Settings.png" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <Style x:Key="LeftDirectoryButton" TargetType="Button">
@@ -98,6 +98,15 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
+                <DataGridTemplateColumn  Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding ExcludedExtensions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                ToolTip="Раширения файлов (через ;), которые нужно исключить из рассмотрения. Например: jpg;png"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

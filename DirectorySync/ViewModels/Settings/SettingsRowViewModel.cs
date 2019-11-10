@@ -25,6 +25,11 @@ namespace DirectorySync.ViewModels.Settings
         private ICommand _refreshRowCommand = null;
 
         /// <summary>
+        /// Разделитель между исключяемыми из синхронизации расширений файлов при их представлении в виде строки.
+        /// </summary>
+        public const char ExcludedExtensionsSeparator = ';';
+
+        /// <summary>
         /// Конструктор создания модели пустой строки, нужной, чтобы пользователь мог добавить новые директории.
         /// </summary>
         public SettingsRowViewModel()
@@ -37,13 +42,15 @@ namespace DirectorySync.ViewModels.Settings
         /// <summary>
         /// Конструктор создания модели на основе строки настроек.
         /// </summary>
-        /// <param name="settingsRow"></param>
+        /// <param name="settingsRow">Строка настроек, на основе которой построится модель представления.</param>
         public SettingsRowViewModel(ISettingsRow settingsRow)
         {
             _settingsRow = settingsRow;
             IsEmpty = false;
             RefreshDirectory();
             _isUsed = settingsRow.IsUsed;
+            if (settingsRow.ExcludedExtensions != null)
+                ExcludedExtensions = string.Join(ExcludedExtensionsSeparator.ToString(), settingsRow.ExcludedExtensions);
         }
 
         /// <summary>
@@ -76,6 +83,11 @@ namespace DirectorySync.ViewModels.Settings
                 }
             }
         }
+
+        /// <summary>
+        /// Расширения файлов (через ";"), которые не должны принимать участие в синхронизации. 
+        /// </summary>
+        public string ExcludedExtensions { get; set; }
 
         /// <summary>
         /// Команда открытия диалога выбора директории.

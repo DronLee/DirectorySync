@@ -33,5 +33,10 @@ namespace DirectorySync.ViewModels.Settings
         /// Сообщение для пользователя в окне настроек.
         /// </summary>
         string Comment { get; set; }
+
+        /// <summary>
+        /// Актуализация коллекции строк.
+        /// </summary>
+        void RefreshRows();
     }
 }

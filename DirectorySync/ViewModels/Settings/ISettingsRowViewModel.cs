@@ -30,6 +30,11 @@ namespace DirectorySync.ViewModels.Settings
         bool IsUsed { get; set; }
 
         /// <summary>
+        /// Расширения файлов (через ";"), которые не должны принимать участие в синхронизации. 
+        /// </summary>
+        string ExcludedExtensions { get; set; }
+
+        /// <summary>
         /// Команда открытия диалога выбора директории.
         /// </summary>
         ICommand FolderDialogCommand { get; }

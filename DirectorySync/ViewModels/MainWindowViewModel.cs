@@ -218,6 +218,7 @@ namespace DirectorySync.ViewModels
 
         private bool ShowSettingsWindow(string comment)
         {
+            _settingsViewModel.RefreshRows();
             _settingsViewModel.Comment = comment;
             var settingsWindow = new SettingsWindow(_settingsViewModel);
             settingsWindow.ShowDialog();

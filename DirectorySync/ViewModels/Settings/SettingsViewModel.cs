@@ -24,16 +24,7 @@ namespace DirectorySync.ViewModels.Settings
         public SettingsViewModel(ISettingsStorage settingsStorage)
         {
             _settingsStorage = settingsStorage;
-
-            SettingsRows = new ObservableCollection<ISettingsRowViewModel>(
-                settingsStorage.SettingsRows.Select(r =>
-                {
-                    var row = new SettingsRowViewModel(r);
-                    row.DeleteRowEvent += DeleteRow;
-                    return row;
-                }));
-
-            AddEmptyRow();
+            RefreshRows();
             CommentType = MessageTypeEnum.Default;
         }
 
@@ -78,8 +69,8 @@ namespace DirectorySync.ViewModels.Settings
                         if (Comment == null)
                         {
                             _settingsStorage.SettingsRows = SettingsRows.Where(r => !r.IsEmpty).Select(r =>
-                                  _settingsStorage.CreateSettingsRow(r.LeftDirectory.DirectoryPath, r.RightDirectory.DirectoryPath, r.IsUsed)
-                            ).ToArray();
+                                  _settingsStorage.CreateSettingsRow(r.LeftDirectory.DirectoryPath, r.RightDirectory.DirectoryPath, r.IsUsed,
+                                    r.ExcludedExtensions?.Split(SettingsRowViewModel.ExcludedExtensionsSeparator).Select(s => s.Trim()).ToArray())).ToArray();
                             _settingsStorage.Save();
                             Ok = true;
                             window.Close();
@@ -103,6 +94,22 @@ namespace DirectorySync.ViewModels.Settings
         /// Событие изменения одного из свойств.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Актуализация коллекции строк.
+        /// </summary>
+        public void RefreshRows()
+        {
+            SettingsRows = new ObservableCollection<ISettingsRowViewModel>(
+                _settingsStorage.SettingsRows.Select(r =>
+                {
+                    var row = new SettingsRowViewModel(r);
+                    row.DeleteRowEvent += DeleteRow;
+                    return row;
+                }));
+
+            AddEmptyRow();
+        }
 
         private string GetWarningMessage()
         {
