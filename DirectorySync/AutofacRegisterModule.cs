@@ -15,6 +15,8 @@ namespace DirectorySync
                 .WithParameter("settingsFile", "Settings");
             builder.RegisterType<SettingsViewModel>().As<ISettingsViewModel>().SingleInstance();
 
+            builder.RegisterType<ProcessScreenSaver>().As<IProcessScreenSaver>().SingleInstance();
+
             builder.RegisterType<MainWindowViewModel>().As<IMainWindowViewModel>().SingleInstance();
             builder.RegisterType<MainWindow>().SingleInstance();
 

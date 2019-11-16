@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using DirectorySync.Models;
@@ -26,9 +23,9 @@ namespace DirectorySync.ViewModels
         private readonly ISynchronizedDirectoriesManager _synchronizedDirectoriesManager;
         private readonly ISettingsViewModel _settingsViewModel;
         private readonly IRowViewModelFactory _rowViewModelFactory;
+        private readonly IProcessScreenSaver _processScreenSaver;
         private readonly Dispatcher _dispatcher;
 
-        private Bitmap _processGifBitmap;
         private bool _menuButtonsIsEnabled;
 
         private ICommand _loadedFormCommand;
@@ -43,9 +40,10 @@ namespace DirectorySync.ViewModels
         /// <param name="synchronizedDirectoriesManager">Менеджер синхронизируемых директорий.</param>
         /// <param name="rowViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
         public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory rowViewModelFactory,
-            ISettingsViewModel settingsViewModel)
+            ISettingsViewModel settingsViewModel, IProcessScreenSaver processScreenSaver)
         {
             _dispatcher = Dispatcher.CurrentDispatcher;
+            _processScreenSaver = processScreenSaver;
             _settingsStorage = settingsStorage;
             _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
             _synchronizedDirectoriesManager.AddSynchronizedDirectoriesEvent += AddSynchronizedDirectories;
@@ -59,6 +57,11 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
+        /// Gif для отображения процесса синхронизации.
+        /// </summary>
+        public BitmapSource ProcessGifSource => _processScreenSaver.ProcessGifSource;
+
+        /// <summary>
         /// Команда загрузки директорий.
         /// </summary>
         public ICommand LoadedFormCommand
@@ -69,8 +72,10 @@ namespace DirectorySync.ViewModels
                     _loadedFormCommand = new Command(async x =>
                     {
                         MenuButtonsIsEnabled = false;
-                        ProcessGifSource = GetProcessGifSource();
-                        ImageAnimator.Animate(_processGifBitmap, OnFrameChanged);
+
+                        _processScreenSaver.FrameUpdatedEvent += () => { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessGifSource))); };
+                        _processScreenSaver.Load(_dispatcher);
+
                         await LoadDirectories();
                         MenuButtonsIsEnabled = true;
                     });
@@ -191,11 +196,6 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
-        /// Gif для отображения процесса синхронизации.
-        /// </summary>
-        public BitmapSource ProcessGifSource { get; private set; }
-
-        /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -258,30 +258,5 @@ namespace DirectorySync.ViewModels
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
             PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
         }
-
-        #region Методы, реализующие анимацию gif для отрображения процесса синхронизации.
-        private BitmapSource GetProcessGifSource()
-        {
-            if (_processGifBitmap == null)
-                _processGifBitmap = Resources.SyncProcess;
-            var handle = _processGifBitmap.GetHbitmap();
-            return Imaging.CreateBitmapSourceFromHBitmap(
-                    handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-        }
-
-        private void OnFrameChanged(object sender, EventArgs e)
-        {
-            _dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(FrameUpdatedCallback));
-        }
-
-        private void FrameUpdatedCallback()
-        {
-            ImageAnimator.UpdateFrames();
-            if (ProcessGifSource != null)
-                ProcessGifSource.Freeze();
-            ProcessGifSource = GetProcessGifSource();
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessGifSource)));
-        }
-        #endregion
     }
 }
