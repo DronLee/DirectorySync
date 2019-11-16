@@ -65,9 +65,9 @@ namespace DirectorySync.Models
                 {
                     IO.File.Copy(FullPath, destinationPath, true);
                 }
-                catch
+                catch(Exception exc)
                 {
-                    SyncErrorEvent?.Invoke("Не удаётся скопировать файл по пути: " + destinationPath);
+                    SyncErrorEvent?.Invoke(exc.Message);
                 }
 
                 File destinationFile = null;
@@ -92,10 +92,10 @@ namespace DirectorySync.Models
                 {
                     IO.File.Delete(FullPath);
                 }
-                catch
+                catch(Exception exc)
                 {
                     error = true;
-                    SyncErrorEvent?.Invoke("Не удаётся удалить файл: " + FullPath);
+                    SyncErrorEvent?.Invoke(exc.Message);
                 }
                 if (!error)
                     DeletedEvent?.Invoke(this);
