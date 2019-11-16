@@ -143,7 +143,7 @@ namespace DirectorySync.Models
                 }
                 catch(Exception exc)
                 {
-                    SyncErrorEvent?.Invoke("Не удаётся удалить директорию: " + exc.Message);
+                    SyncErrorEvent?.Invoke(exc.Message);
                     error = true;
                 }
                 if (!error)
