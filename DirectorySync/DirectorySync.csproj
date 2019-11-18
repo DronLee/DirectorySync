@@ -74,12 +74,19 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Models\IProcessScreenSaver.cs" />
+    <Compile Include="Models\ISynchronizedItemFactory.cs" />
+    <Compile Include="Models\ISynchronizedItemMatcher.cs" />
     <Compile Include="Models\ProcessScreenSaver.cs" />
     <Compile Include="Models\Settings\ISettingsRow.cs" />
     <Compile Include="Models\Settings\SettingsDirectory.cs" />
     <Compile Include="Models\Settings\SettingsRow.cs" />
     <Compile Include="Models\Settings\SettingsStorage.cs" />
     <Compile Include="Models\Settings\ISettingsStorage.cs" />
+    <Compile Include="Models\ISynchronizedItem.cs" />
+    <Compile Include="Models\SyncCommand.cs" />
+    <Compile Include="Models\SynchronizedItem.cs" />
+    <Compile Include="Models\SynchronizedItemFactory.cs" />
+    <Compile Include="Models\SynchronizedItemMatcher.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -87,9 +94,9 @@
     </Compile>
     <Compile Include="ViewModels\Converters\BoolToTextConverter.cs" />
     <Compile Include="ViewModels\Converters\MessageTextColorConverter .cs" />
-    <Compile Include="ViewModels\IItemViewModelMatcher.cs" />
-    <Compile Include="ViewModels\ItemViewModelMatcher.cs" />
+    <Compile Include="ViewModels\IRowViewModelFactory.cs" />
     <Compile Include="ViewModels\MessageTypeEnum.cs" />
+    <Compile Include="ViewModels\RowViewModelFactory.cs" />
     <Compile Include="ViewModels\Settings\ISettingsDirectoryViewModel.cs" />
     <Compile Include="ViewModels\Settings\ISettingsRowViewModel.cs" />
     <Compile Include="ViewModels\Settings\ISettingsViewModel.cs" />
@@ -112,19 +119,17 @@
     <Compile Include="Models\Directory.cs" />
     <Compile Include="Models\File.cs" />
     <Compile Include="Models\IItemFactory.cs" />
-    <Compile Include="Models\ISynchronizedDirectories.cs" />
+    <Compile Include="Models\ISynchronizedItems.cs" />
     <Compile Include="Models\ISynchronizedDirectoriesManager.cs" />
     <Compile Include="Models\ItemFactory.cs" />
     <Compile Include="Models\ItemStatusEnum.cs" />
     <Compile Include="Models\ItemStatus.cs" />
-    <Compile Include="Models\SynchronizedDirectories.cs" />
+    <Compile Include="Models\SynchronizedItems.cs" />
     <Compile Include="Models\SynchronizedDirectoriesManager.cs" />
     <Compile Include="ViewModels\Command.cs" />
-    <Compile Include="ViewModels\IRowViewModelFactory.cs" />
     <Compile Include="ViewModels\IMainWindowViewModel.cs" />
     <Compile Include="ViewModels\IItemViewModel.cs" />
     <Compile Include="ViewModels\IRowViewModel.cs" />
-    <Compile Include="ViewModels\RowViewModelFactory.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="ViewModels\ItemViewModel.cs" />
     <Compile Include="ViewModels\RowViewModel.cs" />
