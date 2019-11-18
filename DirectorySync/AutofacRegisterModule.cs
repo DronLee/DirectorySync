@@ -21,8 +21,9 @@ namespace DirectorySync
             builder.RegisterType<MainWindow>().SingleInstance();
 
             builder.RegisterType<ItemFactory>().As<IItemFactory>().SingleInstance();
+            builder.RegisterType<SynchronizedItemFactory>().As<ISynchronizedItemFactory>().SingleInstance();
+            builder.RegisterType<SynchronizedItemMatcher>().As<ISynchronizedItemMatcher>().SingleInstance();
             builder.RegisterType<SynchronizedDirectoriesManager>().As<ISynchronizedDirectoriesManager>().SingleInstance();
-            builder.RegisterType<ItemViewModelMatcher>().As<IItemViewModelMatcher>().SingleInstance();
             builder.RegisterType<RowViewModelFactory>().As<IRowViewModelFactory>().SingleInstance();
         }
     }
