@@ -1,10 +1,8 @@
 ﻿using DirectorySync.Models;
 using DirectorySync.Models.Settings;
-using FakeItEasy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -415,6 +413,58 @@ namespace XUnitTestProject
 
                 Assert.Equal(string.Join("|", expectedCopyDestinationPathes.ToArray()),
                     string.Join("|", resultCopyDestinationPathes.OrderBy(p => p).ToArray()));
+            }
+        }
+
+        /// <summary>
+        /// Проверка простановки статусов и отсутствия команд при выполнении RefreshStatusesFromChilds для строки,
+        /// содержащей строку с неопределённым статусом.
+        /// </summary>
+        [Fact]
+        public async Task RefreshStatusesFromChilds_UnknownChild()
+        {
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                const string directoryName = "Dir";
+                var testFilesDictionary = new Dictionary<string, DateTime> { { "File1", DateTime.Now }, { "File2", DateTime.Now } };
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName), testFilesDictionary);
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName), testFilesDictionary);
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                var childSynchronizedDirectories = synchronizedDirectories.ChildItems[0];
+                childSynchronizedDirectories.LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+                childSynchronizedDirectories.RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+
+                var level2Child1 = childSynchronizedDirectories.ChildItems[0];
+                level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Newer);
+                level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+                level2Child1.RightItem.UpdateStatus(ItemStatusEnum.Older);
+                level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+
+                var level2Child2 = childSynchronizedDirectories.ChildItems[1];
+                level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Missing);
+                level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+                level2Child1.RightItem.UpdateStatus(ItemStatusEnum.ThereIs);
+                level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+
+                synchronizedDirectories.RefreshStatusesFromChilds();
+
+                // У дочерней строки должен остаться неопределённый статус.
+                Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.RightItem.Status.StatusEnum);
+
+                // Статусы родительской строки должны измениться на неопредёлённые.
+                Assert.Equal(ItemStatusEnum.Unknown, synchronizedDirectories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Unknown, synchronizedDirectories.RightItem.Status.StatusEnum);
+
+                // Команд не должно быть ни у дочерней строки, ни у родительской.
+                Assert.Null(childSynchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childSynchronizedDirectories.RightItem.SyncCommand.CommandAction);
+                Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
             }
         }
 

@@ -9,53 +9,6 @@ namespace XUnitTestProject
 {
     public class RowViewModelTests
     {
-        ///// <summary>
-        ///// Проверка простановки статусов и отсутствия команд при выполнении RefreshStatusesFromChilds для строки,
-        ///// содержащей строку с неопределённым статусом.
-        ///// </summary>
-        //[Fact]
-        //public void RefreshStatusesFromChilds_UnknownChild()
-        //{
-        //    // Начальный статус элементов не важен в данном случае, всё равно должен будет замениться.
-        //    var parentRowViewModel = new RowViewModel(new TestItemViewModel("Left", ItemStatusEnum.Missing),
-        //        new TestItemViewModel("Right", ItemStatusEnum.Missing), null);
-
-        //    var childRow = new RowViewModel(
-        //        new TestItemViewModel("Left", ItemStatusEnum.Unknown),
-        //        new TestItemViewModel("Right", ItemStatusEnum.Unknown), parentRowViewModel);
-        //    parentRowViewModel.ChildRows.Add(childRow);
-
-        //    #region Наполнение дочерней строки своими строками с командами
-        //    var leftItem = new TestItemViewModel("Left1", ItemStatusEnum.Newer);
-        //    leftItem.SetActionCommand(() => { return Task.FromResult(true); });
-        //    var rightItem = new TestItemViewModel("Right1", ItemStatusEnum.Older);
-        //    rightItem.SetActionCommand(() => { return Task.FromResult(true); });
-        //    childRow.ChildRows.Add(new RowViewModel(leftItem, rightItem, childRow));
-
-        //    leftItem = new TestItemViewModel("Left2", ItemStatusEnum.Missing);
-        //    leftItem.SetActionCommand(() => { return Task.FromResult(true); });
-        //    rightItem = new TestItemViewModel("Right2", ItemStatusEnum.ThereIs);
-        //    rightItem.SetActionCommand(() => { return Task.FromResult(true); });
-        //    childRow.ChildRows.Add(new RowViewModel(leftItem, rightItem, childRow));
-        //    #endregion
-
-        //    parentRowViewModel.RefreshStatusesFromChilds();
-
-        //    // У дочерней строки должен остаться неопределённый статус.
-        //    Assert.Equal(ItemStatusEnum.Unknown, childRow.LeftItem.Status.StatusEnum);
-        //    Assert.Equal(ItemStatusEnum.Unknown, childRow.RightItem.Status.StatusEnum);
-
-        //    // Статусы родительской строки должны измениться на неопредёлённые.
-        //    Assert.Equal(ItemStatusEnum.Unknown, parentRowViewModel.LeftItem.Status.StatusEnum);
-        //    Assert.Equal(ItemStatusEnum.Unknown, parentRowViewModel.RightItem.Status.StatusEnum);
-
-        //    // Команд не должно быть ни у дочерней строки, ни у родительской.
-        //    Assert.Null(childRow.LeftItem.CommandAction);
-        //    Assert.Null(childRow.RightItem.CommandAction);
-        //    Assert.Null(parentRowViewModel.LeftItem.CommandAction);
-        //    Assert.Null(parentRowViewModel.RightItem.CommandAction);
-        //}
-
         /// <summary>
         /// Тест на выполнение команды принятия левого элемента.
         /// </summary>
