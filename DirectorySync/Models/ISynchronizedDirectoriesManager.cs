@@ -11,17 +11,17 @@ namespace DirectorySync.Models
         /// <summary>
         /// Синхронизируемые директории, представленные по парам.
         /// </summary>
-        ISynchronizedDirectories[] SynchronizedDirectories { get; }
+        ISynchronizedItems[] SynchronizedDirectories { get; }
 
         /// <summary>
         /// Событие удаления одной из пары синхронизируемых директорий.
         /// </summary>
-        event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoriesEvent;
+        event Action<ISynchronizedItems> RemoveSynchronizedDirectoriesEvent;
 
         /// <summary>
         /// Событие добавления пары синхронизируемых директорий.
         /// </summary>
-        event Action<ISynchronizedDirectories> AddSynchronizedDirectoriesEvent;
+        event Action<ISynchronizedItems> AddSynchronizedDirectoriesEvent;
 
         /// <summary>
         /// Загрузка директорий.
