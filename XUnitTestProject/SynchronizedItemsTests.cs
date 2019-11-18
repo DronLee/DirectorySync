@@ -268,8 +268,6 @@ namespace XUnitTestProject
                 var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
                 await synchronizedDirectories.Load();
 
-
-
                 Assert.Single(synchronizedDirectories.ChildItems);
 
                 var childDirectories = synchronizedDirectories.ChildItems[0];
@@ -282,6 +280,61 @@ namespace XUnitTestProject
                 Assert.True(childDirectories.RightItem.IsDirectory);
 
                 Assert.Empty(childDirectories.ChildItems);
+            }
+        }
+
+        /// <summary>
+        /// Проверка обновления статусов моделей синхронизируемых элементов на основе статусов дочерних элементов.
+        /// </summary>
+        /// <param name="leftStartStatus">Начальное значение статуса левого элемента.</param>
+        /// <param name="rightStartStatus">Начальное значение статуса правого элемента.</param>
+        /// <param name="leftItemsStatuses">Статусы левых дочерних элементов.</param>
+        /// <param name="rightItemsStatuses">Статусы правых дочерних элементов.</param>
+        /// <param name="leftExpectedStatus">Ожидаемое значение статуса левого элемента после обновления.</param>
+        /// <param name="rightExpectedStatus">Ожидаемое значение статуса правого элемента после обновления.</param>
+        [Theory]
+
+        // Если нет дочерних элементов, то статус должен оставаться прежним.
+        [InlineData("Equally", "Equally", new string[0], new string[0], "Equally", "Equally")]
+
+        [InlineData("Equally", "Equally", new[] { "Newer" }, new[] { "Older" }, "Newer", "Older")]
+        [InlineData("Equally", "Equally", new[] { "Missing" }, new[] { "ThereIs" }, "Missing", "ThereIs")]
+        [InlineData("Unknown", "Unknown", new[] { "Equally" }, new[] { "Equally" }, "Equally", "Equally")]
+
+        // Если дочерние элементы имеют один статус не считая Equally, то статус родительского будет такой же, как этот один.
+        [InlineData("Equally", "Equally", new[] { "Missing", "Equally" }, new[] { "ThereIs", "Equally" }, "Missing", "ThereIs")]
+
+        // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
+        [InlineData("Equally", "Equally", new[] { "Missing", "ThereIs" }, new[] { "ThereIs", "Missing" }, "Unknown", "Unknown")]
+        public async Task RefreshStatusesFromChilds_CheckStatus(string leftStartStatus, string rightStartStatus,
+            string[] leftItemsStatuses, string[] rightItemsStatuses,
+            string leftExpectedStatus, string rightExpectedStatus)
+        {
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                var testFilesDictionary = new Dictionary<string, DateTime>();
+                var updateData = DateTime.Now;
+                for (byte i = 0; i < leftItemsStatuses.Length; i++)
+                    testFilesDictionary.Add("File" + i.ToString(), updateData);
+                leftDirectory.CreateFiles(testFilesDictionary);
+                rightDirectory.CreateFiles(testFilesDictionary);
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                synchronizedDirectories.LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftStartStatus));
+                synchronizedDirectories.RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightStartStatus));
+
+                await synchronizedDirectories.Load();
+                for (byte i = 0; i < leftItemsStatuses.Length; i++)
+                {
+                    synchronizedDirectories.ChildItems[i].LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftItemsStatuses[i]));
+                    synchronizedDirectories.ChildItems[i].RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemsStatuses[i]));
+                }
+
+                synchronizedDirectories.RefreshStatusesFromChilds();
+                
+                Assert.Equal(leftExpectedStatus, synchronizedDirectories.LeftItem.Status.StatusEnum.ToString());
+                Assert.Equal(rightExpectedStatus, synchronizedDirectories.RightItem.Status.StatusEnum.ToString());
             }
         }
 
