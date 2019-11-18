@@ -14,8 +14,6 @@ namespace XUnitTestProject
         [Fact]
         public void Init()
         {
-            var testItemFactory = new TestItemFactory();
-
             var testSettingsStorage = new TestSettingsStorage();
             testSettingsStorage.SettingsRows = new[]
             {
@@ -23,7 +21,7 @@ namespace XUnitTestProject
                 new SettingsRow("3", "4", true, null)
             };
 
-            var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
+            var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null);
 
             Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
             var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories[0];
@@ -37,9 +35,8 @@ namespace XUnitTestProject
         [Fact]
         public async Task Load()
         {
-            var testItemFactory = new TestItemFactory();
             var testSettingsStorage = new TestSettingsStorage();
-            ISynchronizedDirectories removedSynchronizedDirectories = null;
+            ISynchronizedItems removedSynchronizedDirectories = null;
             var loadedDirectories = new List<IDirectory>();
 
             using (var testDirectory = new TestDirectory())
@@ -59,7 +56,7 @@ namespace XUnitTestProject
                     settingsRow5
                 };
 
-                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, testItemFactory);
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null);
 
                 await synchronizedDirectoriesManager.Load(); // Загрузка до изменения настроек.
 
@@ -73,7 +70,7 @@ namespace XUnitTestProject
                     synchronizedDirectory.RightDirectory.LoadedDirectoryEvent += (IDirectory loadedDirecory) => { loadedDirectories.Add(loadedDirecory); };
                 }
 
-                synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += (ISynchronizedDirectories synchronizedDirectories) =>
+                synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += (ISynchronizedItems synchronizedDirectories) =>
                 {
                     removedSynchronizedDirectories = synchronizedDirectories;
                 };
@@ -128,7 +125,7 @@ namespace XUnitTestProject
                 var fileLastUpdate = DateTime.Now;
 
                 var leftDirectory = testDirectory.CreateDirectory("1");
-                TestDirectory.CreateFiles(leftDirectory, new System.Collections.Generic.Dictionary<string, DateTime>
+                TestDirectory.CreateFiles(leftDirectory, new Dictionary<string, DateTime>
                 {
                     { "1.tiff", fileLastUpdate },
                     { "2.tiff", fileLastUpdate },
@@ -139,7 +136,7 @@ namespace XUnitTestProject
                 });
 
                 var rightDirectory = testDirectory.CreateDirectory("2");
-                TestDirectory.CreateFiles(rightDirectory, new System.Collections.Generic.Dictionary<string, DateTime>
+                TestDirectory.CreateFiles(rightDirectory, new Dictionary<string, DateTime>
                 {
                     { "1.tiff", fileLastUpdate },
                     { "2.tiff", fileLastUpdate },
@@ -152,71 +149,13 @@ namespace XUnitTestProject
                 var settingsRow1 = new SettingsRow(leftDirectory, rightDirectory, true, excludedExtensions);
                 testSettingsStorage.SettingsRows = new[] { settingsRow1 };
 
-                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new ItemFactory());
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), new SynchronizedItemMatcher());
                 await synchronizedDirectoriesManager.Load();
 
                 Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
                 var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories.Single();
                 Assert.Equal(loadedFilesCount, synchronizedDirectory.LeftDirectory.Items.Length);
                 Assert.Equal(loadedFilesCount, synchronizedDirectory.RightDirectory.Items.Length);
-            }
-        }
-
-        private class TestItemFactory : IItemFactory
-        {
-            public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
-            {
-                return new TestDirectoryModel(directoryPath, excludedExtensions);
-            }
-
-            public IItem CreateFile(string filePath)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class TestDirectoryModel : IDirectory
-        {
-            public TestDirectoryModel(string directoryPath, string[] excludedExtensions)
-            {
-                FullPath = directoryPath;
-                ExcludedExtensions = excludedExtensions;
-            }
-
-            public IItem[] Items => throw new NotImplementedException();
-
-            public bool IsLoaded { get; private set; }
-
-            public string Name => throw new NotImplementedException();
-
-            public string FullPath { get; private set; }
-
-            public DateTime LastUpdate => throw new NotImplementedException();
-
-            public string LastLoadError => throw new NotImplementedException();
-
-            public string[] ExcludedExtensions { get; set; }
-
-            public event Action<IDirectory> LoadedDirectoryEvent;
-            public event Action<IItem> DeletedEvent;
-            public event Action<string> SyncErrorEvent;
-            public event Action<IItem, string> CopiedFromToEvent;
-
-            public Task CopyTo(string destinationPath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task Delete()
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task Load()
-            {
-                IsLoaded = true;
-                LoadedDirectoryEvent?.Invoke(this);
-                return Task.CompletedTask;
             }
         }
 

@@ -1,0 +1,315 @@
+﻿using DirectorySync.Models;
+using DirectorySync.Models.Settings;
+using FakeItEasy;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace XUnitTestProject
+{
+    public class SynchronizedItemsTests
+    {
+        [Fact]
+        public void CreateRowViewModel()
+        {
+            const string file1Name = "File1";
+            const string file2Name = "File2";
+
+            ISynchronizedItems loadedSynchronizedDirectories = null;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                leftDirectory.CreateFiles(new Dictionary<string, DateTime>
+                {
+                    { file1Name, DateTime.Now },
+                    { file2Name, DateTime.Now }
+                });
+                rightDirectory.CreateFiles(new Dictionary<string, DateTime>
+                {
+                    { file1Name, DateTime.Now },
+                    { file2Name, DateTime.Now }
+                });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                synchronizedDirectories.DirectoriesIsLoadedEvent += (ISynchronizedItems directoris) => { loadedSynchronizedDirectories = directoris; };
+
+                // Пока не выполнялась загрузка, события завершения загрузки происходить не должно и дочерние элементы тоже должны отсутствовать.
+                Assert.Null(loadedSynchronizedDirectories);
+                Assert.Empty(synchronizedDirectories.ChildItems);
+            }
+        }
+
+        /// <summary>
+        /// Тест на срабатывание события DirectoriesIsLoadedEvent по завершению загрузки обоих директорий.
+        /// </summary>
+        [Fact]
+        public async Task DirectoriesIsLoadedEvent()
+        {
+            List<ISynchronizedItems> loadedSynchronizedDirectoriesList = new List<ISynchronizedItems>();
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                synchronizedDirectories.DirectoriesIsLoadedEvent += (ISynchronizedItems loadedSynchronizedItems) =>
+                {
+                    loadedSynchronizedDirectoriesList.Add(loadedSynchronizedItems);
+                };
+                await synchronizedDirectories.Load();
+
+                Assert.Single(loadedSynchronizedDirectoriesList);
+                Assert.Equal(synchronizedDirectories, loadedSynchronizedDirectoriesList[0]);
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке файлов.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task LoadFiles()
+        {
+            const string file1Name = "File1";
+            const string file2Name = "File2";
+            const string file3Name = "File3";
+            const string file4Name = "File4";
+            const string file5Name = "File5";
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                leftDirectory.CreateFiles(new Dictionary<string, DateTime>
+                {
+                    { file1Name, DateTime.Now },
+                    { file2Name, new DateTime(2019,1 ,1) },
+                    { file3Name, new DateTime(2019, 1, 1) },
+                    { file4Name, new DateTime(2019, 1, 1) }
+                });
+                rightDirectory.CreateFiles(new Dictionary<string, DateTime>
+                {
+                    { file2Name, new DateTime(2019,1 ,1) },
+                    { file3Name, new DateTime(2018, 1, 1) },
+                    { file4Name, new DateTime(2019, 5, 1) },
+                    { file5Name, DateTime.Now }
+                });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                Assert.Equal(5, synchronizedDirectories.ChildItems.Count);
+
+                var directories = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(file1Name, directories.LeftItem.Name);
+                Assert.Equal(file1Name, directories.RightItem.Name);
+                Assert.Equal(ItemStatusEnum.ThereIs, directories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Missing, directories.RightItem.Status.StatusEnum);
+                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
+                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
+
+                directories = synchronizedDirectories.ChildItems[1];
+                Assert.Equal(file2Name, directories.LeftItem.Name);
+                Assert.Equal(file2Name, directories.RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Equally, directories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, directories.RightItem.Status.StatusEnum);
+                Assert.Null(directories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(directories.RightItem.SyncCommand.CommandAction);
+
+                directories = synchronizedDirectories.ChildItems[2];
+                Assert.Equal(file3Name, directories.LeftItem.Name);
+                Assert.Equal(file3Name, directories.RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Newer, directories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Older, directories.RightItem.Status.StatusEnum);
+                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
+                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
+
+                directories = synchronizedDirectories.ChildItems[3];
+                Assert.Equal(file4Name, directories.LeftItem.Name);
+                Assert.Equal(file4Name, directories.RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Older, directories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Newer, directories.RightItem.Status.StatusEnum);
+                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
+                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
+
+                directories = synchronizedDirectories.ChildItems[4];
+                Assert.Equal(file5Name, directories.LeftItem.Name);
+                Assert.Equal(file5Name, directories.RightItem.Name);
+                Assert.Equal(ItemStatusEnum.Missing, directories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.ThereIs, directories.RightItem.Status.StatusEnum);
+                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
+                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке,
+        /// один из которых файл, второй директория, и имеют одинаковые наименования. 
+        /// </summary>
+        [Fact]
+        public async Task LoadDirectoryAndFile()
+        {
+            const string directoryAndFileName = "Item";
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                leftDirectory.CreateFiles(new Dictionary<string, DateTime>
+                {
+                    { directoryAndFileName, DateTime.Now }
+                });
+                
+                // В директорию надо поместить хотя бы один файл, чтобы она была видна.
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryAndFileName), 
+                    new Dictionary<string, DateTime> { { "1", DateTime.Now } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                Assert.Equal(2, synchronizedDirectories.ChildItems.Count);
+
+                // Сначала директория, потом файл.
+                var childDirectories1 = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(directoryAndFileName, childDirectories1.LeftItem.Name);
+                Assert.Equal(directoryAndFileName, childDirectories1.RightItem.Name);
+                Assert.NotNull(childDirectories1.RightItem.Directory);
+                Assert.True(childDirectories1.RightItem.IsDirectory);
+
+                // Даже если элемент отсутствует, а присутствующий является директорией, то и этот должен быть директорией.
+                Assert.Null(childDirectories1.LeftItem.Directory);
+                Assert.True(childDirectories1.LeftItem.IsDirectory);
+
+                Assert.Equal(ItemStatusEnum.Missing, childDirectories1.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.ThereIs, childDirectories1.RightItem.Status.StatusEnum);
+                var childDirectories2 = synchronizedDirectories.ChildItems[1];
+                Assert.Equal(directoryAndFileName, childDirectories2.LeftItem.Name);
+                Assert.Equal(directoryAndFileName, childDirectories2.RightItem.Name);
+                Assert.Null(childDirectories2.LeftItem.Directory);
+                Assert.False(childDirectories2.LeftItem.IsDirectory);
+                Assert.Null(childDirectories2.RightItem.Directory);
+                Assert.False(childDirectories2.RightItem.IsDirectory);
+                Assert.Equal(ItemStatusEnum.ThereIs, childDirectories2.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Missing, childDirectories2.RightItem.Status.StatusEnum);
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке директорий.
+        /// В частности проверяется, что статусы дочерних элементов влияют на статусы родительских.
+        /// </summary>
+        [Fact]
+        public async Task LoadDirectories_RefreshStatusesFromChilds()
+        {
+            const string directoryName = "Directory";
+            const string fileName = "File";
+
+            var newerDate = new DateTime(2019, 1, 1);
+            var olderDate = new DateTime(2018, 1, 1);
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                var childLeftDirectoryPath = leftDirectory.CreateDirectory(directoryName, newerDate);
+                var childRightDirectoryPath = rightDirectory.CreateDirectory(directoryName, olderDate);
+
+                // Хотя левая директория новее, но содержимое её будет старше.
+                // Получается после загрузки левая директория должна будте получить статус Older.  
+                Infrastructure.TestDirectory.CreateFiles(childLeftDirectoryPath, new Dictionary<string, DateTime> {
+                    { fileName, olderDate } });
+                Infrastructure.TestDirectory.CreateFiles(childRightDirectoryPath, new Dictionary<string, DateTime> {
+                    { fileName, newerDate } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                Assert.Single(synchronizedDirectories.ChildItems);
+
+                var childDirectorie = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(directoryName, childDirectorie.LeftItem.Name);
+                Assert.Equal(directoryName, childDirectorie.RightItem.Name);
+                Assert.NotNull(childDirectorie.LeftItem.Directory);
+                Assert.NotNull(childDirectorie.RightItem.Directory);
+                Assert.Single(childDirectorie.ChildItems);
+
+                // Это файлы.
+                Assert.Null(childDirectorie.ChildItems[0].LeftItem.Directory);
+                Assert.Null(childDirectorie.ChildItems[0].RightItem.Directory);
+
+                // Файл правой новее, соответственно и статус правой Newer.
+                Assert.Equal(ItemStatusEnum.Older, childDirectorie.ChildItems[0].LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Newer, childDirectorie.ChildItems[0].RightItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Older, childDirectorie.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Newer, childDirectorie.RightItem.Status.StatusEnum);
+            }
+        }
+
+        /// <summary>
+        /// Проверка создания моделей представлений элементов при загрузке директорий.
+        /// Одна директория пустая, вторая - нет.
+        /// </summary>
+        [Fact]
+        public async Task LoadDirectories_OneEmptyDirectory()
+        {
+            const string directoryName = "Directory";
+            const string fileName = "File";
+
+            var newerDate = new DateTime(2019, 1, 1);
+            var olderDate = new DateTime(2018, 1, 1);
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                var childLeftDirectoryPath = leftDirectory.CreateDirectory(directoryName, newerDate);
+                Infrastructure.TestDirectory.CreateFiles(childLeftDirectoryPath, new Dictionary<string, DateTime> {
+                    { fileName, DateTime.Now } });
+
+                rightDirectory.CreateDirectory(directoryName, olderDate);
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+
+
+                Assert.Single(synchronizedDirectories.ChildItems);
+
+                var childDirectories = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(directoryName, childDirectories.LeftItem.Name);
+                Assert.Equal(directoryName, childDirectories.RightItem.Name);
+                Assert.NotNull(childDirectories.LeftItem.Directory);
+
+                // Справа реально директории нет, потому что пустые директории не учитываются, но элемент помечен как директория.
+                Assert.Null(childDirectories.RightItem.Directory);
+                Assert.True(childDirectories.RightItem.IsDirectory);
+
+                Assert.Empty(childDirectories.ChildItems);
+            }
+        }
+
+        private SynchronizedItems GetSynchronizedDirectories(string leftDirectoryPath, string rightDirectoryPath)
+        {
+            var settingsRow = new TestSettingsRow
+            {
+                LeftDirectory = new SettingsDirectory(leftDirectoryPath),
+                RightDirectory = new SettingsDirectory(rightDirectoryPath)
+            };
+
+            return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()), new SynchronizedItemMatcher());
+        }
+
+        private class TestSettingsRow : ISettingsRow
+        {
+            public SettingsDirectory LeftDirectory { get; set; }
+
+            public SettingsDirectory RightDirectory { get; set; }
+
+            public bool IsUsed { get; set; }
+
+            public string[] ExcludedExtensions { get; set; }
+
+            public void NotFoundRefresh()
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+}
