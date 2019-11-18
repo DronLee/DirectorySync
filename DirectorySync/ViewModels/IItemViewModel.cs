@@ -1,7 +1,6 @@
 ﻿using DirectorySync.Models;
 using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace DirectorySync.ViewModels
@@ -52,11 +51,6 @@ namespace DirectorySync.ViewModels
         ICommand AcceptCommand { get; }
 
         /// <summary>
-        /// Действия команды синхронизации.
-        /// </summary>
-        Func<Task> CommandAction { get; }
-
-        /// <summary>
         /// Была изменена команда принятия элемента.
         /// </summary>
         event Action AcceptCommandChangedEvent;
@@ -80,18 +74,5 @@ namespace DirectorySync.ViewModels
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         event Action<string> SyncErrorEvent;
-
-        /// <summary>
-        /// Обновление статуса.
-        /// </summary>
-        /// <param name="statusEnum">Новое значение статуса.</param>
-        /// <param name="comment">Пояснение к статусу.</param>
-        void UpdateStatus(ItemStatusEnum statusEnum, string comment = null);
-
-        /// <summary>
-        /// Задание метода, который будет выполняться как команда синхронизации.
-        /// </summary>
-        /// <param name="action">Метод для синхронизации.</param>
-        void SetActionCommand(Func<Task> action);
     }
 }
