@@ -1,10 +1,7 @@
 ﻿using DirectorySync.Models;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DirectorySync.ViewModels
 {
@@ -13,14 +10,6 @@ namespace DirectorySync.ViewModels
     /// </summary>
     public class RowViewModel : IRowViewModel
     {
-        private static readonly Dictionary<ItemStatusEnum, string> _statusCommentsFromChildren = new Dictionary<ItemStatusEnum, string>
-            {
-                {ItemStatusEnum.Missing, "Не хватает тех элементов, что есть с другой стороны"},
-                {ItemStatusEnum.ThereIs, "Содержит отсутствующие с другой стороны элементы"},
-                {ItemStatusEnum.Older, "Содержит более старые"},
-                {ItemStatusEnum.Newer, "Содержит более новые"}
-            };
-
         private bool _isExpanded;
         private bool _isSelected;
         private bool _inProcess = true;
@@ -121,11 +110,6 @@ namespace DirectorySync.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Событие, возникающее при полной загрузке входящих в строку элементов.
-        /// </summary>
-        public event Action<IRowViewModel> RowViewModelIsLoadedEvent;
-
-        /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         public event Action<string> SyncErrorEvent;
@@ -141,51 +125,6 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
-        /// Проставить статусы отслеживаемых элементов на основании статусов дочерних элементов.
-        /// </summary>
-        public void RefreshStatusesFromChilds()
-        {
-            if (ChildRows.Count > 0)
-            {
-                // Достаточно проверять статус с одной стороны, так как если с одной стороны Equally, то и с другой стороны обязательно Equally.
-                var notEquallyChilds = ChildRows.Where(r => r.LeftItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
-
-                if (notEquallyChilds.Length == 0)
-                {
-                    // Если все дочерние строки имеют статус Equally, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
-                    LeftItem.UpdateStatus(ItemStatusEnum.Equally);
-                    LeftItem.SetActionCommand(null);
-                    RightItem.UpdateStatus(ItemStatusEnum.Equally);
-                    RightItem.SetActionCommand(null);
-                }
-                else if(notEquallyChilds.Any(r=>r.LeftItem.Status.StatusEnum == ItemStatusEnum.Unknown))
-                {
-                    // Если хоть одна дочерняя строка имеет статус Unknown, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
-                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    LeftItem.SetActionCommand(null);
-                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    RightItem.SetActionCommand(null);
-                }
-                else
-                {
-                    var leftStatuses = notEquallyChilds.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
-
-                    // Если с одной стороны все элементы имеют один статус, то и с другой тоже.
-                    if (leftStatuses.Length == 1)
-                    {
-                        SetItemStatusAndCommands(LeftItem, leftStatuses.First(), notEquallyChilds.Select(r => r.LeftItem.CommandAction));
-                        SetItemStatusAndCommands(RightItem, notEquallyChilds.First().RightItem.Status.StatusEnum, notEquallyChilds.Select(r => r.RightItem.CommandAction));
-                    }
-                    else
-                    {
-                        LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
-                        RightItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Отобразить, что идёт обновление строки.
         /// </summary>
         public void ShowInProcess()
@@ -195,39 +134,26 @@ namespace DirectorySync.ViewModels
         }
 
         /// <summary>
-        /// Задание статуса и комманд синхронизации для модели представления элемента, исходя из дочерних неидентичных строк.
+        /// Увдеомление о завершении загрузки строки. 
         /// </summary>
-        /// <param name="itemViewModel">Модель представления элемента, для которой задаётся статус и команды.</param>
-        /// <param name="status">Задаваемй статус.</param>
-        /// <param name="actionCommands">Команды синхронизации.</param>
-        private void SetItemStatusAndCommands(IItemViewModel itemViewModel, ItemStatusEnum status, IEnumerable<Func<Task>> actionCommands)
+        public void LoadFinished()
         {
-            itemViewModel.UpdateStatus(status, _statusCommentsFromChildren.ContainsKey(status) ?
-                            _statusCommentsFromChildren[status] : null);
-
-            // Если нет, команды, но должна быть, исходя из дочерних элементов,
-            // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-            if (status != ItemStatusEnum.Equally)
-                itemViewModel.SetActionCommand(async () =>
-                {
-                    foreach (var actionCommand in actionCommands)
-                        await actionCommand.Invoke();
-                });
+            InProcess = false;
+            SetInProcessForChildren(this, InProcess);
         }
 
-        /// <summary>
-        /// Реакция на событие загрузки одной из отслеживаемых директорий.
-        /// </summary>
-        /// <param name="directory">Загруженная директория.</param>
-        private void LoadedDirectory(IDirectory directory)
-        {
-            if((LeftItem.Directory == null || LeftItem.Directory.IsLoaded) && (RightItem.Directory == null || RightItem.Directory.IsLoaded))
-            {
-                RowViewModelIsLoadedEvent?.Invoke(this);
-                InProcess = false;
-                SetInProcessForChildren(this, false);
-            }
-        }
+        ///// <summary>
+        ///// Реакция на событие загрузки одной из отслеживаемых директорий.
+        ///// </summary>
+        ///// <param name="directory">Загруженная директория.</param>
+        //private void LoadedDirectory(IDirectory directory)
+        //{
+        //    if((LeftItem.Directory == null || LeftItem.Directory.IsLoaded) && (RightItem.Directory == null || RightItem.Directory.IsLoaded))
+        //    {
+        //        InProcess = false;
+        //        SetInProcessForChildren(this, false);
+        //    }
+        //}
 
         private void SetInProcessForChildren(IRowViewModel row, bool inProcessValue)
         {
@@ -251,13 +177,11 @@ namespace DirectorySync.ViewModels
             else if (LeftItem.Item == null && RightItem.Item == null)
             {
                 // Если обоих элементов уже нет, пусть обновляется родительский элемент, чтобы убралась эта строка.
-                RowViewModelIsLoadedEvent?.Invoke(Parent);
                 SetInProcessForChildren(Parent, false);
             }
             else
             {
                 (refreshItem == LeftItem ? Parent.LeftItem : Parent.RightItem).Directory?.Load().Wait();
-                RowViewModelIsLoadedEvent?.Invoke(this);
             }
 
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
@@ -265,23 +189,23 @@ namespace DirectorySync.ViewModels
             InProcess = false;
         }
 
-        private void CopiedFromTo(IItemViewModel fromItem, IItemViewModel toItem)
-        {
-            if (LeftItem == fromItem)
-            {
-                if (RightItem.Directory == null && toItem.Directory != null)
-                    // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
-                    toItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
-                RightItem = toItem;
-            }
-            else
-            {
-                if (LeftItem.Directory == null && toItem.Directory != null)
-                    // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
-                    LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
-                LeftItem = toItem;
-            }
-        }
+        //private void CopiedFromTo(IItemViewModel fromItem, IItemViewModel toItem)
+        //{
+        //    if (LeftItem == fromItem)
+        //    {
+        //        if (RightItem.Directory == null && toItem.Directory != null)
+        //            // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
+        //            toItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
+        //        RightItem = toItem;
+        //    }
+        //    else
+        //    {
+        //        if (LeftItem.Directory == null && toItem.Directory != null)
+        //            // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
+        //            LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
+        //        LeftItem = toItem;
+        //    }
+        //}
 
         private void AcceptCommandChanged()
         {
@@ -290,12 +214,12 @@ namespace DirectorySync.ViewModels
 
         private void SetItemViewModelEvents(IItemViewModel itemViewModel)
         {
-            if (itemViewModel.Directory != null)
-                itemViewModel.Directory.LoadedDirectoryEvent += LoadedDirectory;
+            //if (itemViewModel.Directory != null)
+            //    itemViewModel.Directory.LoadedDirectoryEvent += LoadedDirectory;
 
             itemViewModel.StartedSyncEvent += StartedSync;
             itemViewModel.FinishedSyncEvent += FinishedSync;
-            itemViewModel.CopiedFromToEvent += CopiedFromTo;
+            //itemViewModel.CopiedFromToEvent += CopiedFromTo;
             itemViewModel.AcceptCommandChangedEvent += AcceptCommandChanged;
             itemViewModel.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
         }

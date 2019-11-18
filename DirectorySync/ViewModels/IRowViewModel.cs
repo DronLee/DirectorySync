@@ -55,29 +55,18 @@ namespace DirectorySync.ViewModels
         bool InProcess { get; set; }
 
         /// <summary>
-        /// Событие, возникающее при полной загрузке входящих в строку элементов.
-        /// </summary>
-        event Action<IRowViewModel> RowViewModelIsLoadedEvent;
-
-        /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         event Action<string> SyncErrorEvent;
 
         /// <summary>
-        /// Обновление дочерних строк.
-        /// </summary>
-        /// <param name="rows">Новые дочерние строки.</param>
-        void RefreshChildRows(IRowViewModel[] rows);
-
-        /// <summary>
-        /// Проставить статусы отслеживаемых элементов на основании статусов дочерних элементов.
-        /// </summary>
-        void RefreshStatusesFromChilds();
-
-        /// <summary>
         /// Отобразить, что идёт обновление строки.
         /// </summary>
         void ShowInProcess();
+
+        /// <summary>
+        /// Увдеомление о завершении загрузки строки. 
+        /// </summary>
+        void LoadFinished();
     }
 }
