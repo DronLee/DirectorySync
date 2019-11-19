@@ -24,6 +24,7 @@ namespace DirectorySync.ViewModels
         public ItemViewModel(ISynchronizedItem synchronizedItem)
         {
             _synchronizedItem = synchronizedItem;
+            _synchronizedItem.StatusChangedEvent += () => { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status))); };
             _synchronizedItem.SyncCommand.CommandActionChangedEvent += () =>
             {
                 if (_synchronizedItem.SyncCommand.CommandAction == null)

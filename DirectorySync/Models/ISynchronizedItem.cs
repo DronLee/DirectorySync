@@ -58,6 +58,11 @@ namespace DirectorySync.Models
         event Action<string> SyncErrorEvent;
 
         /// <summary>
+        /// Событие изменения статуса.
+        /// </summary>
+        event Action StatusChangedEvent;
+
+        /// <summary>
         /// Обновление статуса.
         /// </summary>
         /// <param name="statusEnum">Новое значение статуса.</param>

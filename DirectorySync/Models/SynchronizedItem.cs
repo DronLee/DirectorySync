@@ -80,6 +80,7 @@ namespace DirectorySync.Models
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         public event Action<string> SyncErrorEvent;
+        public event Action StatusChangedEvent;
 
         /// <summary>
         /// Обновление статуса.
@@ -88,7 +89,10 @@ namespace DirectorySync.Models
         public void UpdateStatus(ItemStatusEnum statusEnum, string comment = null)
         {
             if (Status == null || Status.StatusEnum != statusEnum)
+            {
                 Status = new ItemStatus(statusEnum, comment);
+                StatusChangedEvent?.Invoke();
+            }
         }
 
         private void CopiedItemTo(IItem toItem, string destinationPath)
