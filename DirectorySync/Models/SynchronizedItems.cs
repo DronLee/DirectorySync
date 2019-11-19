@@ -32,15 +32,14 @@ namespace DirectorySync.Models
         /// <param name="settingsRow">Строка настроек, соответствующая синхронизируемым элементам.</param>
         /// <param name="synchronizedItemFactory">Фабрика создания синхронизируемых элементов.</param>
         /// <param name="synchronizedItemMatcher">Объект, выполняющий сравнение синхронизируемых элементов между собой.</param>
-        public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher)
-        {
-            (_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher) = (settingsRow, synchronizedItemFactory, synchronizedItemMatcher);
-
-            LeftItem = synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.LeftDirectory.DirectoryPath, 
-                synchronizedItemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions));
-            RightItem = synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.RightDirectory.DirectoryPath, 
-                synchronizedItemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions));
-        }
+        public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher) :
+            this(settingsRow, synchronizedItemFactory, synchronizedItemMatcher,
+                synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.LeftDirectory.DirectoryPath,
+                    synchronizedItemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
+                synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.RightDirectory.DirectoryPath,
+                    synchronizedItemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
+                null)
+        { }
 
         /// <summary>
         /// Конструктор.
@@ -51,10 +50,16 @@ namespace DirectorySync.Models
         /// <param name="leftItem">Элемент синхронизации слева.</param>
         /// <param name="rightItem">Элемент синхронизации справва.</param>
         /// <param name="parentDirectories">Родительский элемент синхронизируемых директорий.</param>
-        private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher, 
-            ISynchronizedItem leftItem, ISynchronizedItem rightItem, ISynchronizedItems parentDirectories) : this(settingsRow, synchronizedItemFactory, synchronizedItemMatcher)
+        private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
+            ISynchronizedItem leftItem, ISynchronizedItem rightItem, ISynchronizedItems parentDirectories)
         {
+            (_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher) = (settingsRow, synchronizedItemFactory, synchronizedItemMatcher);
             (LeftItem, RightItem, ParentDirectories) = (leftItem, rightItem, parentDirectories);
+
+            if (LeftItem.Item != null)
+                LeftItem.Item.DeletedEvent += ItemDeleted;
+            if (RightItem.Item != null)
+                RightItem.Item.DeletedEvent += ItemDeleted;
         }
 
         /// <summary>
@@ -96,6 +101,11 @@ namespace DirectorySync.Models
         /// Событие, возникающее при полной загрузке обоих директорий. Передаётся текущая модель.
         /// </summary>
         public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
+
+        /// <summary>
+        /// Событие оповещает, что пара синхронизируемых элементов удалена и передаёт запись на них.
+        /// </summary>
+        public event Action<ISynchronizedItems> DeletedEvent;
 
         /// <summary>
         /// Загрузка директорий.
@@ -156,12 +166,13 @@ namespace DirectorySync.Models
                 foreach (var directories in CreateChildItems(
                     LeftDirectory.Items.Where(i => i is IDirectory).ToArray(), RightDirectory.Items.Where(i => i is IDirectory).ToArray()))
                 {
-                    ChildItems.Add(directories);
+                    AddChildItem(directories);
                     directories.RefreshChildItems();
                 }
 
-                ChildItems.AddRange(CreateChildItems(
-                    LeftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(), RightDirectory.Items.Where(i => !(i is IDirectory)).ToArray()));
+                foreach (var child in CreateChildItems(LeftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(),
+                    RightDirectory.Items.Where(i => !(i is IDirectory)).ToArray()))
+                    AddChildItem(child);
 
                 RefreshStatusesFromChilds();
             }
@@ -212,6 +223,18 @@ namespace DirectorySync.Models
                     }
                 }
             }
+        }
+
+        private void AddChildItem(ISynchronizedItems child)
+        {
+            ChildItems.Add(child);
+            child.DeletedEvent += DeleteChildItem;
+        }
+
+        private void DeleteChildItem(ISynchronizedItems child)
+        {
+            child.DeletedEvent -= DeleteChildItem; // Раз строка удаляется, больше за ней следить не надо.
+            ChildItems.Remove(child);
         }
 
         /// <summary>
@@ -342,6 +365,12 @@ namespace DirectorySync.Models
                 synchronizedItems.ParentDirectories.RefreshStatusesFromChilds();
                 RefreshParentStatuses(synchronizedItems.ParentDirectories);
             }
+        }
+
+        private void ItemDeleted(IItem item)
+        {
+            item.DeletedEvent -= ItemDeleted; // Раз удалился, значит больше не удалится.
+            DeletedEvent?.Invoke(this);
         }
     }
 }

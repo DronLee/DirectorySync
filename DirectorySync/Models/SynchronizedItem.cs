@@ -22,7 +22,6 @@ namespace DirectorySync.Models
             Item = item;
             if (item != null)
             {
-                item.DeletedEvent += (IItem deletedItem) => { Item = null; };
                 item.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
                 item.CopiedFromToEvent += CopiedItemTo;
             }

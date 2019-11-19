@@ -40,14 +40,19 @@ namespace DirectorySync.Models
         ISynchronizedItems ParentDirectories { get; }
 
         /// <summary>
+        /// Дочерние пары синхронизируемых элементов.
+        /// </summary>
+        List<ISynchronizedItems> ChildItems { get; }
+
+        /// <summary>
         /// Событие, возникающее при полной загрузке обоих директорий. Передаётся текущая модель.
         /// </summary>
         event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
 
         /// <summary>
-        /// Дочерние пары синхронизируемых элементов.
+        /// Событие оповещает, что пара синхронизируемых элементов удалена и передаёт запись на них.
         /// </summary>
-        List<ISynchronizedItems> ChildItems { get; }
+        event Action<ISynchronizedItems> DeletedEvent;
 
         /// <summary>
         /// Загрузка директорий.
