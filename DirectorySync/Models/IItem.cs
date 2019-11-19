@@ -41,6 +41,11 @@ namespace DirectorySync.Models
         event Action<string> SyncErrorEvent;
 
         /// <summary>
+        /// Загрузка элемента.
+        /// </summary>
+        Task Load();
+
+        /// <summary>
         /// Копировать элемент в указанный путь с заменой.
         /// </summary>
         /// <param name="destinationPath">Путь куда копировать.</param>

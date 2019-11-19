@@ -16,15 +16,13 @@ namespace DirectorySync.Models
         internal File(string fullPath)
         {
             FullPath = fullPath;
-            var info = new IO.FileInfo(fullPath);
-            Name = info.Name;
-            LastUpdate = info.LastWriteTime;
+            Load().Wait();
         }
 
         /// <summary>
         /// Наименование файла.
         /// </summary>
-        public string Name { get; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Полный путь к файлу.
@@ -34,7 +32,7 @@ namespace DirectorySync.Models
         /// <summary>
         /// Время последнего обновления файла.
         /// </summary>
-        public DateTime LastUpdate { get; }
+        public DateTime LastUpdate { get; private set; }
 
         /// <summary>
         /// Событие возникает, после удаления файла и передаёт его.
@@ -99,6 +97,19 @@ namespace DirectorySync.Models
                 }
                 if (!error)
                     DeletedEvent?.Invoke(this);
+            });
+        }
+
+        /// <summary>
+        /// Получение данных о файле.
+        /// </summary>
+        public async Task Load()
+        {
+            await Task.Run(() =>
+            {
+                var info = new IO.FileInfo(FullPath);
+                Name = info.Name;
+                LastUpdate = info.LastWriteTime;
             });
         }
 

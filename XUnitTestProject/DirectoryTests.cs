@@ -257,6 +257,11 @@ namespace XUnitTestProject
             {
                 throw new NotImplementedException();
             }
+
+            public Task Load()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

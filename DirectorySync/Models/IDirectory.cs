@@ -32,10 +32,5 @@ namespace DirectorySync.Models
         /// Событие возникает при завершении загрузки директории.
         /// </summary>
         event Action<IDirectory> LoadedDirectoryEvent;
-
-        /// <summary>
-        /// Загрузка элементов директории.
-        /// </summary>
-        Task Load();
     }
 }
