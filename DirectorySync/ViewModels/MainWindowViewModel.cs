@@ -53,9 +53,11 @@ namespace DirectorySync.ViewModels
             _rowViewModelFactory = rowViewModelFactory;
             _rowViewModelFactory.AddRowEvent += AddRow;
 
-            Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
-                rowViewModelFactory.CreateRowViewModel(d)));
-            Log = new ObservableCollection<string>();
+            foreach (var row in _synchronizedDirectoriesManager.SynchronizedDirectories.Select(d => rowViewModelFactory.CreateRowViewModel(d)))
+            {
+                row.SyncErrorEvent += AddToLog;
+                Rows.Add(row);
+            }
         }
 
         /// <summary>
@@ -166,12 +168,12 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Строки, отображающие отслеживание директорий.
         /// </summary>
-        public ObservableCollection<IRowViewModel> Rows { get; }
+        public ObservableCollection<IRowViewModel> Rows { get; } = new ObservableCollection<IRowViewModel>();
 
         /// <summary>
         /// Строки лога.
         /// </summary>
-        public ObservableCollection<string> Log { get; }
+        public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
 
         /// <summary>
         /// True - кнопка очистки лога видна.
@@ -260,15 +262,20 @@ namespace DirectorySync.ViewModels
 
         private void AddToLog(string message)
         {
-            Log.Add(message);
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
+            _dispatcher.Invoke(() =>
+            {
+                Log.Add(message);
+                PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
+                PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
+            });
         }
 
         private void AddRow(IRowViewModel parentRow, IRowViewModel childRow)
         {
             _dispatcher.Invoke(() => parentRow.ChildRows.Add(childRow));
             PropertyChanged?.Invoke(parentRow, new PropertyChangedEventArgs(nameof(parentRow.ChildRows)));
+
+            childRow.SyncErrorEvent += AddToLog;
         }
     }
 }
