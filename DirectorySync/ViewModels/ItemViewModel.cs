@@ -106,9 +106,9 @@ namespace DirectorySync.ViewModels
             if (_synchronizedItem.SyncCommand.CommandAction == null)
                 AcceptCommand = null;
             else
-                AcceptCommand = new Command(call =>
+                AcceptCommand = new Command(async call =>
                 {
-                    _synchronizedItem.SyncCommand.CommandAction.Invoke();
+                    await _synchronizedItem.SyncCommand.Process();
                 });
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
         }
