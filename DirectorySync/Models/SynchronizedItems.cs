@@ -235,6 +235,7 @@ namespace DirectorySync.Models
         {
             child.DeletedEvent -= DeleteChildItem; // Раз строка удаляется, больше за ней следить не надо.
             ChildItems.Remove(child);
+            RefreshStatusesFromChilds();
         }
 
         /// <summary>
