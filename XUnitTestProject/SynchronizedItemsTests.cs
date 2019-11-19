@@ -468,6 +468,68 @@ namespace XUnitTestProject
             }
         }
 
+        /// <summary>
+        /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов.
+        /// </summary>
+        [Fact]
+        public async Task SynchronizedDirectoriesAfterDeleteItem()
+        {
+            const string directoryName = "Dir1";
+            const string fileName = "File1";
+            var fileUpdateDate = DateTime.Now;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate } });
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate }, { "File2", fileUpdateDate } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                await synchronizedDirectories.LeftItem.SyncCommand.Process(); // Эта команда должна выполнить удаление одного из файлов справа.
+
+                // По прежнему должна остваться одна дочерняя запись на директории.
+                Assert.Single(synchronizedDirectories.ChildItems);
+
+                // И в ней одна запись на оставшуюся пару файлоа.
+                Assert.Single(synchronizedDirectories.ChildItems[0].ChildItems);
+            }
+        }
+
+        /// <summary>
+        /// Проверка удаления оставшихся пустыми синхронизируемых директорий после удаления отслеживаемых элементов.
+        /// </summary>
+        [Fact]
+        public async Task RemoveEmptySynchronizedDirectoriesAfterDeleteItem()
+        {
+            const string directoryName = "Dir1";
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateDirectory(leftDirectory.CreateDirectory(directoryName), directoryName);
+                Infrastructure.TestDirectory.CreateFiles(
+                    Infrastructure.TestDirectory.CreateDirectory(rightDirectory.CreateDirectory(directoryName), directoryName),
+                    new Dictionary<string, DateTime> { { "File1", DateTime.Now } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                await synchronizedDirectories.LeftItem.SyncCommand.Process(); // Эта команда должна выполнить удаление файла справа.
+
+                // Корневые элементы должны по прежнему остваться директориями.
+                Assert.NotNull(synchronizedDirectories.LeftDirectory);
+                Assert.NotNull(synchronizedDirectories.RightDirectory);
+
+                // Но синхронизируемых элементов в них быть не должно, так как никаких файлов не осталось.
+                Assert.Empty(synchronizedDirectories.ChildItems);
+            }
+        }
+
         private SynchronizedItems GetSynchronizedDirectories(string leftDirectoryPath, string rightDirectoryPath)
         {
             var settingsRow = new TestSettingsRow
