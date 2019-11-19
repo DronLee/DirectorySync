@@ -495,8 +495,22 @@ namespace XUnitTestProject
                 // По прежнему должна остваться одна дочерняя запись на директории.
                 Assert.Single(synchronizedDirectories.ChildItems);
 
+                // Дочерние элементы теперь должны быть идентичные и команды синхронизации им не нужны.
+                var childItem = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
                 // И в ней одна запись на оставшуюся пару файлоа.
-                Assert.Single(synchronizedDirectories.ChildItems[0].ChildItems);
+                Assert.Single(childItem.ChildItems);
+
+                // Эти тоже теперь должны быть идентичные и команды синхронизации им не нужны.
+                childItem = childItem.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
             }
         }
 
