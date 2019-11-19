@@ -16,15 +16,10 @@ namespace DirectorySync.Models
         /// <param name="item">Элемент, на основе которого строится директория.</param>
         public SynchronizedItem(string fullPath, bool isDirectory, IItem item)
         {
-            Name = Path.GetFileName(fullPath);
-            FullPath = fullPath;
-            IsDirectory = isDirectory;
-            Item = item;
+            (Name, FullPath, IsDirectory, Item) = (Path.GetFileName(fullPath), fullPath, isDirectory, item);
+
             if (item != null)
-            {
-                item.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
-                item.CopiedFromToEvent += CopiedItemTo;
-            }
+                UpdateItem(item);
 
             SyncCommand = new SyncCommand();
             SyncCommand.FinishedSyncEvent += () => { FinishedSyncEvent?.Invoke(this); };
@@ -71,14 +66,19 @@ namespace DirectorySync.Models
         public event Action<ISynchronizedItem> FinishedSyncEvent;
 
         /// <summary>
-        /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
+        /// Событие, сообщающее о завершении копирования.
+        /// Передаёт синхронизируемый элемент, вызвавший копирвание, и элемент, созданный в реузльтате копирования.
         /// </summary>
-        public event Action<ISynchronizedItem, ISynchronizedItem> CopiedFromToEvent;
+        public event Action<ISynchronizedItem, IItem> CopiedFromToEvent;
 
         /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         public event Action<string> SyncErrorEvent;
+
+        /// <summary>
+        /// Событие изменения статуса.
+        /// </summary>
         public event Action StatusChangedEvent;
 
         /// <summary>
@@ -94,9 +94,39 @@ namespace DirectorySync.Models
             }
         }
 
-        private void CopiedItemTo(IItem toItem, string destinationPath)
+        public void UpdateItem(IItem item)
         {
-            CopiedFromToEvent?.Invoke(this, new SynchronizedItem(destinationPath, IsDirectory, toItem));
+            if (Item != null)
+            {
+                // Больше не интересно за ним наблюдать.
+                Item.SyncErrorEvent -= SyncError;
+                Item.DeletedEvent -= Delete;
+                Item.CopiedFromToEvent -= CopiedFromTo;
+            }
+
+            if (item != null)
+            {
+                item.SyncErrorEvent += SyncError;
+                item.DeletedEvent += Delete;
+                item.CopiedFromToEvent += CopiedFromTo;
+            }
+
+            Item = item;
+        }
+
+        private void SyncError(string error)
+        {
+            SyncErrorEvent?.Invoke(error);
+        }
+
+        private void Delete(IItem deletingItem)
+        {
+            UpdateItem(null);
+        }
+
+        private void CopiedFromTo(IItem newItem, string destinationPath)
+        {
+            CopiedFromToEvent?.Invoke(this, newItem);
         }
     }
 }

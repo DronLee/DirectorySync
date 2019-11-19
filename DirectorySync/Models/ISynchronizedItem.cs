@@ -48,9 +48,10 @@ namespace DirectorySync.Models
         event Action<ISynchronizedItem> FinishedSyncEvent;
 
         /// <summary>
-        /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
+        /// Событие, сообщающее о завершении копирования.
+        /// Передаёт синхронизируемый элемент, вызвавший копирвание, и элемент, созданный в реузльтате копирования.
         /// </summary>
-        event Action<ISynchronizedItem, ISynchronizedItem> CopiedFromToEvent;
+        event Action<ISynchronizedItem, IItem> CopiedFromToEvent;
 
         /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
@@ -68,5 +69,7 @@ namespace DirectorySync.Models
         /// <param name="statusEnum">Новое значение статуса.</param>
         /// <param name="comment">Пояснение к статусу.</param>
         void UpdateStatus(ItemStatusEnum statusEnum, string comment = null);
+
+        void UpdateItem(IItem item);
     }
 }
