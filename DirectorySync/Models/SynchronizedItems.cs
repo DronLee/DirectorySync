@@ -197,11 +197,7 @@ namespace DirectorySync.Models
                     LeftItem.SyncCommand.SetCommandAction(null);
                 }
                 else if (notEquallyChilds.Any(r => r.LeftItem.Status.StatusEnum == ItemStatusEnum.Unknown))
-                {
-                    // Если хоть одна дочерняя строка имеет статус Unknown, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
-                    LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    LeftItem.SyncCommand.SetCommandAction(null);
-                }
+                    ItemStatusUnknown(LeftItem);
                 else
                 {
                     var leftStatuses = notEquallyChilds.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
@@ -209,7 +205,7 @@ namespace DirectorySync.Models
                     if (leftStatuses.Length == 1)
                         SetItemStatusAndCommands(LeftItem, leftStatuses.First(), notEquallyChilds.Select(r => r.LeftItem.SyncCommand.CommandAction));
                     else
-                        LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+                        ItemStatusUnknown(LeftItem);
                 }
             }
         }
@@ -230,11 +226,7 @@ namespace DirectorySync.Models
                     RightItem.SyncCommand.SetCommandAction(null);
                 }
                 else if (notEquallyChilds.Any(r => r.RightItem.Status.StatusEnum == ItemStatusEnum.Unknown))
-                {
-                    // Если хоть одна дочерняя строка имеет статус Unknown, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
-                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    RightItem.SyncCommand.SetCommandAction(null);
-                }
+                    ItemStatusUnknown(RightItem);
                 else
                 {
                     var rightStatuses = notEquallyChilds.Select(r => r.RightItem.Status.StatusEnum).Distinct().ToArray();
@@ -242,9 +234,15 @@ namespace DirectorySync.Models
                     if (rightStatuses.Length == 1)
                         SetItemStatusAndCommands(RightItem, rightStatuses.First(), notEquallyChilds.Select(r => r.RightItem.SyncCommand.CommandAction));
                     else
-                        RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+                        ItemStatusUnknown(RightItem);
                 }
             }
+        }
+
+        private void ItemStatusUnknown(ISynchronizedItem item)
+        {
+            item.UpdateStatus(ItemStatusEnum.Unknown);
+            item.SyncCommand.SetCommandAction(null);
         }
 
         private void AddChildItem(ISynchronizedItems child)
