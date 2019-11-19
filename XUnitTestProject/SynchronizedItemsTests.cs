@@ -283,190 +283,190 @@ namespace XUnitTestProject
             }
         }
 
-        /// <summary>
-        /// Проверка обновления статусов моделей синхронизируемых элементов на основе статусов дочерних элементов.
-        /// </summary>
-        /// <param name="leftStartStatus">Начальное значение статуса левого элемента.</param>
-        /// <param name="rightStartStatus">Начальное значение статуса правого элемента.</param>
-        /// <param name="leftItemsStatuses">Статусы левых дочерних элементов.</param>
-        /// <param name="rightItemsStatuses">Статусы правых дочерних элементов.</param>
-        /// <param name="leftExpectedStatus">Ожидаемое значение статуса левого элемента после обновления.</param>
-        /// <param name="rightExpectedStatus">Ожидаемое значение статуса правого элемента после обновления.</param>
-        [Theory]
+        ///// <summary>
+        ///// Проверка обновления статусов моделей синхронизируемых элементов на основе статусов дочерних элементов.
+        ///// </summary>
+        ///// <param name="leftStartStatus">Начальное значение статуса левого элемента.</param>
+        ///// <param name="rightStartStatus">Начальное значение статуса правого элемента.</param>
+        ///// <param name="leftItemsStatuses">Статусы левых дочерних элементов.</param>
+        ///// <param name="rightItemsStatuses">Статусы правых дочерних элементов.</param>
+        ///// <param name="leftExpectedStatus">Ожидаемое значение статуса левого элемента после обновления.</param>
+        ///// <param name="rightExpectedStatus">Ожидаемое значение статуса правого элемента после обновления.</param>
+        //[Theory]
 
-        // Если нет дочерних элементов, то статус должен оставаться прежним.
-        [InlineData("Equally", "Equally", new string[0], new string[0], "Equally", "Equally")]
+        //// Если нет дочерних элементов, то статус должен оставаться прежним.
+        //[InlineData("Equally", "Equally", new string[0], new string[0], "Equally", "Equally")]
 
-        [InlineData("Equally", "Equally", new[] { "Newer" }, new[] { "Older" }, "Newer", "Older")]
-        [InlineData("Equally", "Equally", new[] { "Missing" }, new[] { "ThereIs" }, "Missing", "ThereIs")]
-        [InlineData("Unknown", "Unknown", new[] { "Equally" }, new[] { "Equally" }, "Equally", "Equally")]
+        //[InlineData("Equally", "Equally", new[] { "Newer" }, new[] { "Older" }, "Newer", "Older")]
+        //[InlineData("Equally", "Equally", new[] { "Missing" }, new[] { "ThereIs" }, "Missing", "ThereIs")]
+        //[InlineData("Unknown", "Unknown", new[] { "Equally" }, new[] { "Equally" }, "Equally", "Equally")]
 
-        // Если дочерние элементы имеют один статус не считая Equally, то статус родительского будет такой же, как этот один.
-        [InlineData("Equally", "Equally", new[] { "Missing", "Equally" }, new[] { "ThereIs", "Equally" }, "Missing", "ThereIs")]
+        //// Если дочерние элементы имеют один статус не считая Equally, то статус родительского будет такой же, как этот один.
+        //[InlineData("Equally", "Equally", new[] { "Missing", "Equally" }, new[] { "ThereIs", "Equally" }, "Missing", "ThereIs")]
 
-        // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
-        [InlineData("Equally", "Equally", new[] { "Missing", "ThereIs" }, new[] { "ThereIs", "Missing" }, "Unknown", "Unknown")]
-        public async Task RefreshStatusesFromChilds_CheckStatus(string leftStartStatus, string rightStartStatus,
-            string[] leftItemsStatuses, string[] rightItemsStatuses,
-            string leftExpectedStatus, string rightExpectedStatus)
-        {
-            using (var leftDirectory = new Infrastructure.TestDirectory())
-            using (var rightDirectory = new Infrastructure.TestDirectory())
-            {
-                var testFilesDictionary = new Dictionary<string, DateTime>();
-                var updateData = DateTime.Now;
-                for (byte i = 0; i < leftItemsStatuses.Length; i++)
-                    testFilesDictionary.Add("File" + i.ToString(), updateData);
-                leftDirectory.CreateFiles(testFilesDictionary);
-                rightDirectory.CreateFiles(testFilesDictionary);
+        //// Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
+        //[InlineData("Equally", "Equally", new[] { "Missing", "ThereIs" }, new[] { "ThereIs", "Missing" }, "Unknown", "Unknown")]
+        //public async Task RefreshStatusesFromChilds_CheckStatus(string leftStartStatus, string rightStartStatus,
+        //    string[] leftItemsStatuses, string[] rightItemsStatuses,
+        //    string leftExpectedStatus, string rightExpectedStatus)
+        //{
+        //    using (var leftDirectory = new Infrastructure.TestDirectory())
+        //    using (var rightDirectory = new Infrastructure.TestDirectory())
+        //    {
+        //        var testFilesDictionary = new Dictionary<string, DateTime>();
+        //        var updateData = DateTime.Now;
+        //        for (byte i = 0; i < leftItemsStatuses.Length; i++)
+        //            testFilesDictionary.Add("File" + i.ToString(), updateData);
+        //        leftDirectory.CreateFiles(testFilesDictionary);
+        //        rightDirectory.CreateFiles(testFilesDictionary);
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                synchronizedDirectories.LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftStartStatus));
-                synchronizedDirectories.RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightStartStatus));
+        //        var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+        //        synchronizedDirectories.LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftStartStatus));
+        //        synchronizedDirectories.RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightStartStatus));
 
-                await synchronizedDirectories.Load();
-                for (byte i = 0; i < leftItemsStatuses.Length; i++)
-                {
-                    synchronizedDirectories.ChildItems[i].LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftItemsStatuses[i]));
-                    synchronizedDirectories.ChildItems[i].RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemsStatuses[i]));
-                }
+        //        await synchronizedDirectories.Load();
+        //        for (byte i = 0; i < leftItemsStatuses.Length; i++)
+        //        {
+        //            synchronizedDirectories.ChildItems[i].LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftItemsStatuses[i]));
+        //            synchronizedDirectories.ChildItems[i].RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemsStatuses[i]));
+        //        }
 
-                synchronizedDirectories.RefreshStatusesFromChilds();
+        //        synchronizedDirectories.RefreshStatusesFromChilds();
                 
-                Assert.Equal(leftExpectedStatus, synchronizedDirectories.LeftItem.Status.StatusEnum.ToString());
-                Assert.Equal(rightExpectedStatus, synchronizedDirectories.RightItem.Status.StatusEnum.ToString());
-            }
-        }
+        //        Assert.Equal(leftExpectedStatus, synchronizedDirectories.LeftItem.Status.StatusEnum.ToString());
+        //        Assert.Equal(rightExpectedStatus, synchronizedDirectories.RightItem.Status.StatusEnum.ToString());
+        //    }
+        //}
 
-        /// <summary>
-        /// Проверка присвоения команд родительской записи от дочерних и их выполнения.
-        /// </summary>
-        /// <param name="strLeftStatus">Статус записей слева, тех которые не Equally.</param>
-        /// <param name="strRightStatus">Статус записей справа, тех которые не Equally.</param>
-        /// <param name="leftAccept">True - будет выполнена команда принятия левого элемента. Иначе - правого.</param>
-        [Theory]
-        [InlineData("Newer", "ThereIs", true)]
-        [InlineData("ThereIs", "Newer", true)]
-        [InlineData("Newer", "ThereIs", false)]
-        [InlineData("ThereIs", "Newer", false)]
-        public async Task RefreshStatusesFromChilds_CheckCommands(string strLeftStatus, string strRightStatus, bool leftAccept)
-        {
-            var leftStatus = Enum.Parse<ItemStatusEnum>(strLeftStatus);
-            var rightStatus = Enum.Parse<ItemStatusEnum>(strRightStatus);
+        ///// <summary>
+        ///// Проверка присвоения команд родительской записи от дочерних и их выполнения.
+        ///// </summary>
+        ///// <param name="strLeftStatus">Статус записей слева, тех которые не Equally.</param>
+        ///// <param name="strRightStatus">Статус записей справа, тех которые не Equally.</param>
+        ///// <param name="leftAccept">True - будет выполнена команда принятия левого элемента. Иначе - правого.</param>
+        //[Theory]
+        //[InlineData("Newer", "ThereIs", true)]
+        //[InlineData("ThereIs", "Newer", true)]
+        //[InlineData("Newer", "ThereIs", false)]
+        //[InlineData("ThereIs", "Newer", false)]
+        //public async Task RefreshStatusesFromChilds_CheckCommands(string strLeftStatus, string strRightStatus, bool leftAccept)
+        //{
+        //    var leftStatus = Enum.Parse<ItemStatusEnum>(strLeftStatus);
+        //    var rightStatus = Enum.Parse<ItemStatusEnum>(strRightStatus);
 
-            var expectedCopyDestinationPathes = new List<string>();
-            var resultCopyDestinationPathes = new List<string>();
+        //    var expectedCopyDestinationPathes = new List<string>();
+        //    var resultCopyDestinationPathes = new List<string>();
 
-            // Объект блокировки для списка resultCopyDestinationPathes. Так как в него запись может вестись с разных потоков.
-            var resultCopyDestinationPathesLocker = new object();
+        //    // Объект блокировки для списка resultCopyDestinationPathes. Так как в него запись может вестись с разных потоков.
+        //    var resultCopyDestinationPathesLocker = new object();
 
-            using (var leftDirectory = new Infrastructure.TestDirectory())
-            using (var rightDirectory = new Infrastructure.TestDirectory())
-            {
-                var testFilesDictionary = new Dictionary<string, DateTime>();
-                var updateData = DateTime.Now;
-                for (byte i = 0; i < 4; i++)
-                    testFilesDictionary.Add("Test" + i.ToString(), updateData);
-                leftDirectory.CreateFiles(testFilesDictionary);
-                rightDirectory.CreateFiles(testFilesDictionary);
+        //    using (var leftDirectory = new Infrastructure.TestDirectory())
+        //    using (var rightDirectory = new Infrastructure.TestDirectory())
+        //    {
+        //        var testFilesDictionary = new Dictionary<string, DateTime>();
+        //        var updateData = DateTime.Now;
+        //        for (byte i = 0; i < 4; i++)
+        //            testFilesDictionary.Add("Test" + i.ToString(), updateData);
+        //        leftDirectory.CreateFiles(testFilesDictionary);
+        //        rightDirectory.CreateFiles(testFilesDictionary);
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                await synchronizedDirectories.Load();
+        //        var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+        //        await synchronizedDirectories.Load();
 
-                for (byte i = 0; i < 4; i++)
-                {
-                    var leftSynchronizedItem = synchronizedDirectories.ChildItems[i].LeftItem;
-                    var rightSynchronizedItem = synchronizedDirectories.ChildItems[i].RightItem;
+        //        for (byte i = 0; i < 4; i++)
+        //        {
+        //            var leftSynchronizedItem = synchronizedDirectories.ChildItems[i].LeftItem;
+        //            var rightSynchronizedItem = synchronizedDirectories.ChildItems[i].RightItem;
 
-                    // Запишем команды синхронизации для каждого элемента и подпишемся на их выполнение.
-                    leftSynchronizedItem.SyncCommand.SetCommandAction(() => leftSynchronizedItem.Item.CopyTo(rightSynchronizedItem.FullPath));
-                    leftSynchronizedItem.Item.CopiedFromToEvent += (IItem item1, string destinationPath) =>
-                    {
-                        lock (resultCopyDestinationPathesLocker)
-                            resultCopyDestinationPathes.Add(destinationPath);
-                    };
-                    rightSynchronizedItem.SyncCommand.SetCommandAction(() => rightSynchronizedItem.Item.CopyTo(leftSynchronizedItem.FullPath));
-                    rightSynchronizedItem.Item.CopiedFromToEvent += (IItem item1, string destinationPath) =>
-                    {
-                        lock (resultCopyDestinationPathesLocker)
-                            resultCopyDestinationPathes.Add(destinationPath);
-                    };
+        //            // Запишем команды синхронизации для каждого элемента и подпишемся на их выполнение.
+        //            leftSynchronizedItem.SyncCommand.SetCommandAction(() => leftSynchronizedItem.Item.CopyTo(rightSynchronizedItem.FullPath));
+        //            leftSynchronizedItem.Item.CopiedFromToEvent += (IItem item1, string destinationPath) =>
+        //            {
+        //                lock (resultCopyDestinationPathesLocker)
+        //                    resultCopyDestinationPathes.Add(destinationPath);
+        //            };
+        //            rightSynchronizedItem.SyncCommand.SetCommandAction(() => rightSynchronizedItem.Item.CopyTo(leftSynchronizedItem.FullPath));
+        //            rightSynchronizedItem.Item.CopiedFromToEvent += (IItem item1, string destinationPath) =>
+        //            {
+        //                lock (resultCopyDestinationPathesLocker)
+        //                    resultCopyDestinationPathes.Add(destinationPath);
+        //            };
 
-                    if (i % 2 == 0) // Половина элементов для синхронизации, вторая половина должна оставаться нетронутой.
-                    {
-                        expectedCopyDestinationPathes.Add(leftAccept ? rightSynchronizedItem.FullPath : leftSynchronizedItem.FullPath);
-                        leftSynchronizedItem.UpdateStatus(leftStatus);
-                        rightSynchronizedItem.UpdateStatus(rightStatus);
-                    }
-                    else
-                    {
-                        leftSynchronizedItem.UpdateStatus(ItemStatusEnum.Equally);
-                        rightSynchronizedItem.UpdateStatus(ItemStatusEnum.Equally);
-                    }
-                }
+        //            if (i % 2 == 0) // Половина элементов для синхронизации, вторая половина должна оставаться нетронутой.
+        //            {
+        //                expectedCopyDestinationPathes.Add(leftAccept ? rightSynchronizedItem.FullPath : leftSynchronizedItem.FullPath);
+        //                leftSynchronizedItem.UpdateStatus(leftStatus);
+        //                rightSynchronizedItem.UpdateStatus(rightStatus);
+        //            }
+        //            else
+        //            {
+        //                leftSynchronizedItem.UpdateStatus(ItemStatusEnum.Equally);
+        //                rightSynchronizedItem.UpdateStatus(ItemStatusEnum.Equally);
+        //            }
+        //        }
 
-                synchronizedDirectories.RefreshStatusesFromChilds();
-                if (leftAccept)
-                    await synchronizedDirectories.LeftItem.SyncCommand.Process();
-                else
-                    await synchronizedDirectories.RightItem.SyncCommand.Process();
+        //        synchronizedDirectories.RefreshStatusesFromChilds();
+        //        if (leftAccept)
+        //            await synchronizedDirectories.LeftItem.SyncCommand.Process();
+        //        else
+        //            await synchronizedDirectories.RightItem.SyncCommand.Process();
 
-                Assert.Equal(string.Join("|", expectedCopyDestinationPathes.ToArray()),
-                    string.Join("|", resultCopyDestinationPathes.OrderBy(p => p).ToArray()));
-            }
-        }
+        //        Assert.Equal(string.Join("|", expectedCopyDestinationPathes.ToArray()),
+        //            string.Join("|", resultCopyDestinationPathes.OrderBy(p => p).ToArray()));
+        //    }
+        //}
 
-        /// <summary>
-        /// Проверка простановки статусов и отсутствия команд при выполнении RefreshStatusesFromChilds для строки,
-        /// содержащей строку с неопределённым статусом.
-        /// </summary>
-        [Fact]
-        public async Task RefreshStatusesFromChilds_UnknownChild()
-        {
-            using (var leftDirectory = new Infrastructure.TestDirectory())
-            using (var rightDirectory = new Infrastructure.TestDirectory())
-            {
-                const string directoryName = "Dir";
-                var testFilesDictionary = new Dictionary<string, DateTime> { { "File1", DateTime.Now }, { "File2", DateTime.Now } };
-                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName), testFilesDictionary);
-                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName), testFilesDictionary);
+        ///// <summary>
+        ///// Проверка простановки статусов и отсутствия команд при выполнении RefreshStatusesFromChilds для строки,
+        ///// содержащей строку с неопределённым статусом.
+        ///// </summary>
+        //[Fact]
+        //public async Task RefreshStatusesFromChilds_UnknownChild()
+        //{
+        //    using (var leftDirectory = new Infrastructure.TestDirectory())
+        //    using (var rightDirectory = new Infrastructure.TestDirectory())
+        //    {
+        //        const string directoryName = "Dir";
+        //        var testFilesDictionary = new Dictionary<string, DateTime> { { "File1", DateTime.Now }, { "File2", DateTime.Now } };
+        //        Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName), testFilesDictionary);
+        //        Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName), testFilesDictionary);
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                await synchronizedDirectories.Load();
+        //        var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+        //        await synchronizedDirectories.Load();
 
-                var childSynchronizedDirectories = synchronizedDirectories.ChildItems[0];
-                childSynchronizedDirectories.LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
-                childSynchronizedDirectories.RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+        //        var childSynchronizedDirectories = synchronizedDirectories.ChildItems[0];
+        //        childSynchronizedDirectories.LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+        //        childSynchronizedDirectories.RightItem.UpdateStatus(ItemStatusEnum.Unknown);
 
-                var level2Child1 = childSynchronizedDirectories.ChildItems[0];
-                level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Newer);
-                level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
-                level2Child1.RightItem.UpdateStatus(ItemStatusEnum.Older);
-                level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+        //        var level2Child1 = childSynchronizedDirectories.ChildItems[0];
+        //        level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Newer);
+        //        level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+        //        level2Child1.RightItem.UpdateStatus(ItemStatusEnum.Older);
+        //        level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
 
-                var level2Child2 = childSynchronizedDirectories.ChildItems[1];
-                level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Missing);
-                level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
-                level2Child1.RightItem.UpdateStatus(ItemStatusEnum.ThereIs);
-                level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+        //        var level2Child2 = childSynchronizedDirectories.ChildItems[1];
+        //        level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Missing);
+        //        level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+        //        level2Child1.RightItem.UpdateStatus(ItemStatusEnum.ThereIs);
+        //        level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
 
-                synchronizedDirectories.RefreshStatusesFromChilds();
+        //        synchronizedDirectories.RefreshStatusesFromChilds();
 
-                // У дочерней строки должен остаться неопределённый статус.
-                Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.RightItem.Status.StatusEnum);
+        //        // У дочерней строки должен остаться неопределённый статус.
+        //        Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.LeftItem.Status.StatusEnum);
+        //        Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.RightItem.Status.StatusEnum);
 
-                // Статусы родительской строки должны измениться на неопредёлённые.
-                Assert.Equal(ItemStatusEnum.Unknown, synchronizedDirectories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Unknown, synchronizedDirectories.RightItem.Status.StatusEnum);
+        //        // Статусы родительской строки должны измениться на неопредёлённые.
+        //        Assert.Equal(ItemStatusEnum.Unknown, synchronizedDirectories.LeftItem.Status.StatusEnum);
+        //        Assert.Equal(ItemStatusEnum.Unknown, synchronizedDirectories.RightItem.Status.StatusEnum);
 
-                // Команд не должно быть ни у дочерней строки, ни у родительской.
-                Assert.Null(childSynchronizedDirectories.LeftItem.SyncCommand.CommandAction);
-                Assert.Null(childSynchronizedDirectories.RightItem.SyncCommand.CommandAction);
-                Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
-                Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
-            }
-        }
+        //        // Команд не должно быть ни у дочерней строки, ни у родительской.
+        //        Assert.Null(childSynchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+        //        Assert.Null(childSynchronizedDirectories.RightItem.SyncCommand.CommandAction);
+        //        Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+        //        Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
+        //    }
+        //}
 
         /// <summary>
         /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов.
@@ -502,7 +502,7 @@ namespace XUnitTestProject
                 Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
                 Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
 
-                // И в ней одна запись на оставшуюся пару файлоа.
+                // И в ней одна запись на оставшуюся пару файлов.
                 Assert.Single(childItem.ChildItems);
 
                 // Эти тоже теперь должны быть идентичные и команды синхронизации им не нужны.
@@ -511,6 +511,12 @@ namespace XUnitTestProject
                 Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
                 Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
                 Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И корневые элементы теперь должны быть идентичные и команды синхронизации им тоже не нужны.
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.RightItem.Status.StatusEnum);
+                Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
             }
         }
 

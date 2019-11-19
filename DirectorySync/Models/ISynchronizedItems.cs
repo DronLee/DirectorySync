@@ -65,13 +65,8 @@ namespace DirectorySync.Models
         void LoadRequired();
 
         /// <summary>
-        /// Обновление дочерних записей.
+        /// Загрузка дочерних записей.
         /// </summary>
-        void RefreshChildItems();
-
-        /// <summary>
-        /// Обновление статусов на основе дочерних записей.
-        /// </summary>
-        void RefreshStatusesFromChilds();
+        void LoadChildItems();
     }
 }

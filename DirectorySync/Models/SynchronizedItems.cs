@@ -119,8 +119,8 @@ namespace DirectorySync.Models
             await RightDirectory.Load();
 
             //DirectoryIsLoaded();
-            RefreshChildItems();
-            RefreshParentStatuses(this);
+            LoadChildItems();
+            //RefreshParentStatuses(this);
             IsLoaded = true;
             DirectoriesIsLoadedEvent?.Invoke(this);
         }
@@ -154,9 +154,9 @@ namespace DirectorySync.Models
         //}
 
         /// <summary>
-        /// Обновление дочерних записей.
+        /// Загрузка дочерних записей.
         /// </summary>
-        public void RefreshChildItems()
+        public void LoadChildItems()
         {
             if (ChildItems.Count > 0)
                 ChildItems.Clear();
@@ -166,28 +166,28 @@ namespace DirectorySync.Models
                 foreach (var directories in CreateChildItems(
                     LeftDirectory.Items.Where(i => i is IDirectory).ToArray(), RightDirectory.Items.Where(i => i is IDirectory).ToArray()))
                 {
+                    directories.LoadChildItems();
                     AddChildItem(directories);
-                    directories.RefreshChildItems();
                 }
 
                 foreach (var child in CreateChildItems(LeftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(),
                     RightDirectory.Items.Where(i => !(i is IDirectory)).ToArray()))
                     AddChildItem(child);
 
-                RefreshStatusesFromChilds();
+                RefreshLeftItemStatusesFromChilds();
+                RefreshRightItemStatusesFromChilds();
             }
             else
                 _synchronizedItemMatcher.UpdateStatusesAndCommands(LeftItem, RightItem);
         }
 
         /// <summary>
-        /// Обновление статусов на основе дочерних записей.
+        /// Обновление статуса левого элемента на основе дочерних.
         /// </summary>
-        public void RefreshStatusesFromChilds()
+        private void RefreshLeftItemStatusesFromChilds()
         {
             if (ChildItems.Count > 0)
             {
-                // Достаточно проверять статус с одной стороны, так как если с одной стороны Equally, то и с другой стороны обязательно Equally.
                 var notEquallyChilds = ChildItems.Where(r => r.LeftItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
 
                 if (notEquallyChilds.Length == 0)
@@ -195,32 +195,54 @@ namespace DirectorySync.Models
                     // Если все дочерние строки имеют статус Equally, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
                     LeftItem.UpdateStatus(ItemStatusEnum.Equally);
                     LeftItem.SyncCommand.SetCommandAction(null);
-                    RightItem.UpdateStatus(ItemStatusEnum.Equally);
-                    RightItem.SyncCommand.SetCommandAction(null);
                 }
                 else if (notEquallyChilds.Any(r => r.LeftItem.Status.StatusEnum == ItemStatusEnum.Unknown))
                 {
                     // Если хоть одна дочерняя строка имеет статус Unknown, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
                     LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
                     LeftItem.SyncCommand.SetCommandAction(null);
-                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    RightItem.SyncCommand.SetCommandAction(null);
                 }
                 else
                 {
                     var leftStatuses = notEquallyChilds.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
 
-                    // Если с одной стороны все элементы имеют один статус, то и с другой тоже.
                     if (leftStatuses.Length == 1)
-                    {
                         SetItemStatusAndCommands(LeftItem, leftStatuses.First(), notEquallyChilds.Select(r => r.LeftItem.SyncCommand.CommandAction));
-                        SetItemStatusAndCommands(RightItem, notEquallyChilds.First().RightItem.Status.StatusEnum, notEquallyChilds.Select(r => r.RightItem.SyncCommand.CommandAction));
-                    }
                     else
-                    {
                         LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Обновление статуса правого элемента на основе дочерних.
+        /// </summary>
+        private void RefreshRightItemStatusesFromChilds()
+        {
+            if (ChildItems.Count > 0)
+            {
+                var notEquallyChilds = ChildItems.Where(r => r.RightItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
+
+                if (notEquallyChilds.Length == 0)
+                {
+                    // Если все дочерние строки имеют статус Equally, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
+                    RightItem.UpdateStatus(ItemStatusEnum.Equally);
+                    RightItem.SyncCommand.SetCommandAction(null);
+                }
+                else if (notEquallyChilds.Any(r => r.RightItem.Status.StatusEnum == ItemStatusEnum.Unknown))
+                {
+                    // Если хоть одна дочерняя строка имеет статус Unknown, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
+                    RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+                    RightItem.SyncCommand.SetCommandAction(null);
+                }
+                else
+                {
+                    var rightStatuses = notEquallyChilds.Select(r => r.RightItem.Status.StatusEnum).Distinct().ToArray();
+
+                    if (rightStatuses.Length == 1)
+                        SetItemStatusAndCommands(RightItem, rightStatuses.First(), notEquallyChilds.Select(r => r.RightItem.SyncCommand.CommandAction));
+                    else
                         RightItem.UpdateStatus(ItemStatusEnum.Unknown);
-                    }
                 }
             }
         }
@@ -229,13 +251,22 @@ namespace DirectorySync.Models
         {
             ChildItems.Add(child);
             child.DeletedEvent += DeleteChildItem;
+            child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusesFromChilds;
+            child.RightItem.StatusChangedEvent += RefreshRightItemStatusesFromChilds;
         }
 
         private void DeleteChildItem(ISynchronizedItems child)
         {
-            child.DeletedEvent -= DeleteChildItem; // Раз строка удаляется, больше за ней следить не надо.
+            // Раз строка удаляется, больше за ней следить не надо.
+            child.DeletedEvent -= DeleteChildItem;
+            child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusesFromChilds;
+            child.RightItem.StatusChangedEvent -= RefreshRightItemStatusesFromChilds;
+
             ChildItems.Remove(child);
-            RefreshStatusesFromChilds();
+
+            // После удаления надо пересмотреть статусы.
+            RefreshLeftItemStatusesFromChilds();
+            RefreshRightItemStatusesFromChilds();
         }
 
         /// <summary>
@@ -355,18 +386,18 @@ namespace DirectorySync.Models
                 });
         }
 
-        /// <summary>
-        /// Обновление статусов всех родительских строк.
-        /// </summary>
-        /// <param name="synchronizedItems">Строка, у родителя которой будет обновлён статус.</param>
-        private void RefreshParentStatuses(ISynchronizedItems synchronizedItems)
-        {
-            if (synchronizedItems.ParentDirectories != null)
-            {
-                synchronizedItems.ParentDirectories.RefreshStatusesFromChilds();
-                RefreshParentStatuses(synchronizedItems.ParentDirectories);
-            }
-        }
+        ///// <summary>
+        ///// Обновление статусов всех родительских строк.
+        ///// </summary>
+        ///// <param name="synchronizedItems">Строка, у родителя которой будет обновлён статус.</param>
+        //private void RefreshParentStatuses(ISynchronizedItems synchronizedItems)
+        //{
+        //    if (synchronizedItems.ParentDirectories != null)
+        //    {
+        //        synchronizedItems.ParentDirectories.RefreshStatusesFromChilds();
+        //        RefreshParentStatuses(synchronizedItems.ParentDirectories);
+        //    }
+        //}
 
         private void ItemDeleted(IItem item)
         {
