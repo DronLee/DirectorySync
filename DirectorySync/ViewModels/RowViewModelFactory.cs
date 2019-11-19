@@ -14,6 +14,11 @@ namespace DirectorySync.ViewModels
         public event Action<IRowViewModel, IRowViewModel> AddRowEvent;
 
         /// <summary>
+        /// Событие удаления строки. Передаётся родительская строка и строка, которая удаляется.
+        /// </summary>
+        public event Action<IRowViewModel, IRowViewModel> DeleteRowEvent;
+
+        /// <summary>
         /// Создание строки, отображающей отслеживаемые элементы.
         /// </summary>
         /// <param name="synchronizedItems">Пара синхронизируемых элементов, на основе которых строится строка.</param>
@@ -37,7 +42,11 @@ namespace DirectorySync.ViewModels
         private void AddChildRows(IRowViewModel row, ISynchronizedItems synchronizedItems)
         {
             foreach (var child in synchronizedItems.ChildItems)
-                AddRowEvent?.Invoke(row, CreateRowViewModel(child));
+            {
+                var childRow = CreateRowViewModel(child);
+                child.DeletedEvent += (ISynchronizedItems deletedISynchronizedItems) => { DeleteRowEvent?.Invoke(row, childRow); };
+                AddRowEvent?.Invoke(row, childRow);
+            }
         }
     }
 }

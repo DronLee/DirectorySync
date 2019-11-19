@@ -52,6 +52,7 @@ namespace DirectorySync.ViewModels
 
             _rowViewModelFactory = rowViewModelFactory;
             _rowViewModelFactory.AddRowEvent += AddRow;
+            _rowViewModelFactory.DeleteRowEvent += DeleteRow;
 
             foreach (var row in _synchronizedDirectoriesManager.SynchronizedDirectories.Select(d => rowViewModelFactory.CreateRowViewModel(d)))
             {
@@ -276,6 +277,14 @@ namespace DirectorySync.ViewModels
             PropertyChanged?.Invoke(parentRow, new PropertyChangedEventArgs(nameof(parentRow.ChildRows)));
 
             childRow.SyncErrorEvent += AddToLog;
+        }
+
+        private void DeleteRow(IRowViewModel parentRow, IRowViewModel childRow)
+        {
+            _dispatcher.Invoke(() => parentRow.ChildRows.Remove(childRow));
+            PropertyChanged?.Invoke(parentRow, new PropertyChangedEventArgs(nameof(parentRow.ChildRows)));
+
+            childRow.SyncErrorEvent -= AddToLog;
         }
     }
 }

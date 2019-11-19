@@ -19,5 +19,10 @@ namespace DirectorySync.ViewModels
         /// Событие добавления строки. Передаётся родительская строка и строка, которая добавляется.
         /// </summary>
         event Action<IRowViewModel, IRowViewModel> AddRowEvent;
+
+        /// <summary>
+        /// Событие удаления строки. Передаётся родительская строка и строка, которая удаляется.
+        /// </summary>
+        event Action<IRowViewModel, IRowViewModel> DeleteRowEvent;
     }
 }
