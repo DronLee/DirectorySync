@@ -25,17 +25,9 @@ namespace DirectorySync.ViewModels
         {
             _synchronizedItem = synchronizedItem;
             _synchronizedItem.StatusChangedEvent += () => { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status))); };
-            _synchronizedItem.SyncCommand.CommandActionChangedEvent += () =>
-            {
-                if (_synchronizedItem.SyncCommand.CommandAction == null)
-                    AcceptCommand = null;
-                else
-                    AcceptCommand = AcceptCommand = new Command(call =>
-                    {
-                        _synchronizedItem.SyncCommand.CommandAction.Invoke();
-                    });
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
-            };
+            _synchronizedItem.SyncCommand.CommandActionChangedEvent += RefreshAcceptCommand;
+
+            RefreshAcceptCommand();
         }
 
         /// <summary>
@@ -107,5 +99,17 @@ namespace DirectorySync.ViewModels
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         public event Action<string> SyncErrorEvent;
+
+        private void RefreshAcceptCommand()
+        {
+            if (_synchronizedItem.SyncCommand.CommandAction == null)
+                AcceptCommand = null;
+            else
+                AcceptCommand = new Command(call =>
+                {
+                    _synchronizedItem.SyncCommand.CommandAction.Invoke();
+                });
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
+        }
     }
 }
