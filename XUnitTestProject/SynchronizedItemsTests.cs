@@ -489,6 +489,8 @@ namespace XUnitTestProject
                 // По прежнему должна остваться одна дочерняя запись на директории.
                 Assert.Single(synchronizedDirectories.ChildItems);
 
+                await Task.Delay(20); // Чтобы успели обновиться статусы и команды.
+
                 // Дочерние элементы теперь должны быть идентичные и команды синхронизации им не нужны.
                 var childItem = synchronizedDirectories.ChildItems[0];
                 Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
@@ -539,6 +541,8 @@ namespace XUnitTestProject
                 Assert.NotNull(synchronizedDirectories.LeftDirectory);
                 Assert.NotNull(synchronizedDirectories.RightDirectory);
 
+                await Task.Delay(20); // Подождём, чтобы успела обновиться коллекция дочерних элементов.
+
                 // Но синхронизируемых элементов в них быть не должно, так как никаких файлов не осталось.
                 Assert.Empty(synchronizedDirectories.ChildItems);
             }
@@ -573,7 +577,7 @@ namespace XUnitTestProject
                 // После того, как Dir2 слева начнёт соответствовать Dir2 справа,
                 // у корневой строки должны появиться команды для синхронизации Dir1.
                 await synchronizedDirectories.ChildItems[1].LeftItem.SyncCommand.Process();
-                await Task.Delay(100); // Чтобы успели обновиться статусы и команды
+                await Task.Delay(20); // Чтобы успели обновиться статусы и команды.
                 Assert.NotNull(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
                 Assert.NotNull(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
             }
