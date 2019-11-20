@@ -60,6 +60,12 @@ namespace DirectorySync.Models
                 LeftItem.Item.DeletedEvent += ItemDeleted;
             if (RightItem.Item != null)
                 RightItem.Item.DeletedEvent += ItemDeleted;
+
+            LeftItem.FinishedSyncEvent += FinishedSync;
+            RightItem.FinishedSyncEvent += FinishedSync;
+
+            LeftItem.CopiedFromToEvent += CopiedFromItem;
+            RightItem.CopiedFromToEvent += CopiedFromItem;
         }
 
         /// <summary>
@@ -115,8 +121,7 @@ namespace DirectorySync.Models
             //LeftDirectory.LoadedDirectoryEvent += DirectoryIsLoaded;
             //RightDirectory.LoadedDirectoryEvent += DirectoryIsLoaded;
 
-            await LeftDirectory.Load();
-            await RightDirectory.Load();
+            await Task.WhenAll(LeftDirectory.Load(), RightDirectory.Load());
 
             //DirectoryIsLoaded();
             LoadChildItems();
@@ -179,6 +184,12 @@ namespace DirectorySync.Models
             }
             else
                 _synchronizedItemMatcher.UpdateStatusesAndCommands(LeftItem, RightItem);
+        }
+
+        private void DeleteChild(ISynchronizedItems child)
+        {
+            ChildItems.Remove(child);
+            DeletedEvent?.Invoke(child);
         }
 
         /// <summary>
@@ -248,23 +259,17 @@ namespace DirectorySync.Models
         private void AddChildItem(ISynchronizedItems child)
         {
             ChildItems.Add(child);
-            child.DeletedEvent += DeleteChildItem;
+            child.DeletedEvent += DeletedChildItem;
             child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusesFromChilds;
             child.RightItem.StatusChangedEvent += RefreshRightItemStatusesFromChilds;
         }
 
-        private void DeleteChildItem(ISynchronizedItems child)
+        private void DeletedChildItem(ISynchronizedItems child)
         {
             // Раз строка удаляется, больше за ней следить не надо.
-            child.DeletedEvent -= DeleteChildItem;
+            child.DeletedEvent -= DeletedChildItem;
             child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusesFromChilds;
             child.RightItem.StatusChangedEvent -= RefreshRightItemStatusesFromChilds;
-
-            ChildItems.Remove(child);
-
-            // После удаления надо пересмотреть статусы.
-            RefreshLeftItemStatusesFromChilds();
-            RefreshRightItemStatusesFromChilds();
         }
 
         /// <summary>
@@ -401,6 +406,30 @@ namespace DirectorySync.Models
         {
             item.DeletedEvent -= ItemDeleted; // Раз удалился, значит больше не удалится.
             DeletedEvent?.Invoke(this);
+        }
+
+        private async void FinishedSync(ISynchronizedItem synchronizedItem)
+        {
+            var updatedItem = LeftItem == synchronizedItem ? RightItem : LeftItem;
+
+            if (updatedItem.Item != null)
+                await updatedItem.Item.Load();
+
+            // Была выполнена синхронизация, и нам не известно, обновлялись, удалялись или добавлялись элементы,
+            // поэтому удаляем все дочерние элементы и заново создаём.
+            foreach (var child in ChildItems.ToArray())
+                DeleteChild(child);
+
+            LoadChildItems();
+            DirectoriesIsLoadedEvent?.Invoke(this);
+        }
+
+        private void CopiedFromItem(ISynchronizedItem sourceSynchronizedItem, IItem newItem)
+        {
+            if (sourceSynchronizedItem == LeftItem)
+                RightItem.UpdateItem(newItem);
+            else
+                LeftItem.UpdateItem(newItem);
         }
     }
 }
