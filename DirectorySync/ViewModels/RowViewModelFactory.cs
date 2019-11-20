@@ -44,7 +44,7 @@ namespace DirectorySync.ViewModels
             foreach (var child in synchronizedItems.ChildItems)
             {
                 var childRow = CreateRowViewModel(child);
-                child.DeletedEvent += (ISynchronizedItems deletedISynchronizedItems) => { DeleteRowEvent?.Invoke(row, childRow); };
+                synchronizedItems.DeletedEvent += (ISynchronizedItems deletedISynchronizedItems) => { DeleteRowEvent?.Invoke(row, childRow); };
                 AddRowEvent?.Invoke(row, childRow);
             }
         }
