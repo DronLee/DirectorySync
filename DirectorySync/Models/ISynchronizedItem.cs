@@ -70,6 +70,10 @@ namespace DirectorySync.Models
         /// <param name="comment">Пояснение к статусу.</param>
         void UpdateStatus(ItemStatusEnum statusEnum, string comment = null);
 
+        /// <summary>
+        /// Обновление отслеживаемого элемента.
+        /// </summary>
+        /// <param name="item">Отслеживаемый элемент.</param>
         void UpdateItem(IItem item);
     }
 }

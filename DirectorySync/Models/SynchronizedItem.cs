@@ -94,6 +94,10 @@ namespace DirectorySync.Models
             }
         }
 
+        /// <summary>
+        /// Обновление отслеживаемого элемента.
+        /// </summary>
+        /// <param name="item">Отслеживаемый элемент.</param>
         public void UpdateItem(IItem item)
         {
             if (Item != null)
