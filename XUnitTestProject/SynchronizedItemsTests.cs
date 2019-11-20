@@ -544,6 +544,41 @@ namespace XUnitTestProject
             }
         }
 
+        /// <summary>
+        /// Проверка появления команд в директориях после выполнения синхронизации дочерних элементов.
+        /// </summary>
+        [Fact]
+        public async Task AddCommandsAfterSyncProcess()
+        {
+            const string directory1Name = "Dir1";
+            const string directory2Name = "Dir2";
+            const string file1Name = "File1";
+            var updateDate = DateTime.Now;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                leftDirectory.CreateDirectory(directory1Name);
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directory1Name),
+                    new Dictionary<string, DateTime> { { file1Name, updateDate } });
+
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directory2Name),
+                    new Dictionary<string, DateTime> { { file1Name, updateDate }, { "File2", updateDate} });
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directory2Name),
+                    new Dictionary<string, DateTime> { { file1Name, updateDate } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                // После того, как Dir2 слева начнёт соответствовать Dir2 справа,
+                // у корневой строки должны появиться команды для синхронизации Dir1.
+                await synchronizedDirectories.ChildItems[1].LeftItem.SyncCommand.Process();
+                await Task.Delay(100); // Чтобы успели обновиться статусы и команды
+                Assert.NotNull(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.NotNull(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
+            }
+        }
+
         private SynchronizedItems GetSynchronizedDirectories(string leftDirectoryPath, string rightDirectoryPath)
         {
             var settingsRow = new TestSettingsRow
