@@ -51,11 +51,10 @@ namespace XUnitTestProject
         {
             var syncCommand = new SyncCommand();
             syncCommand.SetCommandAction(_actions[1]);
-            syncCommand.StartedSyncEvent += () => { _processOutputLines.Add("Started"); };
             syncCommand.FinishedSyncEvent += () => { _processOutputLines.Add("Finished"); };
             await syncCommand.Process();
 
-            Assert.Equal("Started|Process action1|Finished", string.Join('|', _processOutputLines.ToArray()));
+            Assert.Equal("Process action1|Finished", string.Join('|', _processOutputLines.ToArray()));
         }
     }
 }
