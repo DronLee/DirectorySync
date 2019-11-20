@@ -18,9 +18,7 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Конструктор.
         /// </summary>
-        /// <param name="name">Наименование отображаемого элемента.</param>
-        /// <param name="isDirectory">True - присутствующий элемент является директорией.</param>
-        /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
+        /// <param name="synchronizedItem">Элемент синхронизации, на основе которого создаётся модель представления.</param>
         public ItemViewModel(ISynchronizedItem synchronizedItem)
         {
             _synchronizedItem = synchronizedItem;
@@ -35,11 +33,6 @@ namespace DirectorySync.ViewModels
         /// Наименование.
         /// </summary>
         public string Name => _synchronizedItem.Name;
-
-        /// <summary>
-        /// Полный руть к отслеживаемому элементу, который представляет данная модель.
-        /// </summary>
-        public string FullPath => _synchronizedItem.Name;
 
         /// <summary>
         /// True - элемент является директорией.
@@ -57,11 +50,6 @@ namespace DirectorySync.ViewModels
         public ItemStatus Status => _synchronizedItem.Status;
 
         /// <summary>
-        /// Отображаемый моделью элемент синхронизации.
-        /// </summary>
-        public IItem Item => _synchronizedItem.Item;
-
-        /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
         /// </summary>
         public IDirectory Directory => _synchronizedItem.Directory;
@@ -70,11 +58,6 @@ namespace DirectorySync.ViewModels
         /// Путь к иконке отслеживаемого элемента.
         /// </summary>
         public string IconPath => IsDirectory ? _folderIconPath : _fileIconPath;
-
-        /// <summary>
-        /// Была изменена команда принятия элемента.
-        /// </summary>
-        public event Action AcceptCommandChangedEvent;
 
         /// <summary>
         /// Событие изменения одного из свойств модели.
@@ -87,19 +70,14 @@ namespace DirectorySync.ViewModels
         public event Action StartedSyncEvent;
 
         /// <summary>
-        /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
-        /// </summary>
-        public event Action<IItemViewModel> FinishedSyncEvent;
-
-        /// <summary>
-        /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
-        /// </summary>
-        public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
-
-        /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         public event Action<string> SyncErrorEvent;
+
+        /// <summary>
+        /// Событие изменения команды синхронизации.
+        /// </summary>
+        public event Action AcceptCommandChangedEvent;
 
         private void RefreshAcceptCommand()
         {
@@ -108,9 +86,11 @@ namespace DirectorySync.ViewModels
             else
                 AcceptCommand = new Command(async call =>
                 {
+                    StartedSyncEvent?.Invoke();
                     await _synchronizedItem.SyncCommand.Process();
                 });
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
+            AcceptCommandChangedEvent?.Invoke();
         }
     }
 }
