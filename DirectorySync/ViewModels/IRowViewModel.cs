@@ -10,11 +10,6 @@ namespace DirectorySync.ViewModels
     public interface IRowViewModel : INotifyPropertyChanged
     {
         /// <summary>
-        /// Строка, куда входит данная строка.
-        /// </summary>
-        IRowViewModel Parent { get; }
-
-        /// <summary>
         /// Элемент слева.
         /// </summary>
         IItemViewModel LeftItem { get; }

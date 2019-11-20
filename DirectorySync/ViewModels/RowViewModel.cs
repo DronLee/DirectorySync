@@ -1,5 +1,4 @@
-﻿using DirectorySync.Models;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
@@ -23,7 +22,6 @@ namespace DirectorySync.ViewModels
         {
             LeftItem = leftItem;
             RightItem = rightItem;
-            Parent = parent;
             ChildRows = new ObservableCollection<IRowViewModel>();
 
             SetItemViewModelEvents(LeftItem);
@@ -100,11 +98,6 @@ namespace DirectorySync.ViewModels
         public ObservableCollection<IRowViewModel> ChildRows { get; private set; }
 
         /// <summary>
-        /// Строка, куда входит данная строка.
-        /// </summary>
-        public IRowViewModel Parent { get; }
-
-        /// <summary>
         /// Событие изменения одного из свойств модели.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -130,30 +123,17 @@ namespace DirectorySync.ViewModels
         public void ShowInProcess()
         {
             InProcess = true;
-            SetInProcessForChildren(this, true);
+            SetInProcessForChildren(this, InProcess);
         }
 
         /// <summary>
-        /// Увдеомление о завершении загрузки строки. 
+        /// Уведомление о завершении загрузки строки. 
         /// </summary>
         public void LoadFinished()
         {
             InProcess = false;
             SetInProcessForChildren(this, InProcess);
         }
-
-        ///// <summary>
-        ///// Реакция на событие загрузки одной из отслеживаемых директорий.
-        ///// </summary>
-        ///// <param name="directory">Загруженная директория.</param>
-        //private void LoadedDirectory(IDirectory directory)
-        //{
-        //    if((LeftItem.Directory == null || LeftItem.Directory.IsLoaded) && (RightItem.Directory == null || RightItem.Directory.IsLoaded))
-        //    {
-        //        InProcess = false;
-        //        SetInProcessForChildren(this, false);
-        //    }
-        //}
 
         private void SetInProcessForChildren(IRowViewModel row, bool inProcessValue)
         {
@@ -169,44 +149,6 @@ namespace DirectorySync.ViewModels
             InProcess = true;
         }
 
-        private void FinishedSync(IItemViewModel acceptedItem)
-        {
-            var refreshItem = LeftItem == acceptedItem ? RightItem : LeftItem;
-            if (refreshItem.Directory != null)
-                refreshItem.Directory.Load().Wait();
-            else if (LeftItem.Item == null && RightItem.Item == null)
-            {
-                // Если обоих элементов уже нет, пусть обновляется родительский элемент, чтобы убралась эта строка.
-                SetInProcessForChildren(Parent, false);
-            }
-            else
-            {
-                (refreshItem == LeftItem ? Parent.LeftItem : Parent.RightItem).Directory?.Load().Wait();
-            }
-
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LeftItem)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RightItem)));
-            InProcess = false;
-        }
-
-        //private void CopiedFromTo(IItemViewModel fromItem, IItemViewModel toItem)
-        //{
-        //    if (LeftItem == fromItem)
-        //    {
-        //        if (RightItem.Directory == null && toItem.Directory != null)
-        //            // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
-        //            toItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
-        //        RightItem = toItem;
-        //    }
-        //    else
-        //    {
-        //        if (LeftItem.Directory == null && toItem.Directory != null)
-        //            // Если модели директории не было, то и на событие загрузки подписи не было. А теперь должна быть.
-        //            LeftItem.Directory.LoadedDirectoryEvent += LoadedDirectory;
-        //        LeftItem = toItem;
-        //    }
-        //}
-
         private void AcceptCommandChanged()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
@@ -214,12 +156,7 @@ namespace DirectorySync.ViewModels
 
         private void SetItemViewModelEvents(IItemViewModel itemViewModel)
         {
-            //if (itemViewModel.Directory != null)
-            //    itemViewModel.Directory.LoadedDirectoryEvent += LoadedDirectory;
-
             itemViewModel.StartedSyncEvent += StartedSync;
-            itemViewModel.FinishedSyncEvent += FinishedSync;
-            //itemViewModel.CopiedFromToEvent += CopiedFromTo;
             itemViewModel.AcceptCommandChangedEvent += AcceptCommandChanged;
             itemViewModel.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
         }
