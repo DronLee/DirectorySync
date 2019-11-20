@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using DirectorySync.Models;
 
@@ -14,40 +13,31 @@ namespace DirectorySync.ViewModels
         private const string _fileIconPath = "/DirectorySync;component/Icons/File.png";
         private const string _folderIconPath = "/DirectorySync;component/Icons/Folder.png";
 
+        private readonly ISynchronizedItem _synchronizedItem;
+
         /// <summary>
         /// Конструктор.
         /// </summary>
-        /// <param name="name">Наименование отображаемого элемента.</param>
-        /// <param name="isDirectory">True - присутствующий элемент является директорией.</param>
-        /// <param name="item">Отслеживаемый элемент, на основе которого создаётся модель.</param>
-        public ItemViewModel(string fullPath, bool isDirectory, IItem item)
+        /// <param name="synchronizedItem">Элемент синхронизации, на основе которого создаётся модель представления.</param>
+        public ItemViewModel(ISynchronizedItem synchronizedItem)
         {
-            Name = System.IO.Path.GetFileName(fullPath);
-            FullPath = fullPath;
-            IsDirectory = isDirectory;
-            Item = item;
-            if (item != null)
-            {
-                item.DeletedEvent += DeletedItem;
-                item.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
-                item.CopiedFromToEvent += CopiedItemTo;
-            }
+            _synchronizedItem = synchronizedItem;
+            _synchronizedItem.SyncErrorEvent += (string message) => { SyncErrorEvent?.Invoke(message); };
+            _synchronizedItem.StatusChangedEvent += () => { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status))); };
+            _synchronizedItem.SyncCommand.CommandActionChangedEvent += RefreshAcceptCommand;
+
+            RefreshAcceptCommand();
         }
 
         /// <summary>
         /// Наименование.
         /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Полный руть к отслеживаемому элементу, который представляет данная модель.
-        /// </summary>
-        public string FullPath { get; }
+        public string Name => _synchronizedItem.Name;
 
         /// <summary>
         /// True - элемент является директорией.
         /// </summary>
-        public bool IsDirectory { get; }
+        public bool IsDirectory => _synchronizedItem.IsDirectory;
 
         /// <summary>
         /// Выполняемая команда синхронизации. 
@@ -57,32 +47,17 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Статус элемента.
         /// </summary>
-        public ItemStatus Status { get; private set; }
-
-        /// <summary>
-        /// Отображаемый моделью элемент синхронизации.
-        /// </summary>
-        public IItem Item { get; private set; }
+        public ItemStatus Status => _synchronizedItem.Status;
 
         /// <summary>
         /// Отображаемая моделью директория. Если модель отображает файл, то null.
         /// </summary>
-        public IDirectory Directory => Item as IDirectory;
+        public IDirectory Directory => _synchronizedItem.Directory;
 
         /// <summary>
         /// Путь к иконке отслеживаемого элемента.
         /// </summary>
         public string IconPath => IsDirectory ? _folderIconPath : _fileIconPath;
-
-        /// <summary>
-        /// Действия команды синхронизации.
-        /// </summary>
-        public Func<Task> CommandAction { get; private set; }
-
-        /// <summary>
-        /// Была изменена команда принятия элемента.
-        /// </summary>
-        public event Action AcceptCommandChangedEvent;
 
         /// <summary>
         /// Событие изменения одного из свойств модели.
@@ -95,69 +70,27 @@ namespace DirectorySync.ViewModels
         public event Action StartedSyncEvent;
 
         /// <summary>
-        /// Событие завершения синхронизации. Передаётся модель представления принятого элемента.
-        /// </summary>
-        public event Action<IItemViewModel> FinishedSyncEvent;
-
-        /// <summary>
-        /// Событие, сообщающее о завершении копирования. Передаёт копируемый элемент и элемент, в который осуществлялось копирование.
-        /// </summary>
-        public event Action<IItemViewModel, IItemViewModel> CopiedFromToEvent;
-
-        /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         public event Action<string> SyncErrorEvent;
 
         /// <summary>
-        /// Обновление статуса.
+        /// Событие изменения команды синхронизации.
         /// </summary>
-        /// <param name="statusEnum">Новое значение статуса.</param>
-        public void UpdateStatus(ItemStatusEnum statusEnum, string comment = null)
-        {
-            if (Status == null || Status.StatusEnum != statusEnum)
-            {
-                Status = new ItemStatus(statusEnum, comment);
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Status)));
-            }
-        }
+        public event Action AcceptCommandChangedEvent;
 
-        /// <summary>
-        /// Задание метода, который будет выполняться как команда синхронизации.
-        /// </summary>
-        /// <param name="action">Метод для синхронизации.</param>
-        public void SetActionCommand(Func<Task> action)
+        private void RefreshAcceptCommand()
         {
-            if (CommandAction != action)
-            {
-                CommandAction = action;
-                if (action == null)
-                    AcceptCommand = null;
-                else
+            if (_synchronizedItem.SyncCommand.CommandAction == null)
+                AcceptCommand = null;
+            else
+                AcceptCommand = new Command(async call =>
                 {
-                    AcceptCommand = new Command(call =>
-                    {
-                        Task.Run(() =>
-                        {
-                            StartedSyncEvent?.Invoke();
-                            action.Invoke().Wait();
-                            FinishedSyncEvent?.Invoke(this);
-                        });
-                    });
-                }
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
-                AcceptCommandChangedEvent?.Invoke();
-            }
-        }
-
-        private void DeletedItem(IItem deletedItem)
-        {
-            Item = null;
-        }
-
-        private void CopiedItemTo(IItem toItem, string destinationPath)
-        {
-            CopiedFromToEvent?.Invoke(this, new ItemViewModel(destinationPath, IsDirectory, toItem));
+                    StartedSyncEvent?.Invoke();
+                    await _synchronizedItem.SyncCommand.Process();
+                });
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AcceptCommand)));
+            AcceptCommandChangedEvent?.Invoke();
         }
     }
 }

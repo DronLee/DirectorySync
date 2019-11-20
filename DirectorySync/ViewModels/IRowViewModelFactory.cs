@@ -11,13 +11,18 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Создание строки, отображающей отслеживаемые элементы.
         /// </summary>
-        /// <param name="synchronizedDirectories">Синхронизируемые директории.</param>
+        /// <param name="synchronizedItems">Пара синхронизируемых элементов, на основе которых строится строка.</param>
         /// <returns>Строка, отображающая отслеживаемые элементы.</returns>
-        IRowViewModel CreateRowViewModel(ISynchronizedDirectories synchronizedDirectories);
+        IRowViewModel CreateRowViewModel(ISynchronizedItems synchronizedItems);
 
         /// <summary>
-        /// Событие сообщает о том, что строка была обновлена.
+        /// Событие добавления строки. Передаётся родительская строка и строка, которая добавляется.
         /// </summary>
-        event Action<IRowViewModel> RefreshedRowEvent;
+        event Action<IRowViewModel, IRowViewModel> AddRowEvent;
+
+        /// <summary>
+        /// Событие удаления строки. Передаётся родительская строка и строка, которая удаляется.
+        /// </summary>
+        event Action<IRowViewModel, IRowViewModel> DeleteRowEvent;
     }
 }

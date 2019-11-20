@@ -18,15 +18,41 @@ namespace XUnitTestProject.Infrastructure
         public string FullPath { get;  }
 
         /// <summary>
+        /// Создание пустых файлов в директории с проставлением даты последнего обновления в них.
+        /// </summary>
+        /// <param name="directoryPath">Путь к директории, в которой будут созданы файлы.</param>
+        /// <param name="lastWriteTimesOnFileName">Словарь с перечислением дат последнего обновления файлов по их наименованиям.</param>
+        public static void CreateFiles(string directoryPath, Dictionary<string, DateTime> lastWriteTimesOnFileName)
+        {
+            foreach (var lastWriteTimeOnFileName in lastWriteTimesOnFileName)
+            {
+                var filePath = Path.Combine(directoryPath, lastWriteTimeOnFileName.Key);
+                File.WriteAllBytes(filePath, new byte[0]);
+                File.SetLastWriteTime(filePath, lastWriteTimeOnFileName.Value);
+            }
+        }
+
+        /// <summary>
+        /// Создание вложенной директории.
+        /// </summary>
+        /// <param name="directoryPath">Директория, в которой нужно создать вложенную.</param>
+        /// <param name="directoryName">Наименование вложенной директории.</param>
+        /// <returns>Полный путь к созданной директории.</returns>
+        public static string CreateDirectory(string directoryPath, string directoryName)
+        {
+            var result = Path.Combine(directoryPath, directoryName);
+            Directory.CreateDirectory(result);
+            return result;
+        }
+
+        /// <summary>
         /// Создание вложенной директории.
         /// </summary>
         /// <param name="directoryName">Наименование создаваемой директории.</param>
         /// <returns>Путь к созданной директории.</returns>
         public string CreateDirectory(string directoryName)
         {
-            var result = Path.Combine(FullPath, directoryName);
-            Directory.CreateDirectory(result);
-            return result;
+            return CreateDirectory(FullPath, directoryName);
         }
 
         /// <summary>
@@ -49,21 +75,6 @@ namespace XUnitTestProject.Infrastructure
         public void CreateFiles(Dictionary<string, DateTime> lastWriteTimesOnFileName)
         {
             CreateFiles(FullPath, lastWriteTimesOnFileName);
-        }
-
-        /// <summary>
-        /// Создание пустых файлов в директории с проставлением даты последнего обновления в них.
-        /// </summary>
-        /// <param name="directoryPath">Путь к директории, в которой будут созданы файлы.</param>
-        /// <param name="lastWriteTimesOnFileName">Словарь с перечислением дат последнего обновления файлов по их наименованиям.</param>
-        public static void CreateFiles(string directoryPath, Dictionary<string, DateTime> lastWriteTimesOnFileName)
-        {
-            foreach (var lastWriteTimeOnFileName in lastWriteTimesOnFileName)
-            {
-                var filePath = Path.Combine(directoryPath, lastWriteTimeOnFileName.Key);
-                File.WriteAllBytes(filePath, new byte[0]);
-                File.SetLastWriteTime(filePath, lastWriteTimeOnFileName.Value);
-            }
         }
 
         /// <summary>

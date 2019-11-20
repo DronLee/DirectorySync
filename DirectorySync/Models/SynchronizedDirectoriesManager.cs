@@ -12,36 +12,38 @@ namespace DirectorySync.Models
     public class SynchronizedDirectoriesManager : ISynchronizedDirectoriesManager
     {
         private readonly ISettingsStorage _settingsStorage;
-        private readonly IItemFactory _itemFactory;
-        private readonly List<SynchronizedDirectories> _synchronizedDirectoriesList;
+        private readonly ISynchronizedItemFactory _synchronizedItemFactory;
+        private readonly List<SynchronizedItems> _synchronizedDirectoriesList;
+        private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
 
         /// <summary>
         /// Конструктор.
         /// </summary>
         /// <param name="settingsStorage">Хранилище настроек, где указаны директории для синхронизации.</param>
-        /// <param name="itemFactory">Фабрика для создания отслеживаемых элементов.</param>
-        public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, IItemFactory itemFactory)
+        /// <param name="synchronizedItemFactory">Фабрика для создания отслеживаемых элементов.</param>
+        public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher)
         {
             _settingsStorage = settingsStorage;
-            _itemFactory = itemFactory;
+            _synchronizedItemFactory = synchronizedItemFactory;
+            _synchronizedItemMatcher = synchronizedItemMatcher;
             _synchronizedDirectoriesList = settingsStorage.SettingsRows.Where(r => r.IsUsed).Select(
-                r => new SynchronizedDirectories(r, itemFactory)).ToList();
+                r => new SynchronizedItems(r, _synchronizedItemFactory, _synchronizedItemMatcher)).ToList();
         }
 
         /// <summary>
         /// Синхронизируемые директории, представленные по парам.
         /// </summary>
-        public ISynchronizedDirectories[] SynchronizedDirectories => _synchronizedDirectoriesList.ToArray();
+        public ISynchronizedItems[] SynchronizedDirectories => _synchronizedDirectoriesList.ToArray();
 
         /// <summary>
         /// Событие удаления одной из пары синхронизируемых директорий.
         /// </summary>
-        public event Action<ISynchronizedDirectories> RemoveSynchronizedDirectoriesEvent;
+        public event Action<ISynchronizedItems> RemoveSynchronizedDirectoriesEvent;
 
         /// <summary>
         /// Событие добавления пары синхронизируемых директорий.
         /// </summary>
-        public event Action<ISynchronizedDirectories> AddSynchronizedDirectoriesEvent;
+        public event Action<ISynchronizedItems> AddSynchronizedDirectoriesEvent;
 
         /// <summary>
         /// Загрузка директорий.
@@ -54,7 +56,7 @@ namespace DirectorySync.Models
             foreach (var settingsRow in activeSettingsRows.Where(r => !_synchronizedDirectoriesList.Any(d =>
                  d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)))
             {
-                var synchronizedDirectories = new SynchronizedDirectories(settingsRow, _itemFactory);
+                var synchronizedDirectories = new SynchronizedItems(settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher);
                 _synchronizedDirectoriesList.Add(synchronizedDirectories);
                 AddSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectories);
             }
@@ -89,7 +91,7 @@ namespace DirectorySync.Models
             // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
             await Task.Run(() => Task.WaitAll(_synchronizedDirectoriesList.Where(d => !d.IsLoaded).Select(d => d.Load()).ToArray()));
         }
-
+        
         /// <summary>
         /// Обновление содержимого синхронизируемых директорий.
         /// </summary>

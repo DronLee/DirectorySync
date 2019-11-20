@@ -49,11 +49,13 @@ namespace DirectorySync.ViewModels
             _synchronizedDirectoriesManager.AddSynchronizedDirectoriesEvent += AddSynchronizedDirectories;
             _synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += RemoveSynchronizedDirectories;
             _settingsViewModel = settingsViewModel;
+
             _rowViewModelFactory = rowViewModelFactory;
-            _rowViewModelFactory.RefreshedRowEvent += (IRowViewModel refreshedRow) => { SubscribeOnErrors(refreshedRow); };
-            Rows = new ObservableCollection<IRowViewModel>(_synchronizedDirectoriesManager.SynchronizedDirectories.Select(d =>
-                rowViewModelFactory.CreateRowViewModel(d)));
-            Log = new ObservableCollection<string>();
+            _rowViewModelFactory.AddRowEvent += AddRow;
+            _rowViewModelFactory.DeleteRowEvent += DeleteRow;
+
+            foreach (var row in _synchronizedDirectoriesManager.SynchronizedDirectories.Select(d => rowViewModelFactory.CreateRowViewModel(d)))
+                AddRow(null, row);
         }
 
         /// <summary>
@@ -146,13 +148,16 @@ namespace DirectorySync.ViewModels
         { 
             get
             {
-                if(_refreshSynchronizedDirectoriesCommand == null)
+                if (_refreshSynchronizedDirectoriesCommand == null)
                 {
                     _refreshSynchronizedDirectoriesCommand = new Command(action =>
                     {
                         MenuButtonsIsEnabled = false;
                         foreach (var row in Rows)
                             row.ShowInProcess();
+                        foreach (var row in Rows)
+                            foreach (var childRow in row.ChildRows.ToArray())
+                                DeleteRow(row, childRow);
                         _synchronizedDirectoriesManager.Refresh();
                         MenuButtonsIsEnabled = true;
                     });
@@ -164,12 +169,12 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Строки, отображающие отслеживание директорий.
         /// </summary>
-        public ObservableCollection<IRowViewModel> Rows { get; }
+        public ObservableCollection<IRowViewModel> Rows { get; } = new ObservableCollection<IRowViewModel>();
 
         /// <summary>
         /// Строки лога.
         /// </summary>
-        public ObservableCollection<string> Log { get; }
+        public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
 
         /// <summary>
         /// True - кнопка очистки лога видна.
@@ -213,7 +218,6 @@ namespace DirectorySync.ViewModels
                 Environment.Exit(-1);
 
             await _synchronizedDirectoriesManager.Load();
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
         }
 
         private bool ShowSettingsWindow(string comment)
@@ -225,18 +229,16 @@ namespace DirectorySync.ViewModels
             return _settingsViewModel.Ok;
         }
 
-        private void RemoveSynchronizedDirectories(ISynchronizedDirectories synchronizedDirectories)
+        private void RemoveSynchronizedDirectories(ISynchronizedItems synchronizedDirectories)
         {
             var removingRow = Rows.Single(r => r.LeftItem.Directory == synchronizedDirectories.LeftDirectory &&
                 r.RightItem.Directory == synchronizedDirectories.RightDirectory);
-            Rows.Remove(removingRow);
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+            DeleteRow(null, removingRow);
         }
 
-        private void AddSynchronizedDirectories(ISynchronizedDirectories synchronizedDirectories)
+        private void AddSynchronizedDirectories(ISynchronizedItems synchronizedDirectories)
         {
-            Rows.Add(_rowViewModelFactory.CreateRowViewModel(synchronizedDirectories));
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+            AddRow(null, _rowViewModelFactory.CreateRowViewModel(synchronizedDirectories));
         }
 
         private void SubscribeOnErrors(IRowViewModel row)
@@ -254,9 +256,44 @@ namespace DirectorySync.ViewModels
 
         private void AddToLog(string message)
         {
-            Log.Add(message);
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
-            PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
+            _dispatcher.Invoke(() =>
+            {
+                Log.Add(message);
+                PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(Log)));
+                PropertyChanged.Invoke(this, new PropertyChangedEventArgs(nameof(ClearLogButtonIsVisible)));
+            });
+        }
+
+        private void AddRow(IRowViewModel parentRow, IRowViewModel childRow)
+        {
+            if (parentRow == null)
+            {
+                _dispatcher.Invoke(() => Rows.Add(childRow));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+            }
+            else
+            {
+                _dispatcher.Invoke(() => parentRow.ChildRows.Add(childRow));
+                PropertyChanged?.Invoke(parentRow, new PropertyChangedEventArgs(nameof(parentRow.ChildRows)));
+            }
+
+            childRow.SyncErrorEvent += AddToLog;
+        }
+
+        private void DeleteRow(IRowViewModel parentRow, IRowViewModel childRow)
+        {
+            if (parentRow == null)
+            {
+                _dispatcher.Invoke(() => Rows.Remove(childRow));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Rows)));
+            }
+            else
+            {
+                _dispatcher.Invoke(() => parentRow.ChildRows.Remove(childRow));
+                PropertyChanged?.Invoke(parentRow, new PropertyChangedEventArgs(nameof(parentRow.ChildRows)));
+            }
+
+            childRow.SyncErrorEvent -= AddToLog;
         }
     }
 }

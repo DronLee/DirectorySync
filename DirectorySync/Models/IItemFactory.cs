@@ -9,6 +9,7 @@
         /// Создание директории.
         /// </summary>
         /// <param name="directoryPath">Полный путь к директории.</param>
+        /// <param name="excludedExtensions">Расширения файлов, которые не нужно считывать при загрузке директории.</param>
         /// <returns>Созданная директория.</returns>
         IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions);
 
