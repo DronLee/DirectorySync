@@ -108,16 +108,6 @@ namespace DirectorySync.ViewModels
         public event Action<string> SyncErrorEvent;
 
         /// <summary>
-        /// Обновление дочерних строк.
-        /// </summary>
-        /// <param name="rows">Новые дочерние строки.</param>
-        public void RefreshChildRows(IRowViewModel[] rows)
-        {
-            ChildRows = new ObservableCollection<IRowViewModel>(rows);
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ChildRows)));
-        }
-
-        /// <summary>
         /// Отобразить, что идёт обновление строки.
         /// </summary>
         public void ShowInProcess()
