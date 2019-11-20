@@ -24,8 +24,6 @@ namespace DirectorySync.Models
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
         private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
 
-        //private object _isLoadedLocker = new object();
-
         /// <summary>
         /// Конструктор.
         /// </summary>
@@ -37,8 +35,7 @@ namespace DirectorySync.Models
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.LeftDirectory.DirectoryPath,
                     synchronizedItemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.RightDirectory.DirectoryPath,
-                    synchronizedItemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
-                null)
+                    synchronizedItemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions)))
         { }
 
         /// <summary>
@@ -51,10 +48,10 @@ namespace DirectorySync.Models
         /// <param name="rightItem">Элемент синхронизации справва.</param>
         /// <param name="parentDirectories">Родительский элемент синхронизируемых директорий.</param>
         private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
-            ISynchronizedItem leftItem, ISynchronizedItem rightItem, ISynchronizedItems parentDirectories)
+            ISynchronizedItem leftItem, ISynchronizedItem rightItem)
         {
             (_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher) = (settingsRow, synchronizedItemFactory, synchronizedItemMatcher);
-            (LeftItem, RightItem, ParentDirectories) = (leftItem, rightItem, parentDirectories);
+            (LeftItem, RightItem) = (leftItem, rightItem);
 
             if (LeftItem.Item != null)
                 LeftItem.Item.DeletedEvent += ItemDeleted;
@@ -99,11 +96,6 @@ namespace DirectorySync.Models
         public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
 
         /// <summary>
-        /// Пара родительских синхронизируемых директорий.
-        /// </summary>
-        public ISynchronizedItems ParentDirectories { get; }
-
-        /// <summary>
         /// Событие, возникающее при полной загрузке обоих директорий. Передаётся текущая модель.
         /// </summary>
         public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
@@ -118,14 +110,9 @@ namespace DirectorySync.Models
         /// </summary>
         public async Task Load()
         {
-            //LeftDirectory.LoadedDirectoryEvent += DirectoryIsLoaded;
-            //RightDirectory.LoadedDirectoryEvent += DirectoryIsLoaded;
-
             await Task.WhenAll(LeftDirectory.Load(), RightDirectory.Load());
 
-            //DirectoryIsLoaded();
             LoadChildItems();
-            //RefreshParentStatuses(this);
             IsLoaded = true;
             DirectoriesIsLoadedEvent?.Invoke(this);
         }
@@ -137,26 +124,6 @@ namespace DirectorySync.Models
         {
             IsLoaded = false;
         }
-
-        //private void DirectoryIsLoaded()
-        //{
-        //    //directory.LoadedDirectoryEvent -= DirectoryIsLoaded;
-
-        //    // Это на случай, когда одновремено загружаются обе директории, чтобы два раза не выполнять методы Refresh.
-        //    var ok = false;
-        //    lock (_isLoadedLocker)
-        //    {
-        //        ok = LeftDirectory.IsLoaded && RightDirectory.IsLoaded && !IsLoaded;
-        //        IsLoaded = true;
-        //    }
-
-        //    if (ok)
-        //    {
-        //        RefreshChildDirectories();
-        //        RefreshParentStatuses(this);
-        //        DirectoriesIsLoadedEvent?.Invoke(this);
-        //    }
-        //}
 
         /// <summary>
         /// Загрузка дочерних записей.
@@ -365,7 +332,7 @@ namespace DirectorySync.Models
         private ISynchronizedItems CreateISynchronizedItems(ISynchronizedItem leftSynchronizedItem, ISynchronizedItem rightSynchronizedItem)
         {
             return new SynchronizedItems(_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher,
-                leftSynchronizedItem, rightSynchronizedItem, this);
+                leftSynchronizedItem, rightSynchronizedItem);
         }
 
         /// <summary>
@@ -388,19 +355,6 @@ namespace DirectorySync.Models
                         await actionCommand.Invoke();
                 });
         }
-
-        ///// <summary>
-        ///// Обновление статусов всех родительских строк.
-        ///// </summary>
-        ///// <param name="synchronizedItems">Строка, у родителя которой будет обновлён статус.</param>
-        //private void RefreshParentStatuses(ISynchronizedItems synchronizedItems)
-        //{
-        //    if (synchronizedItems.ParentDirectories != null)
-        //    {
-        //        synchronizedItems.ParentDirectories.RefreshStatusesFromChilds();
-        //        RefreshParentStatuses(synchronizedItems.ParentDirectories);
-        //    }
-        //}
 
         private void ItemDeleted(IItem item)
         {

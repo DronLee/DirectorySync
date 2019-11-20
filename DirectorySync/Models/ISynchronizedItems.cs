@@ -35,11 +35,6 @@ namespace DirectorySync.Models
         ISynchronizedItem RightItem { get; }
 
         /// <summary>
-        /// Пара родительских синхронизируемых директорий.
-        /// </summary>
-        ISynchronizedItems ParentDirectories { get; }
-
-        /// <summary>
         /// Дочерние пары синхронизируемых элементов.
         /// </summary>
         List<ISynchronizedItems> ChildItems { get; }
