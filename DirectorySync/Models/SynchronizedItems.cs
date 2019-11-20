@@ -142,9 +142,12 @@ namespace DirectorySync.Models
                     AddChildItem(directories);
                 }
 
-                foreach (var child in CreateChildItems(LeftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(),
+                foreach (var file in CreateChildItems(LeftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(),
                     RightDirectory.Items.Where(i => !(i is IDirectory)).ToArray()))
-                    AddChildItem(child);
+                {
+                    _synchronizedItemMatcher.UpdateStatusesAndCommands(file.LeftItem, file.RightItem);
+                    AddChildItem(file);
+                }
 
                 RefreshLeftItemStatusesFromChilds();
                 RefreshRightItemStatusesFromChilds();
@@ -278,7 +281,6 @@ namespace DirectorySync.Models
                         break;
                 }
 
-                _synchronizedItemMatcher.UpdateStatusesAndCommands(childItem.LeftItem, childItem.RightItem);
                 result.Add(childItem);
             }
 
@@ -286,7 +288,6 @@ namespace DirectorySync.Models
             for (; rightItemIndex < rightItems.Length; rightItemIndex++)
             {
                 var childItem = LeftMissing(rightItems[rightItemIndex], LeftDirectory.FullPath);
-                _synchronizedItemMatcher.UpdateStatusesAndCommands(childItem.LeftItem, childItem.RightItem);
                 result.Add(childItem);
             }
 
