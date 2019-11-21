@@ -65,14 +65,21 @@ namespace XUnitTestProject
             }
         }
 
-        [Fact]
-        public void Delete()
+        /// <summary>
+        /// Проверка удаления файла. И не важно помечен он как только для чтения или нет.
+        /// </summary>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Delete(bool isReadOnly)
         {
             IItem deletedFile = null;
             using (var testDirectory = new Infrastructure.TestDirectory())
             {
                 var sourceFile = Path.Combine(testDirectory.FullPath, Guid.NewGuid().ToString());
                 File.WriteAllBytes(sourceFile, new byte[0]);
+                new FileInfo(sourceFile).IsReadOnly = isReadOnly;
+
                 var file = new DirectorySync.Models.File(sourceFile);
                 file.DeletedEvent += (IItem item) => { deletedFile = item; };
 
