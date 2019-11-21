@@ -109,6 +109,8 @@ namespace DirectorySync.Models
             {
                 var info = new IO.FileInfo(FullPath);
                 Name = info.Name;
+                if(info.IsReadOnly)
+                    info.IsReadOnly = false;
                 LastUpdate = info.LastWriteTime;
             });
         }
