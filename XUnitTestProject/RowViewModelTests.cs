@@ -135,7 +135,7 @@ namespace XUnitTestProject
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
 
             rowViewModel.LeftItem.AcceptCommand.Execute(null);
-            rowViewModel.LoadFinished(); // Без этого InProcess не изменится.
+            rowViewModel.HideInProcess(); // Без этого InProcess не изменится.
             Thread.Sleep(10); //  Чтобы успели обновиться свойства.
 
             Assert.True(rowViewModel.CommandButtonIsVisible);
@@ -160,7 +160,7 @@ namespace XUnitTestProject
             var rowViewModel = new RowViewModel(leftItemViewModel, rightItemViewModel, parentRow);
 
             rowViewModel.RightItem.AcceptCommand.Execute(null);
-            rowViewModel.LoadFinished(); // Без этого InProcess не изменится.
+            rowViewModel.HideInProcess(); // Без этого InProcess не изменится.
             Thread.Sleep(10); //  Чтобы успели обновиться свойства.
 
             Assert.True(rowViewModel.CommandButtonIsVisible);

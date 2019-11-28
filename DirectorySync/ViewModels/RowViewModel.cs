@@ -81,7 +81,7 @@ namespace DirectorySync.ViewModels
         public bool InProcess
         {
             get { return _inProcess; }
-            set
+            private set
             {
                 if(_inProcess!=value)
                 {
@@ -108,35 +108,23 @@ namespace DirectorySync.ViewModels
         public event Action<string> SyncErrorEvent;
 
         /// <summary>
-        /// Отобразить, что идёт обновление строки.
+        /// Отобразить, что строка в процессе обновления.
         /// </summary>
         public void ShowInProcess()
         {
             InProcess = true;
-            SetInProcessForChildren(this, InProcess);
+            foreach (var child in ChildRows)
+                child.ShowInProcess();
         }
 
         /// <summary>
-        /// Уведомление о завершении загрузки строки. 
+        /// Убрать отображение процесса обновления. 
         /// </summary>
-        public void LoadFinished()
+        public void HideInProcess()
         {
             InProcess = false;
-            SetInProcessForChildren(this, InProcess);
-        }
-
-        private void SetInProcessForChildren(IRowViewModel row, bool inProcessValue)
-        {
-            foreach(var child in row.ChildRows)
-            {
-                child.InProcess = inProcessValue;
-                SetInProcessForChildren(child, inProcessValue);
-            }
-        }
-
-        private void StartedSync()
-        {
-            InProcess = true;
+            foreach (var child in ChildRows)
+                child.HideInProcess();
         }
 
         private void AcceptCommandChanged()
@@ -146,7 +134,7 @@ namespace DirectorySync.ViewModels
 
         private void SetItemViewModelEvents(IItemViewModel itemViewModel)
         {
-            itemViewModel.StartedSyncEvent += StartedSync;
+            itemViewModel.StartedSyncEvent += ShowInProcess;
             itemViewModel.AcceptCommandChangedEvent += AcceptCommandChanged;
             itemViewModel.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
         }
