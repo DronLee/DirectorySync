@@ -37,20 +37,20 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Конструктор.
         /// </summary>
+        /// <param name="settingsStorage">Хранилище настроек.</param>
         /// <param name="synchronizedDirectoriesManager">Менеджер синхронизируемых директорий.</param>
-        /// <param name="rowViewModelFactory">Фабрика моделей представлений отслеживаемых элементов.</param>
+        /// <param name="rowViewModelFactory">Фабрика создания моделей представлений строк.</param>
+        /// <param name="settingsViewModel">Модель представления окна настроек.</param>
+        /// <param name="processScreenSaver">Объект, реализующий отображение заставки процесса.</param>
         public MainWindowViewModel(ISettingsStorage settingsStorage, ISynchronizedDirectoriesManager synchronizedDirectoriesManager, IRowViewModelFactory rowViewModelFactory,
             ISettingsViewModel settingsViewModel, IProcessScreenSaver processScreenSaver)
         {
-            _dispatcher = Dispatcher.CurrentDispatcher;
-            _processScreenSaver = processScreenSaver;
-            _settingsStorage = settingsStorage;
-            _synchronizedDirectoriesManager = synchronizedDirectoriesManager;
+            (_dispatcher, _processScreenSaver, _settingsStorage, _synchronizedDirectoriesManager, _settingsViewModel, _rowViewModelFactory) =
+                (Dispatcher.CurrentDispatcher, processScreenSaver, settingsStorage, synchronizedDirectoriesManager, settingsViewModel, rowViewModelFactory);
+
             _synchronizedDirectoriesManager.AddSynchronizedDirectoriesEvent += AddSynchronizedDirectories;
             _synchronizedDirectoriesManager.RemoveSynchronizedDirectoriesEvent += RemoveSynchronizedDirectories;
-            _settingsViewModel = settingsViewModel;
 
-            _rowViewModelFactory = rowViewModelFactory;
             _rowViewModelFactory.AddRowEvent += AddRow;
             _rowViewModelFactory.DeleteRowEvent += DeleteRow;
 
