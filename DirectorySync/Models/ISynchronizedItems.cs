@@ -40,6 +40,11 @@ namespace DirectorySync.Models
         List<ISynchronizedItems> ChildItems { get; }
 
         /// <summary>
+        /// Событие начала загрузки отслеживаемых директорий.
+        /// </summary>
+        event Action StartLoadDirectoriesEvent;
+
+        /// <summary>
         /// Событие, возникающее при полной загрузке обоих директорий. Передаётся текущая модель.
         /// </summary>
         event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;

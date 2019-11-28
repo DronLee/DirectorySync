@@ -96,6 +96,11 @@ namespace DirectorySync.Models
         public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
 
         /// <summary>
+        /// Событие начала загрузки отслеживаемых директорий.
+        /// </summary>
+        public event Action StartLoadDirectoriesEvent;
+
+        /// <summary>
         /// Событие, возникающее при полной загрузке обоих директорий. Передаётся текущая модель.
         /// </summary>
         public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
@@ -115,9 +120,13 @@ namespace DirectorySync.Models
         /// </summary>
         public async Task Load()
         {
+            StartLoadDirectoriesEvent?.Invoke();
+
             await Task.WhenAll(LeftDirectory.Load(), RightDirectory.Load());
 
+            ClearChildItems();
             LoadChildItems();
+
             IsLoaded = true;
             DirectoriesIsLoadedEvent?.Invoke(this);
         }
@@ -135,9 +144,6 @@ namespace DirectorySync.Models
         /// </summary>
         public void LoadChildItems()
         {
-            if (ChildItems.Count > 0)
-                ChildItems.Clear();
-
             if (LeftDirectory != null && RightDirectory != null)
             {
                 foreach (var directories in CreateChildItems(
@@ -385,16 +391,22 @@ namespace DirectorySync.Models
             // Если Item == null, значит элемент удалили, и тут больше делать ничего не надо.
             if (updatedItem.Item != null)
             {
+                StartLoadDirectoriesEvent?.Invoke();
                 await updatedItem.Item.Load();
 
                 // Была выполнена синхронизация, и нам не известно, обновлялись, удалялись или добавлялись дочерние элементы,
-                // поэтому удаляем все дочерние элементы и заново создаём.
-                foreach (var child in ChildItems.ToArray())
-                    DeleteChildWithoutUpdateParent(child);
-
+                // поэтому заново загрузим дочерние элементы удаляем все дочерние элементы и заново загружаем.
+                ClearChildItems();
                 LoadChildItems();
+
                 DirectoriesIsLoadedEvent?.Invoke(this);
             }
+        }
+
+        private void ClearChildItems()
+        {
+            foreach (var child in ChildItems.ToArray())
+                DeleteChildWithoutUpdateParent(child);
         }
 
         private void CopiedFromItem(ISynchronizedItem sourceSynchronizedItem, IItem newItem)

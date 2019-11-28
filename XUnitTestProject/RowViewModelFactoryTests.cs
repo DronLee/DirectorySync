@@ -198,6 +198,7 @@ namespace XUnitTestProject
             public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
             public event Action<ISynchronizedItems> DeleteEvent;
             public event Action DeletedEvent;
+            public event Action StartLoadDirectoriesEvent;
 
             public async Task Load()
             {
