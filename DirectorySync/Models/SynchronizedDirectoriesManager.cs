@@ -79,7 +79,7 @@ namespace DirectorySync.Models
                 if (settingsRow.ExcludedExtensions != null &&
 
                     // Достаточно проверить директорию с одной стороны, так как массив ExcludedExtensions для обоих сторон одниковый.
-                    !settingsRow.ExcludedExtensions.Equals(synchronizedDirectory.LeftDirectory.ExcludedExtensions) ||
+                    !settingsRow.ExcludedExtensions.SequenceEqual(synchronizedDirectory.LeftDirectory.ExcludedExtensions) ||
                     settingsRow.ExcludedExtensions != null && synchronizedDirectory.LeftDirectory.ExcludedExtensions == null)
                 {
                     synchronizedDirectory.LeftDirectory.ExcludedExtensions = settingsRow.ExcludedExtensions;
@@ -89,7 +89,7 @@ namespace DirectorySync.Models
             }
 
             // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
-            await Task.Run(() => Task.WaitAll(_synchronizedDirectoriesList.Where(d => !d.IsLoaded).Select(d => d.Load()).ToArray()));
+            await Task.Run(() => Task.WhenAll(_synchronizedDirectoriesList.Where(d => !d.IsLoaded).Select(d => d.Load()).ToArray()));
         }
         
         /// <summary>
@@ -97,7 +97,7 @@ namespace DirectorySync.Models
         /// </summary>
         public async Task Refresh()
         {
-            await Task.Run(() => Task.WaitAll(_synchronizedDirectoriesList.Select(d => d.Load()).ToArray()));
+            await Task.Run(() => Task.WhenAll(_synchronizedDirectoriesList.Select(d => d.Load()).ToArray()));
         }
     }
 }
