@@ -120,7 +120,7 @@ namespace XUnitTestProject
                 var level1Child = synchronizedDirectories.ChildItems[0];
                 var level2Child = level1Child.ChildItems[0];
 
-                ((TestSynchronizedItems)level1Child).Delete();
+                ((TestSynchronizedItems)level1Child).IsDeleted();
 
                 Assert.NotNull(deleteRowEventParent);
                 Assert.NotNull(deleteRowEventChild);
@@ -159,7 +159,7 @@ namespace XUnitTestProject
                 var level1Child = synchronizedDirectories.ChildItems[0];
                 var level2Child = level1Child.ChildItems[0];
 
-                ((TestSynchronizedItems)level2Child).Delete();
+                ((TestSynchronizedItems)level2Child).IsDeleted();
 
                 Assert.NotNull(deleteRowEventParent);
                 Assert.NotNull(deleteRowEventChild);
@@ -197,6 +197,7 @@ namespace XUnitTestProject
 
             public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
             public event Action<ISynchronizedItems> DeleteEvent;
+            public event Action DeletedEvent;
 
             public async Task Load()
             {
@@ -224,9 +225,9 @@ namespace XUnitTestProject
             /// <summary>
             /// Нужен, чтобы проверить реакцию на событие удаления синхронизируемых элементов.
             /// </summary>
-            public void Delete()
+            public void IsDeleted()
             {
-                DeleteEvent?.Invoke(this);
+                DeletedEvent?.Invoke();
             }
         }
 

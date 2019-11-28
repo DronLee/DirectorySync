@@ -101,9 +101,14 @@ namespace DirectorySync.Models
         public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
 
         /// <summary>
-        /// Событие оповещает, что пара синхронизируемых элементов удалена и передаёт запись на них.
+        /// Событие оповещает, что пара синхронизируемых элементов удаляется и передаёт запись на них.
         /// </summary>
-        public event Action<ISynchronizedItems> DeletedEvent;
+        public event Action<ISynchronizedItems> DeleteEvent;
+
+        /// <summary>
+        /// Событие оповещает, что пара синхронизируемых элементов удалена.
+        /// </summary>
+        public event Action DeletedEvent;
 
         /// <summary>
         /// Загрузка директорий.
@@ -156,10 +161,9 @@ namespace DirectorySync.Models
                 _synchronizedItemMatcher.UpdateStatusesAndCommands(LeftItem, RightItem);
         }
 
-        private void DeleteChild(ISynchronizedItems child)
+        public void IsDeleted()
         {
-            ChildItems.Remove(child);
-            DeletedEvent?.Invoke(child);
+            DeletedEvent?.Invoke();
         }
 
         /// <summary>
@@ -229,17 +233,28 @@ namespace DirectorySync.Models
         private void AddChildItem(ISynchronizedItems child)
         {
             ChildItems.Add(child);
-            child.DeletedEvent += DeletedChildItem;
+            child.DeleteEvent += DeleteChild;
             child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusesFromChilds;
             child.RightItem.StatusChangedEvent += RefreshRightItemStatusesFromChilds;
         }
 
-        private void DeletedChildItem(ISynchronizedItems child)
+        private void DeleteChild(ISynchronizedItems deletingItems)
         {
+            DeleteChildWithoutUpdateParent(deletingItems);
+            RefreshLeftItemStatusesFromChilds();
+            RefreshRightItemStatusesFromChilds();
+        }
+
+        private void DeleteChildWithoutUpdateParent(ISynchronizedItems child)
+        {
+            ChildItems.Remove(child);
+
             // Раз строка удаляется, больше за ней следить не надо.
-            child.DeletedEvent -= DeletedChildItem;
+            child.DeleteEvent -= DeleteChild;
             child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusesFromChilds;
             child.RightItem.StatusChangedEvent -= RefreshRightItemStatusesFromChilds;
+
+            child.IsDeleted();
         }
 
         /// <summary>
@@ -360,23 +375,26 @@ namespace DirectorySync.Models
         private void ItemDeleted(IItem item)
         {
             item.DeletedEvent -= ItemDeleted; // Раз удалился, значит больше не удалится.
-            DeletedEvent?.Invoke(this);
+            DeleteEvent?.Invoke(this);
         }
 
         private async void FinishedSync(ISynchronizedItem synchronizedItem)
         {
             var updatedItem = LeftItem == synchronizedItem ? RightItem : LeftItem;
 
+            // Если Item == null, значит элемент удалили, и тут больше делать ничего не надо.
             if (updatedItem.Item != null)
+            {
                 await updatedItem.Item.Load();
 
-            // Была выполнена синхронизация, и нам не известно, обновлялись, удалялись или добавлялись элементы,
-            // поэтому удаляем все дочерние элементы и заново создаём.
-            foreach (var child in ChildItems.ToArray())
-                DeleteChild(child);
+                // Была выполнена синхронизация, и нам не известно, обновлялись, удалялись или добавлялись дочерние элементы,
+                // поэтому удаляем все дочерние элементы и заново создаём.
+                foreach (var child in ChildItems.ToArray())
+                    DeleteChildWithoutUpdateParent(child);
 
-            LoadChildItems();
-            DirectoriesIsLoadedEvent?.Invoke(this);
+                LoadChildItems();
+                DirectoriesIsLoadedEvent?.Invoke(this);
+            }
         }
 
         private void CopiedFromItem(ISynchronizedItem sourceSynchronizedItem, IItem newItem)

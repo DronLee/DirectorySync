@@ -45,9 +45,14 @@ namespace DirectorySync.Models
         event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
 
         /// <summary>
-        /// Событие оповещает, что пара синхронизируемых элементов удалена и передаёт запись на них.
+        /// Событие оповещает, что пара синхронизируемых элементов удаляется и передаёт запись на них.
         /// </summary>
-        event Action<ISynchronizedItems> DeletedEvent;
+        event Action<ISynchronizedItems> DeleteEvent;
+
+        /// <summary>
+        /// Событие оповещает, что пара синхронизируемых элементов удалена.
+        /// </summary>
+        event Action DeletedEvent;
 
         /// <summary>
         /// Загрузка директорий.
@@ -63,5 +68,10 @@ namespace DirectorySync.Models
         /// Загрузка дочерних записей.
         /// </summary>
         void LoadChildItems();
+
+        /// <summary>
+        /// Оповещение об удалении элемента.
+        /// </summary>
+        void IsDeleted();
     }
 }
