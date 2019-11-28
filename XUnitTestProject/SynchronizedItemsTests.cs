@@ -464,10 +464,67 @@ namespace XUnitTestProject
         }
 
         /// <summary>
-        /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов.
+        /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов через команду корневого элемента слева.
         /// </summary>
         [Fact]
-        public async Task SynchronizedDirectoriesAfterDeleteItem()
+        public async Task SynchronizedDirectoriesAfterDeleteItem_ThroughLeftRoot()
+        {
+            const string directoryName = "Dir1";
+            const string fileName = "File1";
+            var fileUpdateDate = DateTime.Now;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate } });
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate }, { "File2", fileUpdateDate } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                // Эта команда должна выполнить удаление файла "File2" справа.
+                await synchronizedDirectories.LeftItem.SyncCommand.Process();
+
+                // По прежнему должна остваться одна дочерняя запись на директории.
+                Assert.Single(synchronizedDirectories.ChildItems);
+
+                await Task.Delay(20); // Чтобы успели обновиться статусы и команды.
+
+                // Дочерние элементы теперь должны быть идентичные и команды синхронизации им не нужны.
+                var childItem = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И в ней одна запись на оставшуюся пару файлов.
+                Assert.Single(childItem.ChildItems);
+
+                // Эти тоже теперь должны быть идентичные и команды синхронизации им не нужны.
+                childItem = childItem.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И корневые элементы теперь должны быть идентичные и команды синхронизации им тоже не нужны.
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.RightItem.Status.StatusEnum);
+                Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
+            }
+        }
+
+        /// <summary>
+        /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов через команду одного из дочерних элементов слева.
+        /// </summary>
+        /// <param name="childItemName">Наименование элемента слева, через команду которого будет осуществляться удаление.</param>
+        [Theory]
+        [InlineData("Dir1")]
+        [InlineData("File2")]
+        public async Task SynchronizedDirectoriesAfterDeleteItem_ThroughLeftChild(string childItemName)
         {
             const string directoryName = "Dir1";
             const string fileName = "File1";
@@ -485,7 +542,119 @@ namespace XUnitTestProject
                 var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
                 await synchronizedDirectories.Load();
 
-                await synchronizedDirectories.LeftItem.SyncCommand.Process(); // Эта команда должна выполнить удаление одного из файлов справа.
+                // Эта команда должна выполнить удаление файла "File2" справа.
+                await GetChildItemByName(synchronizedDirectories, true, childItemName).SyncCommand.Process();
+
+                // По прежнему должна остваться одна дочерняя запись на директории.
+                Assert.Single(synchronizedDirectories.ChildItems);
+
+                await Task.Delay(20); // Чтобы успели обновиться статусы и команды.
+
+                // Дочерние элементы теперь должны быть идентичные и команды синхронизации им не нужны.
+                var childItem = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И в ней одна запись на оставшуюся пару файлов.
+                Assert.Single(childItem.ChildItems);
+
+                // Эти тоже теперь должны быть идентичные и команды синхронизации им не нужны.
+                childItem = childItem.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И корневые элементы теперь должны быть идентичные и команды синхронизации им тоже не нужны.
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.RightItem.Status.StatusEnum);
+                Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
+            }
+        }
+
+        /// <summary>
+        /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов через команду корневого элемента справа.
+        /// </summary>
+        [Fact]
+        public async Task SynchronizedDirectoriesAfterDeleteItem_ThroughRightRoot()
+        {
+            const string directoryName = "Dir1";
+            const string fileName = "File1";
+            var fileUpdateDate = DateTime.Now;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate }, { "File2", fileUpdateDate } });
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                // Эта команда должна выполнить удаление файла "File2" слева.
+                await synchronizedDirectories.RightItem.SyncCommand.Process();
+
+                // По прежнему должна остваться одна дочерняя запись на директории.
+                Assert.Single(synchronizedDirectories.ChildItems);
+
+                await Task.Delay(20); // Чтобы успели обновиться статусы и команды.
+
+                // Дочерние элементы теперь должны быть идентичные и команды синхронизации им не нужны.
+                var childItem = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И в ней одна запись на оставшуюся пару файлов.
+                Assert.Single(childItem.ChildItems);
+
+                // Эти тоже теперь должны быть идентичные и команды синхронизации им не нужны.
+                childItem = childItem.ChildItems[0];
+                Assert.Equal(ItemStatusEnum.Equally, childItem.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, childItem.RightItem.Status.StatusEnum);
+                Assert.Null(childItem.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(childItem.RightItem.SyncCommand.CommandAction);
+
+                // И корневые элементы теперь должны быть идентичные и команды синхронизации им тоже не нужны.
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.LeftItem.Status.StatusEnum);
+                Assert.Equal(ItemStatusEnum.Equally, synchronizedDirectories.RightItem.Status.StatusEnum);
+                Assert.Null(synchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+                Assert.Null(synchronizedDirectories.RightItem.SyncCommand.CommandAction);
+            }
+        }
+
+        /// <summary>
+        /// Проверка изменений синхронизируемых директорий после удаления отслеживаемых элементов через команду одного из дочерних элементов справа.
+        /// </summary>
+        /// <param name="childItemName">Наименование элемента справа, через команду которого будет осуществляться удаление.</param>
+        [Theory]
+        [InlineData("Dir1")]
+        [InlineData("File2")]
+        public async Task SynchronizedDirectoriesAfterDeleteItem_ThroughRightChild(string childItemName)
+        {
+            const string directoryName = "Dir1";
+            const string fileName = "File1";
+            var fileUpdateDate = DateTime.Now;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate }, { "File2", fileUpdateDate } });
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryName),
+                    new Dictionary<string, DateTime> { { fileName, fileUpdateDate } });
+
+                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                await synchronizedDirectories.Load();
+
+                // Эта команда должна выполнить удаление файла "File2" слева.
+                await GetChildItemByName(synchronizedDirectories, false, childItemName).SyncCommand.Process();
 
                 // По прежнему должна остваться одна дочерняя запись на директории.
                 Assert.Single(synchronizedDirectories.ChildItems);
@@ -630,6 +799,21 @@ namespace XUnitTestProject
                     synchronizedItems.LeftItem.Name, synchronizedItems.RightItem.Name };
                 Assert.Equal(string.Join(';', updateStatusExpectedOrder), string.Join(';', TestSynchronizedItem.updatedStatusSynchronizedItemNames.ToArray()));
             }
+        }
+
+        private ISynchronizedItem GetChildItemByName(ISynchronizedItems synchronizedItems, bool isLeft, string childItemName)
+        {
+            var item = isLeft ? synchronizedItems.LeftItem : synchronizedItems.RightItem;
+            if (item.Name == childItemName)
+                return item;
+            foreach (var childItem in synchronizedItems.ChildItems)
+            {
+                var result = GetChildItemByName(childItem, isLeft, childItemName);
+                if (result != null)
+                    return result;
+            }
+
+            return null;
         }
 
         private SynchronizedItems GetSynchronizedDirectories(string leftDirectoryPath, string rightDirectoryPath)
