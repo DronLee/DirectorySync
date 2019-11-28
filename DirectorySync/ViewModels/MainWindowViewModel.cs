@@ -153,11 +153,6 @@ namespace DirectorySync.ViewModels
                     _refreshSynchronizedDirectoriesCommand = new Command(action =>
                     {
                         MenuButtonsIsEnabled = false;
-                        foreach (var row in Rows)
-                            row.ShowInProcess();
-                        foreach (var row in Rows)
-                            foreach (var childRow in row.ChildRows.ToArray())
-                                DeleteRow(row, childRow);
                         _synchronizedDirectoriesManager.Refresh();
                         MenuButtonsIsEnabled = true;
                     });
