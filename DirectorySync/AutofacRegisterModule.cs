@@ -23,6 +23,8 @@ namespace DirectorySync
             builder.RegisterType<ItemFactory>().As<IItemFactory>().SingleInstance();
             builder.RegisterType<SynchronizedItemFactory>().As<ISynchronizedItemFactory>().SingleInstance();
             builder.RegisterType<SynchronizedItemMatcher>().As<ISynchronizedItemMatcher>().SingleInstance();
+            builder.RegisterType<SynchronizedItemsStatusAndCommandsUpdater>()
+                .As<ISynchronizedItemsStatusAndCommandsUpdater>().SingleInstance();
             builder.RegisterType<SynchronizedDirectoriesManager>().As<ISynchronizedDirectoriesManager>().SingleInstance();
             builder.RegisterType<RowViewModelFactory>().As<IRowViewModelFactory>().SingleInstance();
         }

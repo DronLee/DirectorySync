@@ -76,6 +76,7 @@
     <Compile Include="Models\IProcessScreenSaver.cs" />
     <Compile Include="Models\ISynchronizedItemFactory.cs" />
     <Compile Include="Models\ISynchronizedItemMatcher.cs" />
+    <Compile Include="Models\ISynchronizedItemsStatusAndCommandsUpdater.cs" />
     <Compile Include="Models\ProcessScreenSaver.cs" />
     <Compile Include="Models\Settings\ISettingsRow.cs" />
     <Compile Include="Models\Settings\SettingsDirectory.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Models\SynchronizedItem.cs" />
     <Compile Include="Models\SynchronizedItemFactory.cs" />
     <Compile Include="Models\SynchronizedItemMatcher.cs" />
+    <Compile Include="Models\SynchronizedItemsStatusAndCommandsUpdater.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -21,7 +21,7 @@ namespace XUnitTestProject
                 new SettingsRow("3", "4", true, null)
             };
 
-            var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null);
+            var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null, null);
 
             Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
             var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories[0];
@@ -56,7 +56,8 @@ namespace XUnitTestProject
                     settingsRow5
                 };
 
-                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null);
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null,
+                    new SynchronizedItemsStatusAndCommandsUpdater());
 
                 await synchronizedDirectoriesManager.Load(); // Загрузка до изменения настроек.
 
@@ -148,7 +149,8 @@ namespace XUnitTestProject
                 var settingsRow1 = new SettingsRow(leftDirectory, rightDirectory, true, excludedExtensions);
                 testSettingsStorage.SettingsRows = new[] { settingsRow1 };
 
-                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), new SynchronizedItemMatcher());
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()),
+                    new SynchronizedItemMatcher(), new SynchronizedItemsStatusAndCommandsUpdater());
                 await synchronizedDirectoriesManager.Load();
 
                 Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);

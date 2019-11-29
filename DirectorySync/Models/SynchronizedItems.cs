@@ -12,17 +12,10 @@ namespace DirectorySync.Models
     /// </summary>
     public class SynchronizedItems : ISynchronizedItems
     {
-        private static readonly Dictionary<ItemStatusEnum, string> _statusCommentsFromChildren = new Dictionary<ItemStatusEnum, string>
-            {
-                {ItemStatusEnum.Missing, "Не хватает тех элементов, что есть с другой стороны"},
-                {ItemStatusEnum.ThereIs, "Содержит отсутствующие с другой стороны элементы"},
-                {ItemStatusEnum.Older, "Содержит более старые"},
-                {ItemStatusEnum.Newer, "Содержит более новые"}
-            };
-
         private readonly ISettingsRow _settingsRow;
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
         private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
+        private readonly ISynchronizedItemsStatusAndCommandsUpdater _statusAndCommandsUpdater;
 
         /// <summary>
         /// Конструктор.
@@ -30,8 +23,9 @@ namespace DirectorySync.Models
         /// <param name="settingsRow">Строка настроек, соответствующая синхронизируемым элементам.</param>
         /// <param name="synchronizedItemFactory">Фабрика создания синхронизируемых элементов.</param>
         /// <param name="synchronizedItemMatcher">Объект, выполняющий сравнение синхронизируемых элементов между собой.</param>
-        public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher) :
-            this(settingsRow, synchronizedItemFactory, synchronizedItemMatcher,
+        public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
+            ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater) :
+            this(settingsRow, synchronizedItemFactory, synchronizedItemMatcher, statusAndCommandsUpdater,
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.LeftDirectory.DirectoryPath,
                     synchronizedItemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.RightDirectory.DirectoryPath,
@@ -48,9 +42,10 @@ namespace DirectorySync.Models
         /// <param name="rightItem">Элемент синхронизации справва.</param>
         /// <param name="parentDirectories">Родительский элемент синхронизируемых директорий.</param>
         private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
-            ISynchronizedItem leftItem, ISynchronizedItem rightItem)
+            ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater, ISynchronizedItem leftItem, ISynchronizedItem rightItem)
         {
-            (_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher) = (settingsRow, synchronizedItemFactory, synchronizedItemMatcher);
+            (_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher, _statusAndCommandsUpdater) =
+                (settingsRow, synchronizedItemFactory, synchronizedItemMatcher, statusAndCommandsUpdater);
             (LeftItem, RightItem) = (leftItem, rightItem);
 
             if (LeftItem.Item != null)
@@ -146,95 +141,44 @@ namespace DirectorySync.Models
                     AddChildItem(file);
                 }
 
-                RefreshLeftItemStatusesFromChilds();
-                RefreshRightItemStatusesFromChilds();
+                RefreshLeftItemStatusAndCommands();
+                RefreshRightItemStatusAndCommands();
             }
             else
                 _synchronizedItemMatcher.UpdateStatusesAndCommands(LeftItem, RightItem);
         }
 
+        /// <summary>
+        /// Оповещение об удалении элемента.
+        /// </summary>
         public void IsDeleted()
         {
             DeletedEvent?.Invoke();
-        }
-
-        /// <summary>
-        /// Обновление статуса левого элемента на основе дочерних.
-        /// </summary>
-        private void RefreshLeftItemStatusesFromChilds()
-        {
-            if (ChildItems.Count > 0)
-            {
-                var notEquallyChilds = ChildItems.Where(r => r.LeftItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
-
-                if (notEquallyChilds.Length == 0)
-                {
-                    // Если все дочерние строки имеют статус Equally, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
-                    LeftItem.UpdateStatus(ItemStatusEnum.Equally);
-                    LeftItem.SyncCommand.SetCommandAction(null);
-                }
-                else if (notEquallyChilds.Any(r => r.LeftItem.Status.StatusEnum == ItemStatusEnum.Unknown))
-                    ItemStatusUnknown(LeftItem);
-                else
-                {
-                    var leftStatuses = notEquallyChilds.Select(r => r.LeftItem.Status.StatusEnum).Distinct().ToArray();
-
-                    if (leftStatuses.Length == 1)
-                        SetItemStatusAndCommands(LeftItem, leftStatuses.First(), notEquallyChilds.Select(r => r.LeftItem.SyncCommand.CommandAction));
-                    else
-                        ItemStatusUnknown(LeftItem);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Обновление статуса правого элемента на основе дочерних.
-        /// </summary>
-        private void RefreshRightItemStatusesFromChilds()
-        {
-            if (ChildItems.Count > 0)
-            {
-                var notEquallyChilds = ChildItems.Where(r => r.RightItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
-
-                if (notEquallyChilds.Length == 0)
-                {
-                    // Если все дочерние строки имеют статус Equally, то и данная строка должна иметь такой сатус, и команд никаких быть при этом не должно.
-                    RightItem.UpdateStatus(ItemStatusEnum.Equally);
-                    RightItem.SyncCommand.SetCommandAction(null);
-                }
-                else if (notEquallyChilds.Any(r => r.RightItem.Status.StatusEnum == ItemStatusEnum.Unknown))
-                    ItemStatusUnknown(RightItem);
-                else
-                {
-                    var rightStatuses = notEquallyChilds.Select(r => r.RightItem.Status.StatusEnum).Distinct().ToArray();
-
-                    if (rightStatuses.Length == 1)
-                        SetItemStatusAndCommands(RightItem, rightStatuses.First(), notEquallyChilds.Select(r => r.RightItem.SyncCommand.CommandAction));
-                    else
-                        ItemStatusUnknown(RightItem);
-                }
-            }
-        }
-
-        private void ItemStatusUnknown(ISynchronizedItem item)
-        {
-            item.UpdateStatus(ItemStatusEnum.Unknown);
-            item.SyncCommand.SetCommandAction(null);
         }
 
         private void AddChildItem(ISynchronizedItems child)
         {
             ChildItems.Add(child);
             child.DeleteEvent += DeleteChild;
-            child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusesFromChilds;
-            child.RightItem.StatusChangedEvent += RefreshRightItemStatusesFromChilds;
+            child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusAndCommands;
+            child.RightItem.StatusChangedEvent += RefreshRightItemStatusAndCommands;
+        }
+
+        private void RefreshLeftItemStatusAndCommands()
+        {
+            _statusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(this);
+        }
+
+        private void RefreshRightItemStatusAndCommands()
+        {
+            _statusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(this);
         }
 
         private void DeleteChild(ISynchronizedItems deletingItems)
         {
             DeleteChildWithoutUpdateParent(deletingItems);
-            RefreshLeftItemStatusesFromChilds();
-            RefreshRightItemStatusesFromChilds();
+            RefreshLeftItemStatusAndCommands();
+            RefreshRightItemStatusAndCommands();
         }
 
         private void DeleteChildWithoutUpdateParent(ISynchronizedItems child)
@@ -243,8 +187,8 @@ namespace DirectorySync.Models
 
             // Раз строка удаляется, больше за ней следить не надо.
             child.DeleteEvent -= DeleteChild;
-            child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusesFromChilds;
-            child.RightItem.StatusChangedEvent -= RefreshRightItemStatusesFromChilds;
+            child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusAndCommands;
+            child.RightItem.StatusChangedEvent -= RefreshRightItemStatusAndCommands;
 
             child.IsDeleted();
         }
@@ -333,29 +277,8 @@ namespace DirectorySync.Models
 
         private ISynchronizedItems CreateISynchronizedItems(ISynchronizedItem leftSynchronizedItem, ISynchronizedItem rightSynchronizedItem)
         {
-            return new SynchronizedItems(_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher,
+            return new SynchronizedItems(_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher, _statusAndCommandsUpdater,
                 leftSynchronizedItem, rightSynchronizedItem);
-        }
-
-        /// <summary>
-        /// Задание статуса и комманд синхронизации для синхронизируемого элемента, исходя из дочерних неидентичных строк.
-        /// </summary>
-        /// <param name="synchronizedItem">Синхронизируемый элемент, для которого задаётся статус и команды.</param>
-        /// <param name="status">Задаваемй статус.</param>
-        /// <param name="actionCommands">Команды синхронизации.</param>
-        private void SetItemStatusAndCommands(ISynchronizedItem synchronizedItem, ItemStatusEnum status, IEnumerable<Func<Task>> actionCommands)
-        {
-            synchronizedItem.UpdateStatus(status, _statusCommentsFromChildren.ContainsKey(status) ?
-                            _statusCommentsFromChildren[status] : null);
-
-            // Если нет, команды, но должна быть, исходя из дочерних элементов,
-            // то можно команду представить как последовательное выпонения команд дочерних элементов. 
-            if (status != ItemStatusEnum.Equally)
-                synchronizedItem.SyncCommand.SetCommandAction(async () =>
-                {
-                    foreach (var actionCommand in actionCommands)
-                        await actionCommand.Invoke();
-                });
         }
 
         private void ItemDeleted(IItem item)
