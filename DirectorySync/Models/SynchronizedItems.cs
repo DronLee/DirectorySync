@@ -76,11 +76,6 @@ namespace DirectorySync.Models
         public IDirectory RightDirectory => RightItem.Item as IDirectory;
 
         /// <summary>
-        /// Директории загружены.
-        /// </summary>
-        public bool IsLoaded { get; private set; } = false;
-
-        /// <summary>
         /// Левый элемент.
         /// </summary>
         public ISynchronizedItem LeftItem { get; private set; }
@@ -127,16 +122,7 @@ namespace DirectorySync.Models
             ClearChildItems();
             LoadChildItems();
 
-            IsLoaded = true;
             DirectoriesIsLoadedEvent?.Invoke(this);
-        }
-
-        /// <summary>
-        /// Пометка о том, что требуется загрузка для пары синхронизируемых директорий.
-        /// </summary>
-        public void LoadRequired()
-        {
-            IsLoaded = false;
         }
 
         /// <summary>

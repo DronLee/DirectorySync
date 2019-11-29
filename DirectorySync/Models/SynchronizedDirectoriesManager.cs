@@ -17,17 +17,23 @@ namespace DirectorySync.Models
         private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
 
         /// <summary>
+        /// Синхронизируемые директории, отобранные для загрузки.
+        /// </summary>
+        private readonly List<SynchronizedItems> _synchronizedDirectoriesListForLoad;
+
+        /// <summary>
         /// Конструктор.
         /// </summary>
         /// <param name="settingsStorage">Хранилище настроек, где указаны директории для синхронизации.</param>
         /// <param name="synchronizedItemFactory">Фабрика для создания отслеживаемых элементов.</param>
         public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher)
         {
-            _settingsStorage = settingsStorage;
-            _synchronizedItemFactory = synchronizedItemFactory;
-            _synchronizedItemMatcher = synchronizedItemMatcher;
+            (_settingsStorage, _synchronizedItemFactory, _synchronizedItemMatcher) = 
+                (settingsStorage, synchronizedItemFactory, synchronizedItemMatcher);
+
             _synchronizedDirectoriesList = settingsStorage.SettingsRows.Where(r => r.IsUsed).Select(
                 r => new SynchronizedItems(r, _synchronizedItemFactory, _synchronizedItemMatcher)).ToList();
+            _synchronizedDirectoriesListForLoad = new List<SynchronizedItems>(_synchronizedDirectoriesList);
         }
 
         /// <summary>
@@ -52,16 +58,18 @@ namespace DirectorySync.Models
         {
             var activeSettingsRows = _settingsStorage.SettingsRows.Where(r => r.IsUsed).ToArray();
 
-            // Обработка синхронизируемых директорий, которые указаны в настройках, но которых нет в данном менеджере.
+            // Отбор синхронизируемых директорий, которые указаны в настройках, но которых ещё нет в данном менеджере.
             foreach (var settingsRow in activeSettingsRows.Where(r => !_synchronizedDirectoriesList.Any(d =>
                  d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)))
             {
                 var synchronizedDirectories = new SynchronizedItems(settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher);
                 _synchronizedDirectoriesList.Add(synchronizedDirectories);
                 AddSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectories);
+
+                _synchronizedDirectoriesListForLoad.Add(synchronizedDirectories);
             }
 
-            // Обработка синхронизируемых директорий, которых уже нет в настройках, но которые ещё остались в менеджере.
+            // Удаление синхронизируемых директорий, которых уже нет в настройках, но которые ещё остались в менеджере.
             foreach (var synchronizedDirectory in _synchronizedDirectoriesList.Where(d => !activeSettingsRows.Any(r =>
                   d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)).ToArray())
             {
@@ -69,8 +77,37 @@ namespace DirectorySync.Models
                 RemoveSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectory);
             }
 
-            // Если был изменён массив исключаемых из рассмотрения расширений файлов,
-            // то должна выполняться перезагрузка синхронизируемых директорий с учётом этих изменений.
+            _synchronizedDirectoriesListForLoad.AddRange(GetSynchronizedDirectoriesListWithChangedExcludedExtensions(activeSettingsRows));
+
+            // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
+            await Load(_synchronizedDirectoriesListForLoad);
+
+            _synchronizedDirectoriesListForLoad.Clear();
+        }
+        
+        /// <summary>
+        /// Обновление содержимого синхронизируемых директорий.
+        /// </summary>
+        public async Task Refresh()
+        {
+            await Load(_synchronizedDirectoriesList);
+        }
+
+        private async Task Load(List<SynchronizedItems> synchronizedDirectories)
+        {
+            await Task.Run(() => Task.WhenAll(synchronizedDirectories.Select(d => d.Load()).ToArray()));
+        }
+
+        /// <summary>
+        /// Получение списка синхронизируемых директорий,
+        /// для которых был изменён массив исключаемых из рассмотрения расширений файлов.
+        /// </summary>
+        /// <param name="activeSettingsRows">Активные строки настройки.</param>
+        /// <returns>Полученный список синхронизируемых директорий.</returns>
+        private IEnumerable<SynchronizedItems> GetSynchronizedDirectoriesListWithChangedExcludedExtensions(ISettingsRow[] activeSettingsRows)
+        {
+            var result = new List<SynchronizedItems>();
+
             foreach (var synchronizedDirectory in _synchronizedDirectoriesList)
             {
                 var settingsRow = activeSettingsRows.Single(r =>
@@ -84,20 +121,12 @@ namespace DirectorySync.Models
                 {
                     synchronizedDirectory.LeftDirectory.ExcludedExtensions = settingsRow.ExcludedExtensions;
                     synchronizedDirectory.RightDirectory.ExcludedExtensions = settingsRow.ExcludedExtensions;
-                    synchronizedDirectory.LoadRequired();
+
+                    result.Add(synchronizedDirectory);
                 }
             }
 
-            // Все синхронизируемые директории, которые ещё не загружены, должны загрузиться.
-            await Task.Run(() => Task.WhenAll(_synchronizedDirectoriesList.Where(d => !d.IsLoaded).Select(d => d.Load()).ToArray()));
-        }
-        
-        /// <summary>
-        /// Обновление содержимого синхронизируемых директорий.
-        /// </summary>
-        public async Task Refresh()
-        {
-            await Task.Run(() => Task.WhenAll(_synchronizedDirectoriesList.Select(d => d.Load()).ToArray()));
+            return result;
         }
     }
 }

@@ -107,7 +107,6 @@ namespace XUnitTestProject
                 var synchronizedDirectory3 = synchronizedDirectoriesManager.SynchronizedDirectories[3];
                 Assert.Equal(settingsRow2.LeftDirectory.DirectoryPath, synchronizedDirectory3.LeftDirectory.FullPath);
                 Assert.Equal(settingsRow2.RightDirectory.DirectoryPath, synchronizedDirectory3.RightDirectory.FullPath);
-                Assert.True(synchronizedDirectory3.IsLoaded);
             }
         }
 

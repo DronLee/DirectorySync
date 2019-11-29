@@ -10,11 +10,6 @@ namespace DirectorySync.Models
     public interface ISynchronizedItems
     {
         /// <summary>
-        /// Директории загружены.
-        /// </summary>
-        bool IsLoaded { get; }
-
-        /// <summary>
         /// Левая директория.
         /// </summary>
         IDirectory LeftDirectory { get; }
@@ -63,11 +58,6 @@ namespace DirectorySync.Models
         /// Загрузка директорий.
         /// </summary>
         Task Load();
-
-        /// <summary>
-        /// Пометка о том, что требуется загрузка для данной пары синхронизируемых директорий.
-        /// </summary>
-        void LoadRequired();
 
         /// <summary>
         /// Загрузка дочерних записей.
