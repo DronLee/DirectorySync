@@ -6,6 +6,15 @@
     public interface ISynchronizedItemFactory : IItemFactory
     {
         /// <summary>
+        /// Создание синхронизируемого элемента.
+        /// </summary>
+        /// <param name="itemPath">Полный путь к отслеживаемому элементу.</param>
+        /// <param name="isDirectory">True - отслеживаемый элемент яваляется директорией.</param>
+        /// <param name="item">Отслеживаемый элемент. Может и отсутствовать.</param>
+        /// <returns>Модель синхронизируемого элемента.</returns>
+        ISynchronizedItem CreateSynchronizedItem(string itemPath, bool isDirectory, IItem item);
+
+        /// <summary>
         /// Создание модели синхронизируемого файла.
         /// </summary>
         /// <param name="filePath">Полный путь к файлу.</param>

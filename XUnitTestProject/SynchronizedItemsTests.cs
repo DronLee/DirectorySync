@@ -907,6 +907,11 @@ namespace XUnitTestProject
             {
                 return new TestSynchronizedItem(IO.Path.GetFileName(filePath), false, file);
             }
+
+            public ISynchronizedItem CreateSynchronizedItem(string itemPath, bool isDirectory, IItem item)
+            {
+                return isDirectory ? CreateSynchronizedDirectory(itemPath, item as IDirectory) : CreateSynchronizedFile(itemPath, item);
+            }
         }
     }
 }

@@ -34,6 +34,19 @@
         }
 
         /// <summary>
+        /// Создание синхронизируемого элемента.
+        /// </summary>
+        /// <param name="itemPath">Полный путь к отслеживаемому элементу.</param>
+        /// <param name="isDirectory">True - отслеживаемый элемент яваляется директорией.</param>
+        /// <param name="item">Отслеживаемый элемент. Может и отсутствовать.</param>
+        /// <returns>Модель синхронизируемого элемента.</returns>
+        public ISynchronizedItem CreateSynchronizedItem(string itemPath, bool isDirectory, IItem item)
+        {
+            return isDirectory ? CreateSynchronizedDirectory(itemPath, item as IDirectory)
+                : CreateSynchronizedFile(itemPath, item);
+        }
+
+        /// <summary>
         /// Создание модели синхронизируемой директории.
         /// </summary>
         /// <param name="directoryPath">Полный путь к директории.</param>

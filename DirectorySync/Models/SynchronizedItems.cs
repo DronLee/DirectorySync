@@ -283,8 +283,8 @@ namespace DirectorySync.Models
                     default:
                         leftItemIndex++;
                         rightItemIndex++;
-                        childItem = CreateISynchronizedItems(CreateSynchronizedItem(leftItem.FullPath, leftItem is IDirectory, leftItem),
-                            CreateSynchronizedItem(rightItem.FullPath, rightItem is IDirectory, rightItem));
+                        childItem = CreateISynchronizedItems(_synchronizedItemFactory.CreateSynchronizedItem(leftItem.FullPath, leftItem is IDirectory, leftItem),
+                            _synchronizedItemFactory.CreateSynchronizedItem(rightItem.FullPath, rightItem is IDirectory, rightItem));
                         break;
                 }
 
@@ -302,39 +302,33 @@ namespace DirectorySync.Models
         }
 
         /// <summary>
-        /// Создание строки синхронизируемых элементов, в которой не хватает элемента слева.
+        /// Создание синхронизируемых элементов без элемента слева.
         /// </summary>
         /// <param name="rightItem">Отслеживаемый правый элемент.</param>
-        /// <param name="leftItemDirectory">Путь к директории слева. Нужен, чтобы задать команду удаления.</param>
-        /// <returns>Строка синхронизируемых элементов.</returns>
+        /// <param name="leftItemDirectory">Путь к директории расположения отслеживаемого элемента слева. Нужен, чтобы задать команду удаления.</param>
+        /// <returns>Созданные инхронизируемые элементы.</returns>
         private ISynchronizedItems LeftMissing(IItem rightItem, string leftItemDirectory)
         {
-            var rightSynchronizedItem = CreateSynchronizedItem(rightItem.FullPath, rightItem is IDirectory, rightItem);
-            var leftSynchronizedItem = CreateSynchronizedItem(Path.Combine(leftItemDirectory, rightItem.Name), 
+            var rightSynchronizedItem = _synchronizedItemFactory.CreateSynchronizedItem(rightItem.FullPath, rightItem is IDirectory, rightItem);
+            var leftSynchronizedItem = _synchronizedItemFactory.CreateSynchronizedItem(Path.Combine(leftItemDirectory, rightItem.Name), 
                 rightSynchronizedItem.IsDirectory, null);
 
             return CreateISynchronizedItems(leftSynchronizedItem, rightSynchronizedItem);
         }
 
         /// <summary>
-        /// Создание строки синхронизируемых элементов, в которой не хватает элемента справа.
+        /// Создание синхронизируемых элементов без элемента справа.
         /// </summary>
         /// <param name="leftItem">Отслеживаемый левый элемент.</param>
-        /// <param name="rightItemDirectory">Путь к директории справа. Нужен, чтобы задать команду удаления.</param>
-        /// <returns>Строка синхронизируемых элементов.</returns>
+        /// <param name="rightItemDirectory">Путь к директории расположения отслеживаемого элемента справа. Нужен, чтобы задать команду удаления.</param>
+        /// <returns>Созданные инхронизируемые элементы.</returns>
         private ISynchronizedItems RightMissing(IItem leftItem, string rightItemDirectory)
         {
-            var leftSynchronizedItem = CreateSynchronizedItem(leftItem.FullPath, leftItem is IDirectory, leftItem);
-            var rightSynchronizedItem = CreateSynchronizedItem(Path.Combine(rightItemDirectory, leftSynchronizedItem.Name), 
+            var leftSynchronizedItem = _synchronizedItemFactory.CreateSynchronizedItem(leftItem.FullPath, leftItem is IDirectory, leftItem);
+            var rightSynchronizedItem = _synchronizedItemFactory.CreateSynchronizedItem(Path.Combine(rightItemDirectory, leftSynchronizedItem.Name), 
                 leftSynchronizedItem.IsDirectory, null);
 
             return CreateISynchronizedItems(leftSynchronizedItem, rightSynchronizedItem);
-        }
-
-        private ISynchronizedItem CreateSynchronizedItem(string itemPath, bool isDirectory, IItem item)
-        {
-            return isDirectory ? _synchronizedItemFactory.CreateSynchronizedDirectory(itemPath, item as IDirectory)
-                : _synchronizedItemFactory.CreateSynchronizedFile(itemPath, item);
         }
 
         private ISynchronizedItems CreateISynchronizedItems(ISynchronizedItem leftSynchronizedItem, ISynchronizedItem rightSynchronizedItem)
