@@ -112,7 +112,7 @@ namespace XUnitTestProject
         }
 
         /// <summary>
-        /// Проверка создания моделей представлений элементов при загрузке,
+        /// Проверка создания моделей синхронизируемых элементов при загрузке,
         /// один из которых файл, второй директория, и имеют одинаковые наименования. 
         /// </summary>
         [Fact]
@@ -163,57 +163,64 @@ namespace XUnitTestProject
         }
 
         /// <summary>
-        /// Проверка создания моделей представлений элементов при загрузке директорий.
-        /// В частности проверяется, что статусы дочерних элементов влияют на статусы родительских.
+        /// Проверка создания моделей синхронизируемых элементов при загрузке директорий.
+        /// В частности проверяется выполнение метода обновления статусов и команд на основе дочерних элементов.
         /// </summary>
         [Fact]
-        public async Task LoadDirectories_RefreshStatusesFromChilds()
+        public async Task LoadDirectories_RefreshStatusAndCommandsFromChilds()
         {
             const string directoryName = "Directory";
             const string fileName = "File";
-
-            var newerDate = new DateTime(2019, 1, 1);
-            var olderDate = new DateTime(2018, 1, 1);
+            var updateDate = DateTime.Now;
 
             using (var leftDirectory = new Infrastructure.TestDirectory())
             using (var rightDirectory = new Infrastructure.TestDirectory())
             {
-                var childLeftDirectoryPath = leftDirectory.CreateDirectory(directoryName, newerDate);
-                var childRightDirectoryPath = rightDirectory.CreateDirectory(directoryName, olderDate);
+                var childLeftDirectoryPath = leftDirectory.CreateDirectory(directoryName, updateDate);
+                var childRightDirectoryPath = rightDirectory.CreateDirectory(directoryName, updateDate);
 
-                // Хотя левая директория новее, но содержимое её будет старше.
-                // Получается после загрузки левая директория должна будте получить статус Older.  
                 Infrastructure.TestDirectory.CreateFiles(childLeftDirectoryPath, new Dictionary<string, DateTime> {
-                    { fileName, olderDate } });
+                    { fileName, updateDate } });
                 Infrastructure.TestDirectory.CreateFiles(childRightDirectoryPath, new Dictionary<string, DateTime> {
-                    { fileName, newerDate } });
+                    { fileName, updateDate } });
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var settingsRow = new TestSettingsRow
+                {
+                    LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
+                    RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
+                };
+
+                var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
+                var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                    testSynchronizedItemsStatusAndCommandsUpdater);
                 await synchronizedDirectories.Load();
 
                 Assert.Single(synchronizedDirectories.ChildItems);
 
-                var childDirectorie = synchronizedDirectories.ChildItems[0];
-                Assert.Equal(directoryName, childDirectorie.LeftItem.Name);
-                Assert.Equal(directoryName, childDirectorie.RightItem.Name);
-                Assert.NotNull(childDirectorie.LeftItem.Directory);
-                Assert.NotNull(childDirectorie.RightItem.Directory);
-                Assert.Single(childDirectorie.ChildItems);
+                var childDirectories = synchronizedDirectories.ChildItems[0];
+                Assert.Equal(directoryName, childDirectories.LeftItem.Name);
+                Assert.Equal(directoryName, childDirectories.RightItem.Name);
+                Assert.NotNull(childDirectories.LeftItem.Directory);
+                Assert.NotNull(childDirectories.RightItem.Directory);
+                Assert.Single(childDirectories.ChildItems);
 
                 // Это файлы.
-                Assert.Null(childDirectorie.ChildItems[0].LeftItem.Directory);
-                Assert.Null(childDirectorie.ChildItems[0].RightItem.Directory);
+                Assert.Null(childDirectories.ChildItems[0].LeftItem.Directory);
+                Assert.Null(childDirectories.ChildItems[0].RightItem.Directory);
 
-                // Файл правой новее, соответственно и статус правой Newer.
-                Assert.Equal(ItemStatusEnum.Older, childDirectorie.ChildItems[0].LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Newer, childDirectorie.ChildItems[0].RightItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Older, childDirectorie.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Newer, childDirectorie.RightItem.Status.StatusEnum);
+                var refreshedLeftItemSynchronizedItemsList = testSynchronizedItemsStatusAndCommandsUpdater.RefreshedLeftItemSynchronizedItemsList;
+                var refreshedRightItemSynchronizedItemsList = testSynchronizedItemsStatusAndCommandsUpdater.RefreshedRightItemSynchronizedItemsList;
+                Assert.Equal(2, refreshedLeftItemSynchronizedItemsList.Count);
+                Assert.Equal(2, refreshedRightItemSynchronizedItemsList.Count);
+                Assert.Equal(childDirectories, refreshedLeftItemSynchronizedItemsList[0]);
+                Assert.Equal(childDirectories, refreshedRightItemSynchronizedItemsList[0]);
+                Assert.Equal(synchronizedDirectories, refreshedLeftItemSynchronizedItemsList[1]);
+                Assert.Equal(synchronizedDirectories, refreshedRightItemSynchronizedItemsList[1]);
             }
         }
 
         /// <summary>
-        /// Проверка создания моделей представлений элементов при загрузке директорий.
+        /// Проверка создания моделей синхронизируемых элементов при загрузке директорий.
         /// Одна директория пустая, вторая - нет.
         /// </summary>
         [Fact]
@@ -702,6 +709,34 @@ namespace XUnitTestProject
             public ISynchronizedItem CreateSynchronizedItem(string itemPath, bool isDirectory, IItem item)
             {
                 return isDirectory ? CreateSynchronizedDirectory(itemPath, item as IDirectory) : CreateSynchronizedFile(itemPath, item);
+            }
+        }
+
+        private class TestSynchronizedItemsStatusAndCommandsUpdater : ISynchronizedItemsStatusAndCommandsUpdater
+        {
+            /// <summary>
+            /// Список синхронизируемых элементов, для которых выполнялось обновление статусов и команд на основе дочерних элементов слева.
+            /// </summary>
+            public readonly List<ISynchronizedItems> RefreshedLeftItemSynchronizedItemsList = new List<ISynchronizedItems>();
+
+            /// <summary>
+            /// Список синхронизируемых элементов, для которых выполнялось обновление статусов и команд на основе дочерних элементов справа.
+            /// </summary>
+            public readonly List<ISynchronizedItems> RefreshedRightItemSynchronizedItemsList = new List<ISynchronizedItems>();
+
+            public void RefreshLeftItemStatusesAndCommandsFromChilds(ISynchronizedItems synchronizedItems)
+            {
+                RefreshedLeftItemSynchronizedItemsList.Add(synchronizedItems);
+            }
+
+            public void RefreshRightItemStatusesAndCommandsFromChilds(ISynchronizedItems synchronizedItems)
+            {
+                RefreshedRightItemSynchronizedItemsList.Add(synchronizedItems);
+            }
+
+            public void UpdateStatusesAndCommands(ISynchronizedItem item1, ISynchronizedItem item2)
+            {
+                return;
             }
         }
     }
