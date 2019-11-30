@@ -18,6 +18,13 @@ namespace DirectorySync.Models
                 {ItemStatusEnum.Newer, "Содержит более новые"}
             };
 
+        private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
+
+        public SynchronizedItemsStatusAndCommandsUpdater(ISynchronizedItemMatcher synchronizedItemMatcher)
+        {
+            _synchronizedItemMatcher = synchronizedItemMatcher;
+        }
+
         /// <summary>
         /// Обновление статуса и команд левого элемента на основе дочерних.
         /// </summary>
@@ -76,6 +83,16 @@ namespace DirectorySync.Models
                         ItemStatusUnknown(synchronizedItems.RightItem);
                 }
             }
+        }
+
+        /// <summary>
+        /// Простановка в модели синхронизируемых элементов статусов и команд синхронизации.
+        /// </summary>
+        /// <param name="item1">Модель одного элемента.</param>
+        /// <param name="item2">Модель второго элемента.</param>
+        public void UpdateStatusesAndCommands(ISynchronizedItem item1, ISynchronizedItem item2)
+        {
+            _synchronizedItemMatcher.UpdateStatusesAndCommands(item1, item2);
         }
 
         private void ItemStatusUnknown(ISynchronizedItem item)

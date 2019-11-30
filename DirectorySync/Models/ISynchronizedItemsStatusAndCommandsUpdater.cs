@@ -3,7 +3,7 @@
     /// <summary>
     /// Интерфейс класса, отвечающего за обновление статусов и комманд синхронизируемых элементов. 
     /// </summary>
-    public interface ISynchronizedItemsStatusAndCommandsUpdater
+    public interface ISynchronizedItemsStatusAndCommandsUpdater : ISynchronizedItemMatcher
     {
         /// <summary>
         /// Обновление статуса и команд левого элемента на основе дочерних.

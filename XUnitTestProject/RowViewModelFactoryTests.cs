@@ -240,8 +240,8 @@ namespace XUnitTestProject
                 RightDirectory = new SettingsDirectory(rightDirectoryPath)
             };
 
-            return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()), new SynchronizedItemMatcher(),
-                new SynchronizedItemsStatusAndCommandsUpdater());
+            return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
         }
 
         private class TestSettingsRow : ISettingsRow

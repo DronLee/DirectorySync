@@ -40,7 +40,7 @@ namespace XUnitTestProject
                 childSynchronizedItems.LeftItem.UpdateStatus(i % 2 == 0 ? leftStatus : ItemStatusEnum.Equally);
             }
 
-            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(testSynchronizedItems);
             await testSynchronizedItems.LeftItem.SyncCommand.Process();
 
@@ -81,7 +81,7 @@ namespace XUnitTestProject
                 childSynchronizedItems.RightItem.UpdateStatus(i % 2 == 0 ? rightStatus : ItemStatusEnum.Equally);
             }
 
-            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(testSynchronizedItems);
             await testSynchronizedItems.RightItem.SyncCommand.Process();
 
@@ -122,7 +122,7 @@ namespace XUnitTestProject
                 testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
             }
 
-            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(testSynchronizedItems);
 
             Assert.Equal(leftExpectedStatus, testSynchronizedItems.LeftItem.Status.StatusEnum.ToString());
@@ -160,7 +160,7 @@ namespace XUnitTestProject
                 testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
             }
 
-            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(testSynchronizedItems);
 
             Assert.Equal(rightExpectedStatus, testSynchronizedItems.RightItem.Status.StatusEnum.ToString());
@@ -188,7 +188,7 @@ namespace XUnitTestProject
             level2Child2.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
             childSynchronizedDirectories.ChildItems.Add(level2Child2);
 
-            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(testSynchronizedItems);
 
             // У дочерней строки должен остаться неопределённый статус.
@@ -224,7 +224,7 @@ namespace XUnitTestProject
             level2Child2.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
             childSynchronizedDirectories.ChildItems.Add(level2Child2);
 
-            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(testSynchronizedItems);
 
             // У дочерней строки должен остаться неопределённый статус.

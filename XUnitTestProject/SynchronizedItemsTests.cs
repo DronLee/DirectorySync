@@ -574,8 +574,8 @@ namespace XUnitTestProject
                     LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
                     RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
                 };
-                var synchronizedItems = new SynchronizedItems(settingsRow, new TestSynchronizedItemFactory(), new SynchronizedItemMatcher(),
-                    new SynchronizedItemsStatusAndCommandsUpdater());
+                var synchronizedItems = new SynchronizedItems(settingsRow, new TestSynchronizedItemFactory(),
+                    new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
 
                 synchronizedItems.LeftDirectory.Load().Wait();
 
@@ -614,8 +614,8 @@ namespace XUnitTestProject
                 RightDirectory = new SettingsDirectory(rightDirectoryPath)
             };
 
-            return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()), new SynchronizedItemMatcher(),
-                new SynchronizedItemsStatusAndCommandsUpdater());
+            return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
         }
 
         private class TestSettingsRow : ISettingsRow

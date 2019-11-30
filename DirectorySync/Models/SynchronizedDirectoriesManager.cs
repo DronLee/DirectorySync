@@ -14,7 +14,6 @@ namespace DirectorySync.Models
         private readonly ISettingsStorage _settingsStorage;
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
         private readonly List<SynchronizedItems> _synchronizedDirectoriesList;
-        private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
         private readonly ISynchronizedItemsStatusAndCommandsUpdater _synchronizedItemsStatusAndCommandsUpdater;
 
         /// <summary>
@@ -27,14 +26,14 @@ namespace DirectorySync.Models
         /// </summary>
         /// <param name="settingsStorage">Хранилище настроек, где указаны директории для синхронизации.</param>
         /// <param name="synchronizedItemFactory">Фабрика для создания отслеживаемых элементов.</param>
-        public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
+        public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, ISynchronizedItemFactory synchronizedItemFactory,
             ISynchronizedItemsStatusAndCommandsUpdater synchronizedItemsStatusAndCommandsUpdater)
         {
-            (_settingsStorage, _synchronizedItemFactory, _synchronizedItemMatcher, _synchronizedItemsStatusAndCommandsUpdater) = 
-                (settingsStorage, synchronizedItemFactory, synchronizedItemMatcher, synchronizedItemsStatusAndCommandsUpdater);
+            (_settingsStorage, _synchronizedItemFactory, _synchronizedItemsStatusAndCommandsUpdater) = 
+                (settingsStorage, synchronizedItemFactory, synchronizedItemsStatusAndCommandsUpdater);
 
             _synchronizedDirectoriesList = settingsStorage.SettingsRows.Where(r => r.IsUsed).Select(
-                r => new SynchronizedItems(r, _synchronizedItemFactory, _synchronizedItemMatcher, _synchronizedItemsStatusAndCommandsUpdater)).ToList();
+                r => new SynchronizedItems(r, _synchronizedItemFactory, _synchronizedItemsStatusAndCommandsUpdater)).ToList();
             _synchronizedDirectoriesListForLoad = new List<SynchronizedItems>(_synchronizedDirectoriesList);
         }
 
@@ -64,7 +63,7 @@ namespace DirectorySync.Models
             foreach (var settingsRow in activeSettingsRows.Where(r => !_synchronizedDirectoriesList.Any(d =>
                  d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)))
             {
-                var synchronizedDirectories = new SynchronizedItems(settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher,
+                var synchronizedDirectories = new SynchronizedItems(settingsRow, _synchronizedItemFactory,
                     _synchronizedItemsStatusAndCommandsUpdater);
                 _synchronizedDirectoriesList.Add(synchronizedDirectories);
                 AddSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectories);

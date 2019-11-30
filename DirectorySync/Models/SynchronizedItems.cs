@@ -14,7 +14,6 @@ namespace DirectorySync.Models
     {
         private readonly ISettingsRow _settingsRow;
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
-        private readonly ISynchronizedItemMatcher _synchronizedItemMatcher;
         private readonly ISynchronizedItemsStatusAndCommandsUpdater _statusAndCommandsUpdater;
 
         /// <summary>
@@ -23,9 +22,9 @@ namespace DirectorySync.Models
         /// <param name="settingsRow">Строка настроек, соответствующая синхронизируемым элементам.</param>
         /// <param name="synchronizedItemFactory">Фабрика создания синхронизируемых элементов.</param>
         /// <param name="synchronizedItemMatcher">Объект, выполняющий сравнение синхронизируемых элементов между собой.</param>
-        public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
+        public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory,
             ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater) :
-            this(settingsRow, synchronizedItemFactory, synchronizedItemMatcher, statusAndCommandsUpdater,
+            this(settingsRow, synchronizedItemFactory, statusAndCommandsUpdater,
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.LeftDirectory.DirectoryPath,
                     synchronizedItemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.RightDirectory.DirectoryPath,
@@ -41,11 +40,11 @@ namespace DirectorySync.Models
         /// <param name="leftItem">Элемент синхронизации слева.</param>
         /// <param name="rightItem">Элемент синхронизации справва.</param>
         /// <param name="parentDirectories">Родительский элемент синхронизируемых директорий.</param>
-        private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory, ISynchronizedItemMatcher synchronizedItemMatcher,
+        private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory,
             ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater, ISynchronizedItem leftItem, ISynchronizedItem rightItem)
         {
-            (_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher, _statusAndCommandsUpdater) =
-                (settingsRow, synchronizedItemFactory, synchronizedItemMatcher, statusAndCommandsUpdater);
+            (_settingsRow, _synchronizedItemFactory, _statusAndCommandsUpdater) =
+                (settingsRow, synchronizedItemFactory, statusAndCommandsUpdater);
             (LeftItem, RightItem) = (leftItem, rightItem);
 
             if (LeftItem.Item != null)
@@ -137,7 +136,7 @@ namespace DirectorySync.Models
                 foreach (var file in CreateChildItems(LeftDirectory.Items.Where(i => !(i is IDirectory)).ToArray(),
                     RightDirectory.Items.Where(i => !(i is IDirectory)).ToArray()))
                 {
-                    _synchronizedItemMatcher.UpdateStatusesAndCommands(file.LeftItem, file.RightItem);
+                    _statusAndCommandsUpdater.UpdateStatusesAndCommands(file.LeftItem, file.RightItem);
                     AddChildItem(file);
                 }
 
@@ -145,7 +144,7 @@ namespace DirectorySync.Models
                 RefreshRightItemStatusAndCommands();
             }
             else
-                _synchronizedItemMatcher.UpdateStatusesAndCommands(LeftItem, RightItem);
+                _statusAndCommandsUpdater.UpdateStatusesAndCommands(LeftItem, RightItem);
         }
 
         /// <summary>
@@ -277,7 +276,7 @@ namespace DirectorySync.Models
 
         private ISynchronizedItems CreateISynchronizedItems(ISynchronizedItem leftSynchronizedItem, ISynchronizedItem rightSynchronizedItem)
         {
-            return new SynchronizedItems(_settingsRow, _synchronizedItemFactory, _synchronizedItemMatcher, _statusAndCommandsUpdater,
+            return new SynchronizedItems(_settingsRow, _synchronizedItemFactory, _statusAndCommandsUpdater,
                 leftSynchronizedItem, rightSynchronizedItem);
         }
 
