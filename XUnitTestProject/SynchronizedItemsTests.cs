@@ -11,37 +11,6 @@ namespace XUnitTestProject
 {
     public class SynchronizedItemsTests
     {
-        [Fact]
-        public void CreateRowViewModel()
-        {
-            const string file1Name = "File1";
-            const string file2Name = "File2";
-
-            ISynchronizedItems loadedSynchronizedDirectories = null;
-
-            using (var leftDirectory = new Infrastructure.TestDirectory())
-            using (var rightDirectory = new Infrastructure.TestDirectory())
-            {
-                leftDirectory.CreateFiles(new Dictionary<string, DateTime>
-                {
-                    { file1Name, DateTime.Now },
-                    { file2Name, DateTime.Now }
-                });
-                rightDirectory.CreateFiles(new Dictionary<string, DateTime>
-                {
-                    { file1Name, DateTime.Now },
-                    { file2Name, DateTime.Now }
-                });
-
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
-                synchronizedDirectories.DirectoriesIsLoadedEvent += (ISynchronizedItems directoris) => { loadedSynchronizedDirectories = directoris; };
-
-                // Пока не выполнялась загрузка, события завершения загрузки происходить не должно и дочерние элементы тоже должны отсутствовать.
-                Assert.Null(loadedSynchronizedDirectories);
-                Assert.Empty(synchronizedDirectories.ChildItems);
-            }
-        }
-
         /// <summary>
         /// Тест на срабатывание события DirectoriesIsLoadedEvent по завершению загрузки обоих директорий.
         /// </summary>
