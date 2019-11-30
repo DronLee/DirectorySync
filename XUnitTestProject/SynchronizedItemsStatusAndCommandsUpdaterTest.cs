@@ -23,25 +23,21 @@ namespace XUnitTestProject
 
             var usedCommands = new List<string>(); // Наименования элемнтов, чьи команды будут выполнены.
 
-            var testSynchronizedItems = new TestSynchronizedItems();
-            testSynchronizedItems.LeftItem = new SynchronizedItem(null, true, null);
-            testSynchronizedItems.RightItem = new SynchronizedItem(null, true, null);
+            var testSynchronizedItems = new TestSynchronizedItems(null);
 
             for (byte i = 0; i < 4; i++)
             {
-                var childSynchronizedItems = new TestSynchronizedItems();
-                var leftSynchronizedItem = childSynchronizedItems.LeftItem = new SynchronizedItem("Test" + i.ToString(), false, null);
-                var rightSynchronizedItem = childSynchronizedItems.RightItem = new SynchronizedItem("Test" + i.ToString(), false, null);
+                var childSynchronizedItems = new TestSynchronizedItems("Test" + i.ToString());
                 testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
 
                 // Запишем команды синхронизации для каждого элемента.
-                leftSynchronizedItem.SyncCommand.SetCommandAction(() =>
+                childSynchronizedItems.LeftItem.SyncCommand.SetCommandAction(() =>
                 {
-                    return Task.Run(() => usedCommands.Add(leftSynchronizedItem.Name));
+                    return Task.Run(() => usedCommands.Add(childSynchronizedItems.LeftItem.Name));
                 });
 
                 // Лишь половина элементов будет иметь статус для синхронизации и лишь команды этих элементов должны быть выполнены.
-                leftSynchronizedItem.UpdateStatus(i % 2 == 0 ? leftStatus : ItemStatusEnum.Equally);
+                childSynchronizedItems.LeftItem.UpdateStatus(i % 2 == 0 ? leftStatus : ItemStatusEnum.Equally);
             }
 
             var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
@@ -68,25 +64,21 @@ namespace XUnitTestProject
 
             var usedCommands = new List<string>(); // Наименования элемнтов, чьи команды будут выполнены.
 
-            var testSynchronizedItems = new TestSynchronizedItems();
-            testSynchronizedItems.LeftItem = new SynchronizedItem(null, true, null);
-            testSynchronizedItems.RightItem = new SynchronizedItem(null, true, null);
+            var testSynchronizedItems = new TestSynchronizedItems(null);
 
             for (byte i = 0; i < 4; i++)
             {
-                var childSynchronizedItems = new TestSynchronizedItems();
-                childSynchronizedItems.LeftItem = new SynchronizedItem("Test" + i.ToString(), false, null);
-                var rightSynchronizedItem = childSynchronizedItems.RightItem = new SynchronizedItem("Test" + i.ToString(), false, null);
+                var childSynchronizedItems = new TestSynchronizedItems("Test" + i.ToString());
                 testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
 
                 // Запишем команды синхронизации для каждого элемента.
-                rightSynchronizedItem.SyncCommand.SetCommandAction(() =>
+                childSynchronizedItems.RightItem.SyncCommand.SetCommandAction(() =>
                 {
-                    return Task.Run(() => usedCommands.Add(rightSynchronizedItem.Name));
+                    return Task.Run(() => usedCommands.Add(childSynchronizedItems.RightItem.Name));
                 });
 
                 // Лишь половина элементов будет иметь статус для синхронизации и лишь команды этих элементов должны быть выполнены.
-                rightSynchronizedItem.UpdateStatus(i % 2 == 0 ? rightStatus : ItemStatusEnum.Equally);
+                childSynchronizedItems.RightItem.UpdateStatus(i % 2 == 0 ? rightStatus : ItemStatusEnum.Equally);
             }
 
             var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
@@ -98,15 +90,97 @@ namespace XUnitTestProject
             Assert.Equal("Test2", usedCommands[1]);
         }
 
+        /// <summary>
+        /// Проверка обновления статусов моделей синхронизируемых элементов слева на основе дочерних элементов.
+        /// </summary>
+        /// <param name="leftStartStatus">Начальное значение статуса левого элемента.</param>
+        /// <param name="leftItemsStatuses">Статусы левых дочерних элементов.</param>
+        /// <param name="leftExpectedStatus">Ожидаемое значение статуса левого элемента после обновления.</param>
+        [Theory]
+
+        // Если нет дочерних элементов, то статус должен оставаться прежним.
+        [InlineData("Equally", new string[0], "Equally")]
+
+        [InlineData("Equally", new[] { "Newer" }, "Newer")]
+        [InlineData("Equally", new[] { "Missing" }, "Missing")]
+        [InlineData("Unknown", new[] { "Equally" }, "Equally")]
+
+        // Если дочерние элементы имеют один статус не считая Equally, то статус родительского будет такой же, как этот один.
+        [InlineData("Equally", new[] { "Missing", "Equally" }, "Missing")]
+
+        // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
+        [InlineData("Equally", new[] { "Missing", "ThereIs" }, "Unknown")]
+        public void RefreshLeftItemStatusesAndCommandsFromChilds_CheckStatus(string leftStartStatus, string[] leftItemsStatuses, string leftExpectedStatus)
+        {
+            var testSynchronizedItems = new TestSynchronizedItems(null);
+            testSynchronizedItems.LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftStartStatus));
+
+            foreach (var leftItemStatus in leftItemsStatuses)
+            {
+                var childSynchronizedItems = new TestSynchronizedItems(null);
+                childSynchronizedItems.LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftItemStatus));
+                testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
+            }
+
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            synchronizedItemsStatusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(testSynchronizedItems);
+
+            Assert.Equal(leftExpectedStatus, testSynchronizedItems.LeftItem.Status.StatusEnum.ToString());
+        }
+
+        /// <summary>
+        /// Проверка обновления статусов моделей синхронизируемых элементов справа на основе дочерних элементов.
+        /// </summary>
+        /// <param name="rightStartStatus">Начальное значение статуса правого элемента.</param>
+        /// <param name="rightItemsStatuses">Статусы правых дочерних элементов.</param>
+        /// <param name="rightExpectedStatus">Ожидаемое значение статуса правого элемента после обновления.</param>
+        [Theory]
+
+        // Если нет дочерних элементов, то статус должен оставаться прежним.
+        [InlineData("Equally", new string[0], "Equally")]
+
+        [InlineData("Equally", new[] { "Newer" }, "Newer")]
+        [InlineData("Equally", new[] { "Missing" }, "Missing")]
+        [InlineData("Unknown", new[] { "Equally" }, "Equally")]
+
+        // Если дочерние элементы имеют один статус не считая Equally, то статус родительского будет такой же, как этот один.
+        [InlineData("Equally", new[] { "Missing", "Equally" }, "Missing")]
+
+        // Если дочерние элементы имеют разнообразные статусы, стутус родительского будет Unknown.
+        [InlineData("Equally", new[] { "Missing", "ThereIs" }, "Unknown")]
+        public void RefreshRightItemStatusesAndCommandsFromChilds_CheckStatus(string rightStartStatus, string[] rightItemsStatuses, string rightExpectedStatus)
+        {
+            var testSynchronizedItems = new TestSynchronizedItems(null);
+            testSynchronizedItems.RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightStartStatus));
+
+            foreach(var rightItemStatus in rightItemsStatuses)
+            {
+                var childSynchronizedItems = new TestSynchronizedItems(null);
+                childSynchronizedItems.RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemStatus));
+                testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
+            }
+
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            synchronizedItemsStatusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(testSynchronizedItems);
+
+            Assert.Equal(rightExpectedStatus, testSynchronizedItems.RightItem.Status.StatusEnum.ToString());
+        }
+
         private class TestSynchronizedItems : ISynchronizedItems
         {
+            public TestSynchronizedItems(string itemName)
+            {
+                LeftItem = new SynchronizedItem(itemName, true, null);
+                RightItem = new SynchronizedItem(itemName, true, null);
+            }
+
             public IDirectory LeftDirectory => LeftItem as IDirectory;
 
             public IDirectory RightDirectory => RightItem as IDirectory;
 
-            public ISynchronizedItem LeftItem { get; set; }
+            public ISynchronizedItem LeftItem { get; }
 
-            public ISynchronizedItem RightItem { get; set; }
+            public ISynchronizedItem RightItem { get; }
 
             public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
 
