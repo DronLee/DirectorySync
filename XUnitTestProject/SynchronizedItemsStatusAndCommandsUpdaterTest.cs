@@ -166,6 +166,78 @@ namespace XUnitTestProject
             Assert.Equal(rightExpectedStatus, testSynchronizedItems.RightItem.Status.StatusEnum.ToString());
         }
 
+        /// <summary>
+        /// Проверка простановки статусов и отсутствия команд слева при дочерних элементах с неопределённым статусом.
+        /// </summary>
+        [Fact]
+        public void RefreshLeftItemStatusesAndCommandsFromChilds_UnknownChild()
+        {
+            var testSynchronizedItems = new TestSynchronizedItems(null);
+
+            var childSynchronizedDirectories = new TestSynchronizedItems(null);
+            childSynchronizedDirectories.LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
+            testSynchronizedItems.ChildItems.Add(childSynchronizedDirectories);
+
+            var level2Child1 = new TestSynchronizedItems(null);
+            level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Newer);
+            level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+            childSynchronizedDirectories.ChildItems.Add(level2Child1);
+
+            var level2Child2 = new TestSynchronizedItems(null);
+            level2Child2.LeftItem.UpdateStatus(ItemStatusEnum.Missing);
+            level2Child2.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+            childSynchronizedDirectories.ChildItems.Add(level2Child2);
+
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            synchronizedItemsStatusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(testSynchronizedItems);
+
+            // У дочерней строки должен остаться неопределённый статус.
+            Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.LeftItem.Status.StatusEnum);
+
+            // Статусы родительской строки должны измениться на неопредёлённые.
+            Assert.Equal(ItemStatusEnum.Unknown, testSynchronizedItems.LeftItem.Status.StatusEnum);
+
+            // Команд не должно быть ни у дочерней строки, ни у родительской.
+            Assert.Null(childSynchronizedDirectories.LeftItem.SyncCommand.CommandAction);
+            Assert.Null(testSynchronizedItems.LeftItem.SyncCommand.CommandAction);
+        }
+
+        /// <summary>
+        /// Проверка простановки статусов и отсутствия команд справа при дочерних элементах с неопределённым статусом.
+        /// </summary>
+        [Fact]
+        public void RefreshRightItemStatusesAndCommandsFromChilds_UnknownChild()
+        {
+            var testSynchronizedItems = new TestSynchronizedItems(null);
+
+            var childSynchronizedDirectories = new TestSynchronizedItems(null);
+            childSynchronizedDirectories.RightItem.UpdateStatus(ItemStatusEnum.Unknown);
+            testSynchronizedItems.ChildItems.Add(childSynchronizedDirectories);
+
+            var level2Child1 = new TestSynchronizedItems(null);
+            level2Child1.RightItem.UpdateStatus(ItemStatusEnum.Older);
+            level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+            childSynchronizedDirectories.ChildItems.Add(level2Child1);
+
+            var level2Child2 = new TestSynchronizedItems(null);
+            level2Child2.RightItem.UpdateStatus(ItemStatusEnum.ThereIs);
+            level2Child2.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
+            childSynchronizedDirectories.ChildItems.Add(level2Child2);
+
+            var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater();
+            synchronizedItemsStatusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(testSynchronizedItems);
+
+            // У дочерней строки должен остаться неопределённый статус.
+            Assert.Equal(ItemStatusEnum.Unknown, childSynchronizedDirectories.RightItem.Status.StatusEnum);
+
+            // Статусы родительской строки должны измениться на неопредёлённые.
+            Assert.Equal(ItemStatusEnum.Unknown, testSynchronizedItems.RightItem.Status.StatusEnum);
+
+            // Команд не должно быть ни у дочерней строки, ни у родительской.
+            Assert.Null(childSynchronizedDirectories.RightItem.SyncCommand.CommandAction);
+            Assert.Null(testSynchronizedItems.RightItem.SyncCommand.CommandAction);
+        }
+
         private class TestSynchronizedItems : ISynchronizedItems
         {
             public TestSynchronizedItems(string itemName)
