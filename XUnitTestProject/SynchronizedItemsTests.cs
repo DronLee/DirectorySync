@@ -2,10 +2,8 @@
 using DirectorySync.Models.Settings;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using IO = System.IO;
 
 namespace XUnitTestProject
 {
@@ -35,80 +33,70 @@ namespace XUnitTestProject
         }
 
         /// <summary>
-        /// Проверка создания моделей представлений элементов при загрузке файлов.
+        /// Проверка создания моделей синхронизируемых элементов при загрузке файлов.
         /// </summary>
-        /// <returns></returns>
         [Fact]
         public async Task LoadFiles()
         {
             const string file1Name = "File1";
             const string file2Name = "File2";
             const string file3Name = "File3";
-            const string file4Name = "File4";
-            const string file5Name = "File5";
+            var updateFileDate = DateTime.Now;
+            var filesDirectoinaries = new Dictionary<string, DateTime>
+            {
+                { file1Name, updateFileDate },
+                { file2Name, updateFileDate },
+                { file3Name, updateFileDate }
+            };
 
             using (var leftDirectory = new Infrastructure.TestDirectory())
             using (var rightDirectory = new Infrastructure.TestDirectory())
             {
-                leftDirectory.CreateFiles(new Dictionary<string, DateTime>
-                {
-                    { file1Name, DateTime.Now },
-                    { file2Name, new DateTime(2019,1 ,1) },
-                    { file3Name, new DateTime(2019, 1, 1) },
-                    { file4Name, new DateTime(2019, 1, 1) }
-                });
-                rightDirectory.CreateFiles(new Dictionary<string, DateTime>
-                {
-                    { file2Name, new DateTime(2019,1 ,1) },
-                    { file3Name, new DateTime(2018, 1, 1) },
-                    { file4Name, new DateTime(2019, 5, 1) },
-                    { file5Name, DateTime.Now }
-                });
+                leftDirectory.CreateFiles(filesDirectoinaries);
+                rightDirectory.CreateFiles(filesDirectoinaries);
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var settingsRow = new TestSettingsRow
+                {
+                    LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
+                    RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
+                };
+                var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
+                var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                    testSynchronizedItemsStatusAndCommandsUpdater);
+
                 await synchronizedDirectories.Load();
 
-                Assert.Equal(5, synchronizedDirectories.ChildItems.Count);
+                Assert.Equal(3, synchronizedDirectories.ChildItems.Count);
 
                 var directories = synchronizedDirectories.ChildItems[0];
                 Assert.Equal(file1Name, directories.LeftItem.Name);
                 Assert.Equal(file1Name, directories.RightItem.Name);
-                Assert.Equal(ItemStatusEnum.ThereIs, directories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Missing, directories.RightItem.Status.StatusEnum);
-                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
-                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
+
+                // Это файлы.
+                Assert.False(directories.LeftItem.IsDirectory);
+                Assert.Null(directories.LeftItem.Directory);
+                Assert.False(directories.RightItem.IsDirectory);
+                Assert.Null(directories.RightItem.Directory);
 
                 directories = synchronizedDirectories.ChildItems[1];
                 Assert.Equal(file2Name, directories.LeftItem.Name);
                 Assert.Equal(file2Name, directories.RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Equally, directories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Equally, directories.RightItem.Status.StatusEnum);
-                Assert.Null(directories.LeftItem.SyncCommand.CommandAction);
-                Assert.Null(directories.RightItem.SyncCommand.CommandAction);
+
+                // Это файлы.
+                Assert.False(directories.LeftItem.IsDirectory);
+                Assert.Null(directories.LeftItem.Directory);
+                Assert.False(directories.RightItem.IsDirectory);
+                Assert.Null(directories.RightItem.Directory);
 
                 directories = synchronizedDirectories.ChildItems[2];
                 Assert.Equal(file3Name, directories.LeftItem.Name);
                 Assert.Equal(file3Name, directories.RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Newer, directories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Older, directories.RightItem.Status.StatusEnum);
-                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
-                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
 
-                directories = synchronizedDirectories.ChildItems[3];
-                Assert.Equal(file4Name, directories.LeftItem.Name);
-                Assert.Equal(file4Name, directories.RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Older, directories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Newer, directories.RightItem.Status.StatusEnum);
-                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
-                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
-
-                directories = synchronizedDirectories.ChildItems[4];
-                Assert.Equal(file5Name, directories.LeftItem.Name);
-                Assert.Equal(file5Name, directories.RightItem.Name);
-                Assert.Equal(ItemStatusEnum.Missing, directories.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.ThereIs, directories.RightItem.Status.StatusEnum);
-                Assert.NotNull(directories.LeftItem.SyncCommand.CommandAction);
-                Assert.NotNull(directories.RightItem.SyncCommand.CommandAction);
+                // Это файлы.
+                Assert.False(directories.LeftItem.IsDirectory);
+                Assert.Null(directories.LeftItem.Directory);
+                Assert.False(directories.RightItem.IsDirectory);
+                Assert.Null(directories.RightItem.Directory);
             }
         }
 
@@ -124,19 +112,29 @@ namespace XUnitTestProject
             using (var leftDirectory = new Infrastructure.TestDirectory())
             using (var rightDirectory = new Infrastructure.TestDirectory())
             {
+                var updateDate = DateTime.Now;
+
                 leftDirectory.CreateFiles(new Dictionary<string, DateTime>
                 {
-                    { directoryAndFileName, DateTime.Now }
+                    { directoryAndFileName, updateDate }
                 });
                 
                 // В директорию надо поместить хотя бы один файл, чтобы она была видна.
                 Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(directoryAndFileName), 
-                    new Dictionary<string, DateTime> { { "1", DateTime.Now } });
+                    new Dictionary<string, DateTime> { { "1", updateDate } });
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var settingsRow = new TestSettingsRow
+                {
+                    LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
+                    RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
+                };
+                var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
+                var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                    testSynchronizedItemsStatusAndCommandsUpdater);
+
                 await synchronizedDirectories.Load();
 
-                Assert.Equal(2, synchronizedDirectories.ChildItems.Count);
+                Assert.Equal(2, synchronizedDirectories.ChildItems.Count); // Одна модель на директории, одна модель на файлы.
 
                 // Сначала директория, потом файл.
                 var childDirectories1 = synchronizedDirectories.ChildItems[0];
@@ -149,8 +147,6 @@ namespace XUnitTestProject
                 Assert.Null(childDirectories1.LeftItem.Directory);
                 Assert.True(childDirectories1.LeftItem.IsDirectory);
 
-                Assert.Equal(ItemStatusEnum.Missing, childDirectories1.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.ThereIs, childDirectories1.RightItem.Status.StatusEnum);
                 var childDirectories2 = synchronizedDirectories.ChildItems[1];
                 Assert.Equal(directoryAndFileName, childDirectories2.LeftItem.Name);
                 Assert.Equal(directoryAndFileName, childDirectories2.RightItem.Name);
@@ -158,17 +154,14 @@ namespace XUnitTestProject
                 Assert.False(childDirectories2.LeftItem.IsDirectory);
                 Assert.Null(childDirectories2.RightItem.Directory);
                 Assert.False(childDirectories2.RightItem.IsDirectory);
-                Assert.Equal(ItemStatusEnum.ThereIs, childDirectories2.LeftItem.Status.StatusEnum);
-                Assert.Equal(ItemStatusEnum.Missing, childDirectories2.RightItem.Status.StatusEnum);
             }
         }
 
         /// <summary>
-        /// Проверка создания моделей синхронизируемых элементов при загрузке директорий.
-        /// В частности проверяется выполнение метода обновления статусов и команд на основе дочерних элементов.
+        /// Проверка выполнения метода обновления статусов и команд на основе дочерних элементов при загрузке.
         /// </summary>
         [Fact]
-        public async Task LoadDirectories_RefreshStatusAndCommandsFromChilds()
+        public async Task Load_RefreshStatusAndCommandsFromChilds()
         {
             const string directoryName = "Directory";
             const string fileName = "File";
@@ -199,15 +192,6 @@ namespace XUnitTestProject
                 Assert.Single(synchronizedDirectories.ChildItems);
 
                 var childDirectories = synchronizedDirectories.ChildItems[0];
-                Assert.Equal(directoryName, childDirectories.LeftItem.Name);
-                Assert.Equal(directoryName, childDirectories.RightItem.Name);
-                Assert.NotNull(childDirectories.LeftItem.Directory);
-                Assert.NotNull(childDirectories.RightItem.Directory);
-                Assert.Single(childDirectories.ChildItems);
-
-                // Это файлы.
-                Assert.Null(childDirectories.ChildItems[0].LeftItem.Directory);
-                Assert.Null(childDirectories.ChildItems[0].RightItem.Directory);
 
                 var refreshedLeftItemSynchronizedItemsList = testSynchronizedItemsStatusAndCommandsUpdater.RefreshedLeftItemSynchronizedItemsList;
                 var refreshedRightItemSynchronizedItemsList = testSynchronizedItemsStatusAndCommandsUpdater.RefreshedRightItemSynchronizedItemsList;
@@ -299,7 +283,16 @@ namespace XUnitTestProject
 
                 rightDirectory.CreateDirectory(directoryName, olderDate);
 
-                var synchronizedDirectories = GetSynchronizedDirectories(leftDirectory.FullPath, rightDirectory.FullPath);
+                var settingsRow = new TestSettingsRow
+                {
+                    LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
+                    RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
+                };
+
+                var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
+                var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                    testSynchronizedItemsStatusAndCommandsUpdater);
+
                 await synchronizedDirectories.Load();
 
                 Assert.Single(synchronizedDirectories.ChildItems);
