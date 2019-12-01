@@ -2,6 +2,7 @@
 using DirectorySync.Models.Settings;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using IO = System.IO;
@@ -216,6 +217,63 @@ namespace XUnitTestProject
                 Assert.Equal(childDirectories, refreshedRightItemSynchronizedItemsList[0]);
                 Assert.Equal(synchronizedDirectories, refreshedLeftItemSynchronizedItemsList[1]);
                 Assert.Equal(synchronizedDirectories, refreshedRightItemSynchronizedItemsList[1]);
+            }
+        }
+
+        /// <summary>
+        /// Проверка выполнения метода обновления статусов и команд синхронизируемых элементов при загрузке дочерних элементов.
+        /// </summary>
+        [Fact]
+        public async void LoadChildItems_RefreshStatusAndCommandsFromChilds()
+        {
+            const string dir1Name = "Dir1";
+            const string dir2Name = "Dir2";
+            const string file1Name = "File1";
+            const string file2Name = "File2";
+            const string file3Name = "File3";
+            var updateDate = DateTime.Now;
+
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(dir1Name),
+                    new Dictionary<string, DateTime> { { file1Name, updateDate } });
+                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(dir2Name),
+                    new Dictionary<string, DateTime> { { file2Name, updateDate }, { file3Name, updateDate } });
+
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(dir1Name),
+                    new Dictionary<string, DateTime> { { file1Name, updateDate } });
+                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(dir2Name),
+                    new Dictionary<string, DateTime> { { file2Name, updateDate }, { file3Name, updateDate } });
+
+                var settingsRow = new TestSettingsRow
+                {
+                    LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
+                    RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
+                };
+
+                var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
+                var synchronizedItems = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
+                    testSynchronizedItemsStatusAndCommandsUpdater);
+
+                await Task.WhenAll(synchronizedItems.LeftDirectory.Load(), synchronizedItems.RightDirectory.Load());
+
+                synchronizedItems.LoadChildItems();
+
+                var refreshedLeftItemSynchronizedItemsList = testSynchronizedItemsStatusAndCommandsUpdater.RefreshedLeftItemSynchronizedItemsList;
+                var refreshedRightItemSynchronizedItemsList = testSynchronizedItemsStatusAndCommandsUpdater.RefreshedRightItemSynchronizedItemsList;
+
+                // Каждая директория должна была обновить свои статусы и команды.
+                Assert.Equal(3, refreshedLeftItemSynchronizedItemsList.Count);
+                Assert.Equal(3, refreshedRightItemSynchronizedItemsList.Count);
+
+                // В таком порядке должны были обновляться статусы элементов.
+                Assert.Equal(refreshedLeftItemSynchronizedItemsList[0], synchronizedItems.ChildItems[0]);
+                Assert.Equal(refreshedLeftItemSynchronizedItemsList[1], synchronizedItems.ChildItems[1]);
+                Assert.Equal(refreshedLeftItemSynchronizedItemsList[2], synchronizedItems);
+                Assert.Equal(refreshedRightItemSynchronizedItemsList[0], synchronizedItems.ChildItems[0]);
+                Assert.Equal(refreshedRightItemSynchronizedItemsList[1], synchronizedItems.ChildItems[1]);
+                Assert.Equal(refreshedRightItemSynchronizedItemsList[2], synchronizedItems);
             }
         }
 
@@ -549,55 +607,6 @@ namespace XUnitTestProject
             }
         }
 
-        /// <summary>
-        /// Проверка обновления статусов синхронизируемых элементов при загрузке дочерних записей.
-        /// Проверяется, что элементы обновляются в определённом порядке и по одному разу.
-        /// </summary>
-        [Fact]
-        public async void LoadChildItems_UpdateStatus()
-        {
-            const string dir1Name = "Dir1";
-            const string dir2Name = "Dir2";
-            const string file1Name = "File1";
-            const string file2Name = "File2";
-            const string file3Name = "File3";
-            var updateDate = DateTime.Now;
-
-            using (var leftDirectory = new Infrastructure.TestDirectory())
-            using (var rightDirectory = new Infrastructure.TestDirectory())
-            {
-                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(dir1Name),
-                    new Dictionary<string, DateTime> { { file1Name, updateDate } });
-                Infrastructure.TestDirectory.CreateFiles(leftDirectory.CreateDirectory(dir2Name),
-                    new Dictionary<string, DateTime> { { file2Name, updateDate }, { file3Name, updateDate } });
-
-                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(dir1Name),
-                    new Dictionary<string, DateTime> { { file1Name, updateDate } });
-                Infrastructure.TestDirectory.CreateFiles(rightDirectory.CreateDirectory(dir2Name),
-                    new Dictionary<string, DateTime> { { file2Name, updateDate }, { file3Name, updateDate } });
-
-                var settingsRow = new TestSettingsRow
-                {
-                    LeftDirectory = new SettingsDirectory(leftDirectory.FullPath),
-                    RightDirectory = new SettingsDirectory(rightDirectory.FullPath)
-                };
-                var synchronizedItems = new SynchronizedItems(settingsRow, new TestSynchronizedItemFactory(),
-                    new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
-
-                synchronizedItems.LeftDirectory.Load().Wait();
-
-                await Task.WhenAll(synchronizedItems.LeftDirectory.Load(), synchronizedItems.RightDirectory.Load());
-
-                synchronizedItems.LoadChildItems();
-
-                // В таком порядке должны были обновляться статусы элементов.
-                var updateStatusExpectedOrder = new[] { 
-                    file1Name, file1Name, dir1Name, dir1Name, file2Name, file2Name, file3Name, file3Name, dir2Name, dir2Name,
-                    synchronizedItems.LeftItem.Name, synchronizedItems.RightItem.Name };
-                Assert.Equal(string.Join(';', updateStatusExpectedOrder), string.Join(';', TestSynchronizedItem.updatedStatusSynchronizedItemNames.ToArray()));
-            }
-        }
-
         private ISynchronizedItem GetChildItemByName(ISynchronizedItems synchronizedItems, bool isLeft, string childItemName)
         {
             var item = isLeft ? synchronizedItems.LeftItem : synchronizedItems.RightItem;
@@ -638,77 +647,6 @@ namespace XUnitTestProject
             public void NotFoundRefresh()
             {
                 throw new NotImplementedException();
-            }
-        }
-
-        private class TestSynchronizedItem : ISynchronizedItem
-        {
-            public readonly static List<string> updatedStatusSynchronizedItemNames = new List<string>();
-
-            public TestSynchronizedItem(string name, bool isDirectory, IItem item)
-            {
-                Name = name;
-                IsDirectory = isDirectory;
-                Item = item;
-            }
-
-            public string Name { get; }
-
-            public string FullPath => throw new NotImplementedException();
-
-            public bool IsDirectory { get; }
-
-            public IItem Item { get; }
-
-            public IDirectory Directory => throw new NotImplementedException();
-
-            public ItemStatus Status { get; } = new ItemStatus(ItemStatusEnum.Unknown);
-
-            public SyncCommand SyncCommand { get; } = new SyncCommand();
-
-            public event Action<ISynchronizedItem> FinishedSyncEvent;
-            public event Action<ISynchronizedItem, IItem> CopiedFromToEvent;
-            public event Action<string> SyncErrorEvent;
-            public event Action StatusChangedEvent;
-
-            public void UpdateItem(IItem item)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void UpdateStatus(ItemStatusEnum statusEnum, string comment = null)
-            {
-                updatedStatusSynchronizedItemNames.Add(Name);
-            }
-        }
-
-        private class TestSynchronizedItemFactory : ISynchronizedItemFactory
-        {
-            private readonly IItemFactory itemFactory = new ItemFactory();
-
-            public IDirectory CreateDirectory(string directoryPath, string[] excludedExtensions)
-            {
-                return itemFactory.CreateDirectory(directoryPath, null);
-            }
-
-            public IItem CreateFile(string filePath)
-            {
-                return itemFactory.CreateFile(filePath);
-            }
-
-            public ISynchronizedItem CreateSynchronizedDirectory(string directoryPath, IDirectory directory)
-            {
-                return new TestSynchronizedItem(IO.Path.GetFileName(directoryPath), true, directory);
-            }
-
-            public ISynchronizedItem CreateSynchronizedFile(string filePath, IItem file)
-            {
-                return new TestSynchronizedItem(IO.Path.GetFileName(filePath), false, file);
-            }
-
-            public ISynchronizedItem CreateSynchronizedItem(string itemPath, bool isDirectory, IItem item)
-            {
-                return isDirectory ? CreateSynchronizedDirectory(itemPath, item as IDirectory) : CreateSynchronizedFile(itemPath, item);
             }
         }
 
