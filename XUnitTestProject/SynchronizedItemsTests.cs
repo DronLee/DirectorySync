@@ -1,9 +1,13 @@
-﻿using DirectorySync.Models;
+﻿using Autofac;
+using Autofac.Extras.FakeItEasy;
+using DirectorySync.Models;
 using DirectorySync.Models.Settings;
+using FakeItEasy;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
+using IO = System.IO;
 
 namespace XUnitTestProject
 {
@@ -600,6 +604,153 @@ namespace XUnitTestProject
             }
         }
 
+        /// <summary>
+        /// Проверка изменения признака InProcess при загрузке.
+        /// </summary>
+        [Fact]
+        public async Task InProcess_Load()
+        {
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateDirectory(leftDirectory.CreateDirectory("Dir1"), "Dir2");
+                Infrastructure.TestDirectory.CreateDirectory(rightDirectory.CreateDirectory("Dir1"), "Dir2");
+                leftDirectory.CreateDirectory("Dir3");
+                rightDirectory.CreateDirectory("Dir3");
+
+                var containerBuilder = new ContainerBuilder();
+                containerBuilder.RegisterModule<TestAutofacRegisterModule>();
+                containerBuilder.RegisterType<SettingsRow>().As<ISettingsRow>();
+                containerBuilder.RegisterType<SynchronizedItems>().As<ISynchronizedItems>();
+
+                using (var fake = new AutoFake(builder: containerBuilder))
+                {
+                    var fakeItemFactory = A.Fake<IItemFactory>();
+                    A.CallTo(() => fakeItemFactory.CreateDirectory(A<string>.Ignored, A<string[]>.Ignored))
+                        .ReturnsLazily((string directoryPath, string[] excludedExtensions) =>
+                        {
+                            return new TestDirectory(directoryPath, fakeItemFactory, 1);
+                        });
+
+                    var fakeSettingsRow = A.Fake<ISettingsRow>();
+                    A.CallTo(() => fakeSettingsRow.LeftDirectory).Returns(new SettingsDirectory(leftDirectory.FullPath));
+                    A.CallTo(() => fakeSettingsRow.RightDirectory).Returns(new SettingsDirectory(rightDirectory.FullPath));
+
+                    var fakeSynchronizedItemsStatusAndCommandsUpdater = A.Fake<ISynchronizedItemsStatusAndCommandsUpdater>();
+                    A.CallTo(() => fakeSynchronizedItemsStatusAndCommandsUpdater
+                    .UpdateStatusesAndCommands(A<ISynchronizedItem>.Ignored, A<ISynchronizedItem>.Ignored))
+                        .Invokes((ISynchronizedItem item1, ISynchronizedItem item2) =>
+                        {
+                            item1.UpdateStatus(ItemStatusEnum.Equally);
+                            item2.UpdateStatus(ItemStatusEnum.Equally);
+                        });
+
+                    fake.Provide(fakeSettingsRow);
+                    fake.Provide(fakeItemFactory);
+                    fake.Provide(fakeSynchronizedItemsStatusAndCommandsUpdater);
+
+                    var synchronizedItems = fake.Resolve<ISynchronizedItems>();
+                    await synchronizedItems.Load(); // Загрузим, чтобы построилось дерево элементов.
+
+                    // А теперь запустим загрузку одного из элементов и проверим изменение признака InProcess.
+                    var childLevel1SynchronizedItems1 = synchronizedItems.ChildItems[0];
+                    var loadTask = Task.Run(() => childLevel1SynchronizedItems1.Load());
+
+                    await Task.Delay(2); // Чтобы признаки успели поменять значения.
+
+                    Assert.True(childLevel1SynchronizedItems1.InProcess);
+                    Assert.True(synchronizedItems.InProcess); // И процесс родителя должен обозначиться.
+                    Assert.True(childLevel1SynchronizedItems1.ChildItems[0].InProcess); // И процесс дочерних элементом.
+
+                    Assert.False(synchronizedItems.ChildItems[1].InProcess); // А эти элементы не при чём.
+
+                    loadTask.Wait(); // Ждём, пока завершится загрузка.
+
+                    // А теперь всё обратно в false.
+                    Assert.False(childLevel1SynchronizedItems1.InProcess);
+                    Assert.False(synchronizedItems.InProcess);
+                    Assert.False(childLevel1SynchronizedItems1.ChildItems[0].InProcess);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Проверка изменения признака InProcess при выполнении команды синхронизации.
+        /// </summary>
+        /// <param name="left">True - синхронизация запускается левым элементом.
+        /// False - синхронизация запускается правым элементом.</param>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task InProcess_SyncCommand(bool left)
+        {
+            using (var leftDirectory = new Infrastructure.TestDirectory())
+            using (var rightDirectory = new Infrastructure.TestDirectory())
+            {
+                Infrastructure.TestDirectory.CreateDirectory(leftDirectory.CreateDirectory("Dir1"), "Dir2");
+                Infrastructure.TestDirectory.CreateDirectory(rightDirectory.CreateDirectory("Dir1"), "Dir2");
+                leftDirectory.CreateDirectory("Dir3");
+                rightDirectory.CreateDirectory("Dir3");
+
+                var containerBuilder = new ContainerBuilder();
+                containerBuilder.RegisterModule<TestAutofacRegisterModule>();
+                containerBuilder.RegisterType<SettingsRow>().As<ISettingsRow>();
+                containerBuilder.RegisterType<SynchronizedItems>().As<ISynchronizedItems>();
+
+                using (var fake = new AutoFake(builder: containerBuilder))
+                {
+                    var fakeItemFactory = A.Fake<IItemFactory>();
+                    A.CallTo(() => fakeItemFactory.CreateDirectory(A<string>.Ignored, A<string[]>.Ignored))
+                        .ReturnsLazily((string directoryPath, string[] excludedExtensions) =>
+                        {
+                            return new TestDirectory(directoryPath, fakeItemFactory, 1);
+                        });
+
+                    var fakeSettingsRow = A.Fake<ISettingsRow>();
+                    A.CallTo(() => fakeSettingsRow.LeftDirectory).Returns(new SettingsDirectory(leftDirectory.FullPath));
+                    A.CallTo(() => fakeSettingsRow.RightDirectory).Returns(new SettingsDirectory(rightDirectory.FullPath));
+
+                    var fakeSynchronizedItemsStatusAndCommandsUpdater = A.Fake<ISynchronizedItemsStatusAndCommandsUpdater>();
+                    A.CallTo(() => fakeSynchronizedItemsStatusAndCommandsUpdater
+                    .UpdateStatusesAndCommands(A<ISynchronizedItem>.Ignored, A<ISynchronizedItem>.Ignored))
+                        .Invokes((ISynchronizedItem item1, ISynchronizedItem item2) =>
+                        {
+                            item1.UpdateStatus(ItemStatusEnum.Equally);
+                            item2.UpdateStatus(ItemStatusEnum.Equally);
+                        });
+
+                    fake.Provide(fakeSettingsRow);
+                    fake.Provide(fakeItemFactory);
+                    fake.Provide(fakeSynchronizedItemsStatusAndCommandsUpdater);
+
+                    var synchronizedItems = fake.Resolve<ISynchronizedItems>();
+                    await synchronizedItems.Load(); // Загрузим, чтобы построилось дерево элементов.
+
+                    // А теперь запустим синхронизацию одного из элементов и проверим изменение признака InProcess.
+                    var childLevel1SynchronizedItems1 = synchronizedItems.ChildItems[0];
+                    var processItem = left ? childLevel1SynchronizedItems1.LeftItem : childLevel1SynchronizedItems1.RightItem;
+                    processItem.SyncCommand.SetCommandAction(() => 
+                        Task.Delay(4));
+                    var syncTask = Task.Run(() => processItem.SyncCommand.Process());
+
+                    await Task.Delay(2); // Чтобы признаки успели поменять значения.
+
+                    Assert.True(childLevel1SynchronizedItems1.InProcess);
+                    Assert.True(synchronizedItems.InProcess); // И процесс родителя должен обозначиться.
+                    Assert.True(childLevel1SynchronizedItems1.ChildItems[0].InProcess); // И процесс дочерних элементом.
+
+                    Assert.False(synchronizedItems.ChildItems[1].InProcess); // А эти элементы не при чём.
+
+                    syncTask.Wait(); // Ждём, пока завершится синхронизация.
+
+                    // А теперь всё обратно в false.
+                    Assert.False(childLevel1SynchronizedItems1.InProcess);
+                    Assert.False(synchronizedItems.InProcess);
+                    Assert.False(childLevel1SynchronizedItems1.ChildItems[0].InProcess);
+                }
+            }
+        }
+
         private ISynchronizedItem GetChildItemByName(ISynchronizedItems synchronizedItems, bool isLeft, string childItemName)
         {
             var item = isLeft ? synchronizedItems.LeftItem : synchronizedItems.RightItem;
@@ -625,6 +776,67 @@ namespace XUnitTestProject
 
             return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
                 new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
+        }
+
+        /// <summary>
+        /// Тестовая модель директории, которая засыпает при загрузке на указанное время.
+        /// </summary>
+        private class TestDirectory : IDirectory
+        {
+            private readonly IItemFactory _itemFactory;
+            private readonly short _sleepForLoad;
+
+            public TestDirectory(string fullPath, IItemFactory itemFactory, short sleepForLoad)
+            {
+                (FullPath, _itemFactory) = (fullPath, itemFactory);
+                Name = IO.Path.GetFileName(fullPath);
+                _sleepForLoad = sleepForLoad;
+            }
+
+            public IItem[] Items { get; private set; }
+
+            public bool IsLoaded => throw new NotImplementedException();
+
+            public string LastLoadError => throw new NotImplementedException();
+
+            public string[] ExcludedExtensions { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+            public string Name { get; }
+
+            public string FullPath { get; }
+
+            public DateTime LastUpdate => throw new NotImplementedException();
+
+            public event Action<IDirectory> LoadedDirectoryEvent;
+            public event Action<IItem> DeletedEvent;
+            public event Action<IItem, string> CopiedFromToEvent;
+            public event Action<string> SyncErrorEvent;
+
+            public Task CopyTo(string destinationPath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task Delete()
+            {
+                throw new NotImplementedException();
+            }
+
+            public async Task Load()
+            {
+                var result = new List<IItem>();
+
+                foreach (var directoryPath in IO.Directory.GetDirectories(FullPath))
+                {
+                    var directory = _itemFactory.CreateDirectory(directoryPath, null);
+                    await directory.Load();
+                    result.Add(directory);
+                }
+
+                await Task.Delay(_sleepForLoad);
+
+                Items = result.ToArray();
+            }
         }
 
         private class TestSettingsRow : ISettingsRow
