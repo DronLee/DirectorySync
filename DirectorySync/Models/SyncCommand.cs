@@ -19,7 +19,12 @@ namespace DirectorySync.Models
         public event Action CommandActionChangedEvent;
 
         /// <summary>
-        /// Событие завершения синхронизации.
+        /// Событие уведомляет, что начался процесс синхронизации.
+        /// </summary>
+        public event Action StartedSyncEvent;
+
+        /// <summary>
+        /// Событие уведомляет, что процесс синхронизации завершён.
         /// </summary>
         public event Action FinishedSyncEvent;
 
@@ -43,6 +48,7 @@ namespace DirectorySync.Models
         {
             if (CommandAction != null)
             {
+                StartedSyncEvent?.Invoke();
                 await CommandAction.Invoke();
                 FinishedSyncEvent?.Invoke();
             }

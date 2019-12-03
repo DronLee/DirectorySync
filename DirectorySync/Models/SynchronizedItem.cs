@@ -22,7 +22,8 @@ namespace DirectorySync.Models
                 UpdateItem(item);
 
             SyncCommand = new SyncCommand();
-            SyncCommand.FinishedSyncEvent += () => { FinishedSyncEvent?.Invoke(this); };
+            SyncCommand.StartedSyncEvent += () => StartedSyncEvent?.Invoke();
+            SyncCommand.FinishedSyncEvent += () => FinishedSyncEvent?.Invoke(this);
         }
 
         /// <summary>
@@ -61,7 +62,12 @@ namespace DirectorySync.Models
         public SyncCommand SyncCommand { get; }
 
         /// <summary>
-        /// Событие завершения синхронизации. Передаётся модель принятого элемента.
+        /// Событие уведомляет, что начался процесс синхронизации.
+        /// </summary>
+        public event Action StartedSyncEvent;
+
+        /// <summary>
+        /// Событие уведомляет, что процесс синхронизации завершён. Передаётся модель принятого элемента.
         /// </summary>
         public event Action<ISynchronizedItem> FinishedSyncEvent;
 

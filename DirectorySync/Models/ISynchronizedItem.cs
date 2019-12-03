@@ -43,7 +43,12 @@ namespace DirectorySync.Models
         SyncCommand SyncCommand { get; }
 
         /// <summary>
-        /// Событие завершения синхронизации. Передаётся модель принятого элемента.
+        /// Событие уведомляет, что начался процесс синхронизации.
+        /// </summary>
+        event Action StartedSyncEvent;
+
+        /// <summary>
+        /// Событие уведомляет, что процесс синхронизации завершён. Передаётся модель принятого элемента.
         /// </summary>
         event Action<ISynchronizedItem> FinishedSyncEvent;
 
