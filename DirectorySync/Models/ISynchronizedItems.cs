@@ -35,6 +35,11 @@ namespace DirectorySync.Models
         List<ISynchronizedItems> ChildItems { get; }
 
         /// <summary>
+        /// True - элементы синхронизации находятся в процессе загрузки или синхронизации.
+        /// </summary>
+        bool InProcess { get; }
+
+        /// <summary>
         /// Событие начала загрузки отслеживаемых директорий.
         /// </summary>
         event Action StartLoadDirectoriesEvent;
@@ -55,6 +60,11 @@ namespace DirectorySync.Models
         event Action DeletedEvent;
 
         /// <summary>
+        /// Событие оповещает, что признак InProcess был изменён и передаёт новое значение.
+        /// </summary>
+        event Action<bool> InProcessChangedEvent;
+
+        /// <summary>
         /// Загрузка директорий.
         /// </summary>
         Task Load();
@@ -68,5 +78,10 @@ namespace DirectorySync.Models
         /// Оповещение об удалении элемента.
         /// </summary>
         void IsDeleted();
+
+        /// <summary>
+        /// Поменять значение признака InProcess у текущих элементов и у всех дочерних.
+        /// </summary>
+        void InProcessChange(bool inProcess);
     }
 }

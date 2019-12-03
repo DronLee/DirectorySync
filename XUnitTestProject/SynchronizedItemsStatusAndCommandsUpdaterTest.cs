@@ -256,10 +256,18 @@ namespace XUnitTestProject
 
             public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
 
+            public bool InProcess => throw new NotImplementedException();
+
             public event Action StartLoadDirectoriesEvent;
             public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
             public event Action<ISynchronizedItems> DeleteEvent;
             public event Action DeletedEvent;
+            public event Action<bool> InProcessChangedEvent;
+
+            public void InProcessChange(bool inProcess)
+            {
+                throw new NotImplementedException();
+            }
 
             public void IsDeleted()
             {

@@ -16,6 +16,8 @@ namespace DirectorySync.Models
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
         private readonly ISynchronizedItemsStatusAndCommandsUpdater _statusAndCommandsUpdater;
 
+        private bool _inProcess = false;
+
         /// <summary>
         /// Конструктор.
         /// </summary>
@@ -47,16 +49,8 @@ namespace DirectorySync.Models
                 (settingsRow, synchronizedItemFactory, statusAndCommandsUpdater);
             (LeftItem, RightItem) = (leftItem, rightItem);
 
-            if (LeftItem.Item != null)
-                LeftItem.Item.DeletedEvent += ItemDeleted;
-            if (RightItem.Item != null)
-                RightItem.Item.DeletedEvent += ItemDeleted;
-
-            LeftItem.FinishedSyncEvent += FinishedSync;
-            RightItem.FinishedSyncEvent += FinishedSync;
-
-            LeftItem.CopiedFromToEvent += CopiedFromItem;
-            RightItem.CopiedFromToEvent += CopiedFromItem;
+            SetEventsSynchronizedItem(LeftItem);
+            SetEventsSynchronizedItem(RightItem);
         }
 
         /// <summary>
@@ -85,6 +79,22 @@ namespace DirectorySync.Models
         public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
 
         /// <summary>
+        /// True - элементы синхронизации находятся в процессе загрузки или синхронизации.
+        /// </summary>
+        public bool InProcess
+        {
+            get { return _inProcess; }
+            set
+            {
+                if (_inProcess != value)
+                {
+                    _inProcess = value;
+                    InProcessChangedEvent?.Invoke(value);
+                }
+            }
+        }
+
+        /// <summary>
         /// Событие начала загрузки отслеживаемых директорий.
         /// </summary>
         public event Action StartLoadDirectoriesEvent;
@@ -105,10 +115,17 @@ namespace DirectorySync.Models
         public event Action DeletedEvent;
 
         /// <summary>
+        /// Событие оповещает, что признак InProcess был изменён и передаёт новое значение.
+        /// </summary>
+        public event Action<bool> InProcessChangedEvent;
+
+        /// <summary>
         /// Загрузка директорий.
         /// </summary>
         public async Task Load()
         {
+            InProcessChange(true);
+
             StartLoadDirectoriesEvent?.Invoke();
 
             await Task.WhenAll(LeftDirectory.Load(), RightDirectory.Load());
@@ -117,6 +134,8 @@ namespace DirectorySync.Models
             LoadChildItems();
 
             DirectoriesIsLoadedEvent?.Invoke(this);
+
+            InProcessChange(false);
         }
 
         /// <summary>
@@ -155,12 +174,44 @@ namespace DirectorySync.Models
             DeletedEvent?.Invoke();
         }
 
+        /// <summary>
+        /// Поменять значение признака InProcess у текущих элементов и у всех дочерних.
+        /// </summary>
+        public void InProcessChange(bool inProcess)
+        {
+            InProcess = inProcess;
+            foreach (var child in ChildItems)
+            {
+                child.InProcessChangedEvent -= ChildInProcessChanged; // Не надо реагировать на событие, если сами и меняем значение.
+                child.InProcessChange(inProcess);
+                child.InProcessChangedEvent += ChildInProcessChanged;
+            }
+        }
+
+        private void SetEventsSynchronizedItem(ISynchronizedItem synchronizedItem)
+        {
+            if (synchronizedItem.Item != null)
+                synchronizedItem.Item.DeletedEvent += ItemDeleted;
+            synchronizedItem.FinishedSyncEvent += FinishedSync;
+            synchronizedItem.CopiedFromToEvent += CopiedFromItem;
+            synchronizedItem.StartedSyncEvent += () => InProcessChange(true);
+        }
+
+        private void ChildInProcessChanged(bool inProcess)
+        {
+            if (inProcess)
+                InProcess = true;
+            else if (ChildItems.All(i => !i.InProcess))
+                InProcess = false;
+        }
+
         private void AddChildItem(ISynchronizedItems child)
         {
             ChildItems.Add(child);
             child.DeleteEvent += DeleteChild;
             child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusAndCommands;
             child.RightItem.StatusChangedEvent += RefreshRightItemStatusAndCommands;
+            child.InProcessChangedEvent += ChildInProcessChanged;
         }
 
         private void RefreshLeftItemStatusAndCommands()
@@ -188,6 +239,7 @@ namespace DirectorySync.Models
             child.DeleteEvent -= DeleteChild;
             child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusAndCommands;
             child.RightItem.StatusChangedEvent -= RefreshRightItemStatusAndCommands;
+            child.InProcessChangedEvent -= ChildInProcessChanged;
 
             child.IsDeleted();
         }
@@ -286,7 +338,7 @@ namespace DirectorySync.Models
             DeleteEvent?.Invoke(this);
         }
 
-        private async void FinishedSync(ISynchronizedItem synchronizedItem)
+        private void FinishedSync(ISynchronizedItem synchronizedItem)
         {
             var updatedItem = LeftItem == synchronizedItem ? RightItem : LeftItem;
 
@@ -294,7 +346,7 @@ namespace DirectorySync.Models
             if (updatedItem.Item != null)
             {
                 StartLoadDirectoriesEvent?.Invoke();
-                await updatedItem.Item.Load();
+                updatedItem.Item.Load().Wait();
 
                 // Была выполнена синхронизация, и нам не известно, обновлялись, удалялись или добавлялись дочерние элементы,
                 // поэтому заново загрузим дочерние элементы удаляем все дочерние элементы и заново загружаем.
@@ -303,6 +355,8 @@ namespace DirectorySync.Models
 
                 DirectoriesIsLoadedEvent?.Invoke(this);
             }
+
+            InProcessChange(false);
         }
 
         private void ClearChildItems()

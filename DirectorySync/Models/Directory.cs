@@ -98,13 +98,13 @@ namespace DirectorySync.Models
             IsLoaded = false;
             _items.Clear();
 
-            await LoadDirectories();
-            await LoadFiles();
+            await LoadDirectories().ConfigureAwait(false);
+            await LoadFiles().ConfigureAwait(false);
 
             if (LastLoadError == null)
                 foreach (IDirectory directory in _items.Where(i => i is IDirectory))
                 {
-                    await directory.Load();
+                    await directory.Load().ConfigureAwait(false);
                     if(directory.LastLoadError != null && LastLoadError == null)
                         LastLoadError = "Есть директории, которые не удалось считать.";
                 }
@@ -129,7 +129,7 @@ namespace DirectorySync.Models
                     await item.CopyTo(IO.Path.Combine(destinationPath, item.Name));
 
                 CopiedFromToEvent?.Invoke(_itemFactory.CreateDirectory(destinationPath, ExcludedExtensions), destinationPath);
-            });
+            }).ConfigureAwait(false);
         }
 
         public async Task Delete()
@@ -148,7 +148,7 @@ namespace DirectorySync.Models
                 }
                 if (!error)
                     DeletedEvent?.Invoke(this);
-            });
+            }).ConfigureAwait(false);
         }
 
         public override string ToString()
@@ -171,7 +171,7 @@ namespace DirectorySync.Models
                 else
                     foreach (var directoryPath in directories)
                         AddItem(_itemFactory.CreateDirectory(directoryPath, ExcludedExtensions));
-            });
+            }).ConfigureAwait(false);
         }
 
         private async Task LoadFiles()
@@ -190,7 +190,7 @@ namespace DirectorySync.Models
                 else
                     foreach (var filePath in files)
                         AddItem(_itemFactory.CreateFile(filePath));
-            });
+            }).ConfigureAwait(false);
         }
 
         private void AddItem(IItem item)

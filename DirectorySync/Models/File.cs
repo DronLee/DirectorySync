@@ -75,7 +75,7 @@ namespace DirectorySync.Models
                 }
                 catch { }
                 CopiedFromToEvent?.Invoke(destinationFile, destinationPath);
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace DirectorySync.Models
                 }
                 if (!error)
                     DeletedEvent?.Invoke(this);
-            });
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace DirectorySync.Models
                 if(info.IsReadOnly)
                     info.IsReadOnly = false;
                 LastUpdate = info.LastWriteTime;
-            });
+            }).ConfigureAwait(false);
         }
 
         public override string ToString()

@@ -195,10 +195,13 @@ namespace XUnitTestProject
 
             public List<ISynchronizedItems> ChildItems { get; private set; } = new List<ISynchronizedItems>();
 
+            public bool InProcess => throw new NotImplementedException();
+
             public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
             public event Action<ISynchronizedItems> DeleteEvent;
             public event Action DeletedEvent;
             public event Action StartLoadDirectoriesEvent;
+            public event Action<bool> InProcessChangedEvent;
 
             public async Task Load()
             {
@@ -229,6 +232,11 @@ namespace XUnitTestProject
             public void IsDeleted()
             {
                 DeletedEvent?.Invoke();
+            }
+
+            public void InProcessChange(bool inProcess)
+            {
+                throw new NotImplementedException();
             }
         }
 
