@@ -47,21 +47,11 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// True - строка находится в процессе обновления.
         /// </summary>
-        bool InProcess { get; }
+        bool InProcess { get; set; }
 
         /// <summary>
         /// Событие возникновения ошибки в процессе синхронизации.
         /// </summary>
         event Action<string> SyncErrorEvent;
-
-        /// <summary>
-        /// Отобразить, что строка в процессе обновления.
-        /// </summary>
-        void ShowInProcess();
-
-        /// <summary>
-        /// Убрать отображение процесса обновления. 
-        /// </summary>
-        void HideInProcess();
     }
 }

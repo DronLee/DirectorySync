@@ -11,7 +11,7 @@ namespace DirectorySync.ViewModels
     {
         private bool _isExpanded;
         private bool _isSelected;
-        private bool _inProcess = true;
+        private bool _inProcess;
 
         /// <summary>
         /// Конструктор.
@@ -81,7 +81,7 @@ namespace DirectorySync.ViewModels
         public bool InProcess
         {
             get { return _inProcess; }
-            private set
+            set
             {
                 if(_inProcess!=value)
                 {
@@ -107,26 +107,6 @@ namespace DirectorySync.ViewModels
         /// </summary>
         public event Action<string> SyncErrorEvent;
 
-        /// <summary>
-        /// Отобразить, что строка в процессе обновления.
-        /// </summary>
-        public void ShowInProcess()
-        {
-            InProcess = true;
-            foreach (var child in ChildRows)
-                child.ShowInProcess();
-        }
-
-        /// <summary>
-        /// Убрать отображение процесса обновления. 
-        /// </summary>
-        public void HideInProcess()
-        {
-            InProcess = false;
-            foreach (var child in ChildRows)
-                child.HideInProcess();
-        }
-
         private void AcceptCommandChanged()
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CommandButtonIsVisible)));
@@ -134,7 +114,6 @@ namespace DirectorySync.ViewModels
 
         private void SetItemViewModelEvents(IItemViewModel itemViewModel)
         {
-            itemViewModel.StartedSyncEvent += ShowInProcess;
             itemViewModel.AcceptCommandChangedEvent += AcceptCommandChanged;
             itemViewModel.SyncErrorEvent += (string error) => { SyncErrorEvent?.Invoke(error); };
         }

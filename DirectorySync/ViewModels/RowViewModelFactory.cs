@@ -28,14 +28,13 @@ namespace DirectorySync.ViewModels
             var result = new RowViewModel(new ItemViewModel(synchronizedItems.LeftItem),
                 new ItemViewModel(synchronizedItems.RightItem), null);
 
-            synchronizedItems.StartLoadDirectoriesEvent += result.ShowInProcess;
+            synchronizedItems.InProcessChangedEvent += (bool inProcess) => { result.InProcess = inProcess; };
 
             AddChildRows(result, synchronizedItems);
 
             synchronizedItems.DirectoriesIsLoadedEvent += (ISynchronizedItems loadedItems) =>
             {
                 AddChildRows(result, loadedItems);
-                result.HideInProcess();
             };
 
             return result;
