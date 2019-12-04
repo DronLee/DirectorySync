@@ -28,7 +28,7 @@ namespace XUnitTestProject
             for (byte i = 0; i < 4; i++)
             {
                 var childSynchronizedItems = new TestSynchronizedItems("Test" + i.ToString());
-                testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
+                testSynchronizedItems.ChildItemsList.Add(childSynchronizedItems);
 
                 // Запишем команды синхронизации для каждого элемента.
                 childSynchronizedItems.LeftItem.SyncCommand.SetCommandAction(() =>
@@ -69,7 +69,7 @@ namespace XUnitTestProject
             for (byte i = 0; i < 4; i++)
             {
                 var childSynchronizedItems = new TestSynchronizedItems("Test" + i.ToString());
-                testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
+                testSynchronizedItems.ChildItemsList.Add(childSynchronizedItems);
 
                 // Запишем команды синхронизации для каждого элемента.
                 childSynchronizedItems.RightItem.SyncCommand.SetCommandAction(() =>
@@ -119,7 +119,7 @@ namespace XUnitTestProject
             {
                 var childSynchronizedItems = new TestSynchronizedItems(null);
                 childSynchronizedItems.LeftItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), leftItemStatus));
-                testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
+                testSynchronizedItems.ChildItemsList.Add(childSynchronizedItems);
             }
 
             var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
@@ -157,7 +157,7 @@ namespace XUnitTestProject
             {
                 var childSynchronizedItems = new TestSynchronizedItems(null);
                 childSynchronizedItems.RightItem.UpdateStatus((ItemStatusEnum)Enum.Parse(typeof(ItemStatusEnum), rightItemStatus));
-                testSynchronizedItems.ChildItems.Add(childSynchronizedItems);
+                testSynchronizedItems.ChildItemsList.Add(childSynchronizedItems);
             }
 
             var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
@@ -176,17 +176,17 @@ namespace XUnitTestProject
 
             var childSynchronizedDirectories = new TestSynchronizedItems(null);
             childSynchronizedDirectories.LeftItem.UpdateStatus(ItemStatusEnum.Unknown);
-            testSynchronizedItems.ChildItems.Add(childSynchronizedDirectories);
+            testSynchronizedItems.ChildItemsList.Add(childSynchronizedDirectories);
 
             var level2Child1 = new TestSynchronizedItems(null);
             level2Child1.LeftItem.UpdateStatus(ItemStatusEnum.Newer);
             level2Child1.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
-            childSynchronizedDirectories.ChildItems.Add(level2Child1);
+            childSynchronizedDirectories.ChildItemsList.Add(level2Child1);
 
             var level2Child2 = new TestSynchronizedItems(null);
             level2Child2.LeftItem.UpdateStatus(ItemStatusEnum.Missing);
             level2Child2.LeftItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
-            childSynchronizedDirectories.ChildItems.Add(level2Child2);
+            childSynchronizedDirectories.ChildItemsList.Add(level2Child2);
 
             var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshLeftItemStatusesAndCommandsFromChilds(testSynchronizedItems);
@@ -212,17 +212,17 @@ namespace XUnitTestProject
 
             var childSynchronizedDirectories = new TestSynchronizedItems(null);
             childSynchronizedDirectories.RightItem.UpdateStatus(ItemStatusEnum.Unknown);
-            testSynchronizedItems.ChildItems.Add(childSynchronizedDirectories);
+            testSynchronizedItems.ChildItemsList.Add(childSynchronizedDirectories);
 
             var level2Child1 = new TestSynchronizedItems(null);
             level2Child1.RightItem.UpdateStatus(ItemStatusEnum.Older);
             level2Child1.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
-            childSynchronizedDirectories.ChildItems.Add(level2Child1);
+            childSynchronizedDirectories.ChildItemsList.Add(level2Child1);
 
             var level2Child2 = new TestSynchronizedItems(null);
             level2Child2.RightItem.UpdateStatus(ItemStatusEnum.ThereIs);
             level2Child2.RightItem.SyncCommand.SetCommandAction(() => { return Task.FromResult(true); });
-            childSynchronizedDirectories.ChildItems.Add(level2Child2);
+            childSynchronizedDirectories.ChildItemsList.Add(level2Child2);
 
             var synchronizedItemsStatusAndCommandsUpdater = new SynchronizedItemsStatusAndCommandsUpdater(null);
             synchronizedItemsStatusAndCommandsUpdater.RefreshRightItemStatusesAndCommandsFromChilds(testSynchronizedItems);
@@ -238,8 +238,14 @@ namespace XUnitTestProject
             Assert.Null(testSynchronizedItems.RightItem.SyncCommand.CommandAction);
         }
 
+        /// <summary>
+        /// Упрощённая модель синхронизируемых элементов для тестирования. Предоставляет список дочерних элементов и имеет упрощённый конструктор,
+        /// добавляющий пару оодинаковых элементов.
+        /// </summary>
         private class TestSynchronizedItems : ISynchronizedItems
         {
+            public readonly List<ISynchronizedItems> ChildItemsList = new List<ISynchronizedItems>();
+
             public TestSynchronizedItems(string itemName)
             {
                 LeftItem = new SynchronizedItem(itemName, true, null);
@@ -254,9 +260,11 @@ namespace XUnitTestProject
 
             public ISynchronizedItem RightItem { get; }
 
-            public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
+            public ISynchronizedItems[] ChildItems => ChildItemsList.ToArray();
 
             public bool InProcess => throw new NotImplementedException();
+
+            public int ChildItemsCount => ChildItemsList.Count;
 
             public event Action StartLoadDirectoriesEvent;
             public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;

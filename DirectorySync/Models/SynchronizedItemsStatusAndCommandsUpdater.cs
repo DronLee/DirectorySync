@@ -31,7 +31,7 @@ namespace DirectorySync.Models
         /// <param name="synchronizedItems">Синхронизируемые элементы, статусы и команды которых будут обновлены.</param>
         public void RefreshLeftItemStatusesAndCommandsFromChilds(ISynchronizedItems synchronizedItems)
         {
-            if (synchronizedItems.ChildItems.Count > 0)
+            if (synchronizedItems.ChildItemsCount > 0)
             {
                 var notEquallyChilds = synchronizedItems.ChildItems.Where(r => r.LeftItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
 
@@ -61,7 +61,7 @@ namespace DirectorySync.Models
         /// <param name="synchronizedItems">Синхронизируемые элементы, статусы и команды которых будут обновлены.</param>
         public void RefreshRightItemStatusesAndCommandsFromChilds(ISynchronizedItems synchronizedItems)
         {
-            if (synchronizedItems.ChildItems.Count > 0)
+            if (synchronizedItems.ChildItemsCount   > 0)
             {
                 var notEquallyChilds = synchronizedItems.ChildItems.Where(r => r.RightItem.Status.StatusEnum != ItemStatusEnum.Equally).ToArray();
 

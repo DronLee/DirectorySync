@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DirectorySync.Models
@@ -15,6 +16,9 @@ namespace DirectorySync.Models
         private readonly ISettingsRow _settingsRow;
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
         private readonly ISynchronizedItemsStatusAndCommandsUpdater _statusAndCommandsUpdater;
+
+        private readonly List<ISynchronizedItems> _childItems = new List<ISynchronizedItems>();
+        private readonly ReaderWriterLockSlim _childItemsLock = new ReaderWriterLockSlim();
 
         private bool _inProcess = false;
 
@@ -76,7 +80,40 @@ namespace DirectorySync.Models
         /// <summary>
         /// Дочерние пары синхронизируемых элементов.
         /// </summary>
-        public List<ISynchronizedItems> ChildItems { get; } = new List<ISynchronizedItems>();
+        public ISynchronizedItems[] ChildItems
+        {
+            get
+            {
+                _childItemsLock.EnterReadLock();
+                try
+                {
+                    return _childItems.ToArray();
+                }
+                finally
+                {
+                    _childItemsLock.ExitReadLock();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Количество дочерних элементов.
+        /// </summary>
+        public int ChildItemsCount 
+        { 
+            get
+            {
+                _childItemsLock.EnterReadLock();
+                try
+                {
+                    return _childItems.Count;
+                }
+                finally
+                {
+                    _childItemsLock.ExitReadLock();
+                }
+            }
+        }
 
         /// <summary>
         /// True - элементы синхронизации находятся в процессе загрузки или синхронизации.
@@ -201,13 +238,36 @@ namespace DirectorySync.Models
         {
             if (inProcess)
                 InProcess = true;
-            else if (ChildItems.All(i => !i.InProcess))
-                InProcess = false;
+            else
+            {
+                bool allChildItemsNotInProcess;
+                _childItemsLock.EnterReadLock();
+                try
+                {
+                    allChildItemsNotInProcess = _childItems.All(i => !i.InProcess);
+                }
+                finally
+                {
+                    _childItemsLock.ExitReadLock();
+                }
+
+                if (allChildItemsNotInProcess)
+                    InProcess = false;
+            }
         }
 
         private void AddChildItem(ISynchronizedItems child)
         {
-            ChildItems.Add(child);
+            _childItemsLock.EnterWriteLock();
+            try
+            {
+                _childItems.Add(child);
+            }
+            finally
+            {
+                _childItemsLock.ExitWriteLock();
+            }
+
             child.DeleteEvent += DeleteChild;
             child.LeftItem.StatusChangedEvent += RefreshLeftItemStatusAndCommands;
             child.RightItem.StatusChangedEvent += RefreshRightItemStatusAndCommands;
@@ -233,7 +293,15 @@ namespace DirectorySync.Models
 
         private void DeleteChildWithoutUpdateParent(ISynchronizedItems child)
         {
-            ChildItems.Remove(child);
+            _childItemsLock.EnterWriteLock();
+            try
+            {
+                _childItems.Remove(child);
+            }
+            finally
+            {
+                _childItemsLock.ExitWriteLock();
+            }
 
             // Раз строка удаляется, больше за ней следить не надо.
             child.DeleteEvent -= DeleteChild;
@@ -361,7 +429,7 @@ namespace DirectorySync.Models
 
         private void ClearChildItems()
         {
-            foreach (var child in ChildItems.ToArray())
+            foreach (var child in ChildItems)
                 DeleteChildWithoutUpdateParent(child);
         }
 

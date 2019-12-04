@@ -70,7 +70,7 @@ namespace XUnitTestProject
 
                 await synchronizedDirectories.Load();
 
-                Assert.Equal(3, synchronizedDirectories.ChildItems.Count);
+                Assert.Equal(3, synchronizedDirectories.ChildItemsCount);
 
                 var directories = synchronizedDirectories.ChildItems[0];
                 Assert.Equal(file1Name, directories.LeftItem.Name);
@@ -138,7 +138,7 @@ namespace XUnitTestProject
 
                 await synchronizedDirectories.Load();
 
-                Assert.Equal(2, synchronizedDirectories.ChildItems.Count); // Одна модель на директории, одна модель на файлы.
+                Assert.Equal(2, synchronizedDirectories.ChildItemsCount); // Одна модель на директории, одна модель на файлы.
 
                 // Сначала директория, потом файл.
                 var childDirectories1 = synchronizedDirectories.ChildItems[0];

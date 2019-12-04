@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DirectorySync.Models
@@ -32,7 +31,12 @@ namespace DirectorySync.Models
         /// <summary>
         /// Дочерние пары синхронизируемых элементов.
         /// </summary>
-        List<ISynchronizedItems> ChildItems { get; }
+        ISynchronizedItems[] ChildItems { get; }
+
+        /// <summary>
+        /// Количество дочерних элементов.
+        /// </summary>
+        int ChildItemsCount { get; }
 
         /// <summary>
         /// True - элементы синхронизации находятся в процессе загрузки или синхронизации.

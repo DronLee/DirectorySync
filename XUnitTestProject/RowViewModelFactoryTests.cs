@@ -175,6 +175,7 @@ namespace XUnitTestProject
         private class TestSynchronizedItems : ISynchronizedItems
         {
             private readonly IItem _item;
+            private readonly List<ISynchronizedItems> _childItems = new List<ISynchronizedItems>();
 
             public TestSynchronizedItems(IItem item)
             {
@@ -193,9 +194,11 @@ namespace XUnitTestProject
 
             public ISynchronizedItem RightItem { get; }
 
-            public List<ISynchronizedItems> ChildItems { get; private set; } = new List<ISynchronizedItems>();
+            public ISynchronizedItems[] ChildItems => _childItems.ToArray();
 
             public bool InProcess => throw new NotImplementedException();
+
+            public int ChildItemsCount => _childItems.Count;
 
             public event Action<ISynchronizedItems> DirectoriesIsLoadedEvent;
             public event Action<ISynchronizedItems> DeleteEvent;
@@ -216,7 +219,7 @@ namespace XUnitTestProject
                     foreach (var item in ((IDirectory)_item).Items)
                     {
                         var child = new TestSynchronizedItems(item);
-                        ChildItems.Add(child);
+                        _childItems.Add(child);
                         child.LoadChildItems();
                     }
             }
