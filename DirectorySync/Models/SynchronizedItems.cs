@@ -307,7 +307,6 @@ namespace DirectorySync.Models
             child.DeleteEvent -= DeleteChild;
             child.LeftItem.StatusChangedEvent -= RefreshLeftItemStatusAndCommands;
             child.RightItem.StatusChangedEvent -= RefreshRightItemStatusAndCommands;
-            child.InProcessChangedEvent -= ChildInProcessChanged;
 
             child.IsDeleted();
         }
