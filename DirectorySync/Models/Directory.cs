@@ -195,8 +195,11 @@ namespace DirectorySync.Models
 
         private void AddItem(IItem item)
         {
-            item.DeletedEvent += DeleteItem;
-            _items.Add(item);
+            if (item != null)
+            {
+                item.DeletedEvent += DeleteItem;
+                _items.Add(item);
+            }
         }
 
         private void DeleteItem(IItem item)
