@@ -1,5 +1,7 @@
 ﻿using DirectorySync.Models;
 using DirectorySync.Models.Settings;
+using FakeItEasy;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,13 @@ namespace XUnitTestProject
 {
     public class SynchronizedDirectoriesManagerTests
     {
+        private readonly ILogger _logger;
+
+        public SynchronizedDirectoriesManagerTests()
+        {
+            _logger = A.Fake<ILogger>(l => l.CallsBaseMethods());
+        }
+
         [Fact]
         public void Init()
         {
@@ -21,7 +30,8 @@ namespace XUnitTestProject
                 new SettingsRow("3", "4", true, null)
             };
 
-            var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null);
+            var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(
+                testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()), null, _logger);
 
             Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);
             var synchronizedDirectory = synchronizedDirectoriesManager.SynchronizedDirectories[0];
@@ -56,8 +66,9 @@ namespace XUnitTestProject
                     settingsRow5
                 };
 
-                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()),
-                    new SynchronizedItemsStatusAndCommandsUpdater(null));
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(
+                    testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()),
+                    new SynchronizedItemsStatusAndCommandsUpdater(null), _logger);
 
                 await synchronizedDirectoriesManager.Load(); // Загрузка до изменения настроек.
 
@@ -149,8 +160,9 @@ namespace XUnitTestProject
                 var settingsRow1 = new SettingsRow(leftDirectory, rightDirectory, true, excludedExtensions);
                 testSettingsStorage.SettingsRows = new[] { settingsRow1 };
 
-                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()),
-                    new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
+                var synchronizedDirectoriesManager = new SynchronizedDirectoriesManager(
+                    testSettingsStorage, new SynchronizedItemFactory(new ItemFactory()),
+                    new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()), _logger);
                 await synchronizedDirectoriesManager.Load();
 
                 Assert.Single(synchronizedDirectoriesManager.SynchronizedDirectories);

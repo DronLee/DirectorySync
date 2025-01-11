@@ -1,6 +1,8 @@
 ﻿using DirectorySync.Models;
 using DirectorySync.Models.Settings;
 using DirectorySync.ViewModels;
+using FakeItEasy;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -252,7 +254,7 @@ namespace XUnitTestProject
             };
 
             return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
+                new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()), A.Fake<ILogger>(l => l.CallsBaseMethods()));
         }
 
         private class TestSettingsRow : ISettingsRow

@@ -3,6 +3,7 @@ using Autofac.Extras.FakeItEasy;
 using DirectorySync.Models;
 using DirectorySync.Models.Settings;
 using FakeItEasy;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,6 +14,12 @@ namespace XUnitTestProject
 {
     public class SynchronizedItemsTests
     {
+        private readonly ILogger _logger;
+        public SynchronizedItemsTests() 
+        {
+            _logger = A.Fake<ILogger>(l => l.CallsBaseMethods());
+        }
+
         /// <summary>
         /// Тест на срабатывание события DirectoriesIsLoadedEvent по завершению загрузки обоих директорий.
         /// </summary>
@@ -66,7 +73,7 @@ namespace XUnitTestProject
                 };
                 var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
                 var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                    testSynchronizedItemsStatusAndCommandsUpdater);
+                    testSynchronizedItemsStatusAndCommandsUpdater, _logger);
 
                 await synchronizedDirectories.Load();
 
@@ -134,7 +141,7 @@ namespace XUnitTestProject
                 };
                 var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
                 var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                    testSynchronizedItemsStatusAndCommandsUpdater);
+                    testSynchronizedItemsStatusAndCommandsUpdater, _logger);
 
                 await synchronizedDirectories.Load();
 
@@ -190,7 +197,7 @@ namespace XUnitTestProject
 
                 var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
                 var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                    testSynchronizedItemsStatusAndCommandsUpdater);
+                    testSynchronizedItemsStatusAndCommandsUpdater, _logger);
                 await synchronizedDirectories.Load();
 
                 Assert.Single(synchronizedDirectories.ChildItems);
@@ -242,7 +249,7 @@ namespace XUnitTestProject
 
                 var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
                 var synchronizedItems = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                    testSynchronizedItemsStatusAndCommandsUpdater);
+                    testSynchronizedItemsStatusAndCommandsUpdater, _logger);
 
                 await Task.WhenAll(synchronizedItems.LeftDirectory.Load(), synchronizedItems.RightDirectory.Load());
 
@@ -295,7 +302,7 @@ namespace XUnitTestProject
 
                 var testSynchronizedItemsStatusAndCommandsUpdater = new TestSynchronizedItemsStatusAndCommandsUpdater();
                 var synchronizedDirectories = new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                    testSynchronizedItemsStatusAndCommandsUpdater);
+                    testSynchronizedItemsStatusAndCommandsUpdater, _logger);
 
                 await synchronizedDirectories.Load();
 
@@ -775,7 +782,7 @@ namespace XUnitTestProject
             };
 
             return new SynchronizedItems(settingsRow, new SynchronizedItemFactory(new ItemFactory()),
-                new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()));
+                new SynchronizedItemsStatusAndCommandsUpdater(new SynchronizedItemMatcher()), _logger);
         }
 
         /// <summary>
