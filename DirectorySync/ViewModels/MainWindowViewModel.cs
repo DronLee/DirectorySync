@@ -54,6 +54,11 @@ namespace DirectorySync.ViewModels
             _rowViewModelFactory.AddRowEvent += AddRow;
             _rowViewModelFactory.DeleteRowEvent += DeleteRow;
 
+            foreach (var synchronizedDirectory in _synchronizedDirectoriesManager.SynchronizedDirectories)
+            {
+                synchronizedDirectory.InProcessChangedEvent += SynchronizedDirectoryInProcessChanged;
+            }
+
             foreach (var row in _synchronizedDirectoriesManager.SynchronizedDirectories.Select(d => rowViewModelFactory.CreateRowViewModel(d)))
                 AddRow(null, row);
         }
@@ -76,8 +81,6 @@ namespace DirectorySync.ViewModels
                         MenuButtonsIsEnabled = false;
 
                         _processScreenSaver.FrameUpdatedEvent += () => { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProcessGifSource))); };
-                        _processScreenSaver.Load(_dispatcher);
-
                         await LoadDirectories();
                         MenuButtonsIsEnabled = true;
                     });
@@ -144,8 +147,8 @@ namespace DirectorySync.ViewModels
         /// <summary>
         /// Команда обновления представлений синхронизируемых директорий.
         /// </summary>
-        public ICommand RefreshSynchronizedDirectoriesCommand 
-        { 
+        public ICommand RefreshSynchronizedDirectoriesCommand
+        {
             get
             {
                 if (_refreshSynchronizedDirectoriesCommand == null)
@@ -289,6 +292,21 @@ namespace DirectorySync.ViewModels
             }
 
             childRow.SyncErrorEvent -= AddToLog;
+        }
+
+        private void SynchronizedDirectoryInProcessChanged(bool inProcess)
+        {
+            if (_synchronizedDirectoriesManager.SynchronizedDirectories.Any(d => d.InProcess))
+            {
+                if (_processScreenSaver.IsStopped)
+                {
+                    _processScreenSaver.Start(_dispatcher);
+                }
+            }
+            else
+            {
+                _processScreenSaver.Stop();
+            }
         }
     }
 }

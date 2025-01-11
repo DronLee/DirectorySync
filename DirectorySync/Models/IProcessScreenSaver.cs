@@ -15,13 +15,23 @@ namespace DirectorySync.Models
         BitmapSource ProcessGifSource { get; }
 
         /// <summary>
+        /// True - отображение заставки остановлено.
+        /// </summary>
+        bool IsStopped { get; }
+
+        /// <summary>
         /// Событие обновления отображенния заставки.
         /// </summary>
         event Action FrameUpdatedEvent;
 
         /// <summary>
-        /// Загрузка gif-файла заставки.
+        /// Запуск отображения заставки.
         /// </summary>
-        void Load(Dispatcher dispatcher);
+        void Start(Dispatcher dispatcher);
+
+        /// <summary>
+        /// Остановить отображение заставки.
+        /// </summary>
+        void Stop();
     }
 }

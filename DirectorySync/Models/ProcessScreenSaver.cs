@@ -13,6 +13,8 @@ namespace DirectorySync.Models
     /// </summary>
     public class ProcessScreenSaver: IProcessScreenSaver
     {
+        private readonly object _startAndStopLocker = new object();
+
         private readonly ILogger _logger;
 
         private Dispatcher _dispatcher;
@@ -28,16 +30,31 @@ namespace DirectorySync.Models
         /// </summary>
         public BitmapSource ProcessGifSource { get; private set; }
 
+        /// <inheritdoc/>
+        public bool IsStopped { get; private set; } = true;
+
         public event Action FrameUpdatedEvent;
 
-        /// <summary>
-        /// Загрузка изображения заставки.
-        /// </summary>
-        public void Load(Dispatcher dispatcher)
+        /// <inheritdoc/>
+        public void Start(Dispatcher dispatcher)
         {
-            _dispatcher = dispatcher;
-            ProcessGifSource = GetProcessGifSource();
-            ImageAnimator.Animate(_processGifBitmap, OnFrameChanged);
+            lock (_startAndStopLocker)
+            {
+                _dispatcher = dispatcher;
+                _dispatcher.Invoke(() => { ProcessGifSource = GetProcessGifSource(); });
+                ImageAnimator.Animate(_processGifBitmap, OnFrameChanged);
+                IsStopped = false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Stop()
+        {
+            lock (_startAndStopLocker)
+            {
+                ImageAnimator.StopAnimate(_processGifBitmap, OnFrameChanged);
+                IsStopped = true;
+            }
         }
 
         private BitmapSource GetProcessGifSource()
