@@ -1,4 +1,5 @@
 ﻿using DirectorySync.Models.Settings;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +20,8 @@ namespace DirectorySync.Models
 
         private readonly List<ISynchronizedItems> _childItems = new List<ISynchronizedItems>();
         private readonly ReaderWriterLockSlim _childItemsLock = new ReaderWriterLockSlim();
+        
+        private readonly ILogger _logger;
 
         private bool _inProcess = false;
 
@@ -29,13 +32,15 @@ namespace DirectorySync.Models
         /// <param name="synchronizedItemFactory">Фабрика создания синхронизируемых элементов.</param>
         /// <param name="synchronizedItemMatcher">Объект, выполняющий сравнение синхронизируемых элементов между собой.</param>
         public SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory,
-            ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater) :
+            ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater, ILogger logger) :
             this(settingsRow, synchronizedItemFactory, statusAndCommandsUpdater,
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.LeftDirectory.DirectoryPath,
                     synchronizedItemFactory.CreateDirectory(settingsRow.LeftDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
                 synchronizedItemFactory.CreateSynchronizedDirectory(settingsRow.RightDirectory.DirectoryPath,
-                    synchronizedItemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions)))
-        { }
+                    synchronizedItemFactory.CreateDirectory(settingsRow.RightDirectory.DirectoryPath, settingsRow.ExcludedExtensions)),
+                logger)
+        {
+        }
 
         /// <summary>
         /// Конструктор.
@@ -47,10 +52,10 @@ namespace DirectorySync.Models
         /// <param name="rightItem">Элемент синхронизации справва.</param>
         /// <param name="parentDirectories">Родительский элемент синхронизируемых директорий.</param>
         private SynchronizedItems(ISettingsRow settingsRow, ISynchronizedItemFactory synchronizedItemFactory,
-            ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater, ISynchronizedItem leftItem, ISynchronizedItem rightItem)
+            ISynchronizedItemsStatusAndCommandsUpdater statusAndCommandsUpdater, ISynchronizedItem leftItem, ISynchronizedItem rightItem, ILogger logger)
         {
-            (_settingsRow, _synchronizedItemFactory, _statusAndCommandsUpdater) =
-                (settingsRow, synchronizedItemFactory, statusAndCommandsUpdater);
+            (_settingsRow, _synchronizedItemFactory, _statusAndCommandsUpdater, _logger) =
+                (settingsRow, synchronizedItemFactory, statusAndCommandsUpdater, logger);
             (LeftItem, RightItem) = (leftItem, rightItem);
 
             SetEventsSynchronizedItem(LeftItem);
@@ -173,6 +178,8 @@ namespace DirectorySync.Models
             DirectoriesIsLoadedEvent?.Invoke(this);
 
             InProcessChange(false);
+
+            _logger.Information("Завершена загрузка директорий:\n{0}\n{1}", LeftDirectory.FullPath, RightDirectory.FullPath);
         }
 
         /// <summary>
@@ -396,7 +403,7 @@ namespace DirectorySync.Models
         private ISynchronizedItems CreateISynchronizedItems(ISynchronizedItem leftSynchronizedItem, ISynchronizedItem rightSynchronizedItem)
         {
             return new SynchronizedItems(_settingsRow, _synchronizedItemFactory, _statusAndCommandsUpdater,
-                leftSynchronizedItem, rightSynchronizedItem);
+                leftSynchronizedItem, rightSynchronizedItem, _logger);
         }
 
         private void ItemDeleted(IItem item)

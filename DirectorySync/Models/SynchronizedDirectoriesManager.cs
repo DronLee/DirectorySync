@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DirectorySync.Models.Settings;
+using Serilog;
 
 namespace DirectorySync.Models
 {
@@ -15,6 +16,7 @@ namespace DirectorySync.Models
         private readonly ISynchronizedItemFactory _synchronizedItemFactory;
         private readonly List<SynchronizedItems> _synchronizedDirectoriesList;
         private readonly ISynchronizedItemsStatusAndCommandsUpdater _synchronizedItemsStatusAndCommandsUpdater;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Синхронизируемые директории, отобранные для загрузки.
@@ -27,13 +29,13 @@ namespace DirectorySync.Models
         /// <param name="settingsStorage">Хранилище настроек, где указаны директории для синхронизации.</param>
         /// <param name="synchronizedItemFactory">Фабрика для создания отслеживаемых элементов.</param>
         public SynchronizedDirectoriesManager(ISettingsStorage settingsStorage, ISynchronizedItemFactory synchronizedItemFactory,
-            ISynchronizedItemsStatusAndCommandsUpdater synchronizedItemsStatusAndCommandsUpdater)
+            ISynchronizedItemsStatusAndCommandsUpdater synchronizedItemsStatusAndCommandsUpdater, ILogger logger)
         {
-            (_settingsStorage, _synchronizedItemFactory, _synchronizedItemsStatusAndCommandsUpdater) = 
-                (settingsStorage, synchronizedItemFactory, synchronizedItemsStatusAndCommandsUpdater);
+            (_settingsStorage, _synchronizedItemFactory, _synchronizedItemsStatusAndCommandsUpdater, _logger) = 
+                (settingsStorage, synchronizedItemFactory, synchronizedItemsStatusAndCommandsUpdater, logger);
 
             _synchronizedDirectoriesList = settingsStorage.SettingsRows.Where(r => r.IsUsed).Select(
-                r => new SynchronizedItems(r, _synchronizedItemFactory, _synchronizedItemsStatusAndCommandsUpdater)).ToList();
+                r => new SynchronizedItems(r, _synchronizedItemFactory, _synchronizedItemsStatusAndCommandsUpdater, logger)).ToList();
             _synchronizedDirectoriesListForLoad = new List<SynchronizedItems>(_synchronizedDirectoriesList);
         }
 
@@ -64,7 +66,7 @@ namespace DirectorySync.Models
                  d.LeftDirectory.FullPath == r.LeftDirectory.DirectoryPath && d.RightDirectory.FullPath == r.RightDirectory.DirectoryPath)))
             {
                 var synchronizedDirectories = new SynchronizedItems(settingsRow, _synchronizedItemFactory,
-                    _synchronizedItemsStatusAndCommandsUpdater);
+                    _synchronizedItemsStatusAndCommandsUpdater, _logger);
                 _synchronizedDirectoriesList.Add(synchronizedDirectories);
                 AddSynchronizedDirectoriesEvent?.Invoke(synchronizedDirectories);
 
@@ -97,6 +99,9 @@ namespace DirectorySync.Models
 
         private async Task Load(List<SynchronizedItems> synchronizedDirectories)
         {
+            _logger.Information("Загрузка директорий:\n{0}",
+                string.Join("\n", synchronizedDirectories.SelectMany(d => new[] { d.LeftDirectory.FullPath, d.RightDirectory.FullPath })));
+
             await Task.Run(() => Task.WhenAll(synchronizedDirectories.Select(d => d.Load()).ToArray()));
         }
 

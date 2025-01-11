@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Interop;
@@ -12,8 +13,15 @@ namespace DirectorySync.Models
     /// </summary>
     public class ProcessScreenSaver: IProcessScreenSaver
     {
+        private readonly ILogger _logger;
+
         private Dispatcher _dispatcher;
         private Bitmap _processGifBitmap;
+
+        public ProcessScreenSaver(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         /// <summary>
         /// Gif для отображения процесса синхронизации.
@@ -34,11 +42,23 @@ namespace DirectorySync.Models
 
         private BitmapSource GetProcessGifSource()
         {
-            if (_processGifBitmap == null)
+            if (_processGifBitmap is null)
+            {
                 _processGifBitmap = Resources.SyncProcess;
-            var handle = _processGifBitmap.GetHbitmap();
-            return Imaging.CreateBitmapSourceFromHBitmap(
-                    handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            }
+
+            try
+            {
+                var handle = _processGifBitmap.GetHbitmap();
+                return Imaging.CreateBitmapSourceFromHBitmap(
+                        handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex,
+                    "Не удалось получить gif для отображения работающего процесса (потребляемая память: {0} МБ).", GC.GetTotalMemory(true) / 1024 / 1024);
+                throw;
+            }
         }
 
         private void OnFrameChanged(object sender, EventArgs e)
